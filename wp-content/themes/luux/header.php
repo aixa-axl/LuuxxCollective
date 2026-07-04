@@ -14,14 +14,14 @@ $logo_id   = function_exists('get_field') ? get_field('site_logo', 'option') : n
 $enquire   = function_exists('get_field') ? get_field('enquire_link', 'option') : null;
 
 $header_class = implode(' ', array_filter([
-    'site-header fixed inset-x-0 top-0 z-50 h-16 border-b',
+    'site-header fixed inset-x-0 top-0 z-50 h-16 border-b lg:h-auto lg:pt-6 lg:pb-4',
     'bg-white border-brand-cream text-brand-primary',
     $on_hero ? 'lg:absolute lg:border-0 lg:bg-white/20 lg:backdrop-blur-[3.75px] lg:text-brand-white' : '',
 ]));
 ?>
 
 <header class="<?php echo esc_attr($header_class); ?>" data-mobile-nav>
-    <div class="container-site flex h-full items-center justify-between gap-12 lg:h-auto lg:justify-normal lg:pt-6 lg:pb-4">
+    <div class="container-site flex h-full items-center justify-between gap-12 lg:h-auto lg:justify-normal">
         <a href="<?php echo esc_url(home_url('/')); ?>" class="relative block h-5 w-[7.5rem] shrink-0 lg:h-10 lg:w-[15.5625rem]">
             <?php if ($logo_id) : ?>
                 <?php echo wp_get_attachment_image($logo_id, 'medium', false, [
