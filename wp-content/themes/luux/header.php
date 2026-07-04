@@ -21,8 +21,8 @@ $header_class = implode(' ', array_filter([
 ?>
 
 <header class="<?php echo esc_attr($header_class); ?>" data-mobile-nav>
-    <div class="container-site flex h-full items-center justify-between gap-12 lg:h-auto lg:justify-normal">
-        <a href="<?php echo esc_url(home_url('/')); ?>" class="relative block h-5 w-[7.5rem] shrink-0 lg:h-10 lg:w-[15.5625rem]">
+    <div class="container-site flex h-full items-center justify-between lg:grid lg:h-auto lg:grid-cols-[1fr_auto_1fr] lg:items-center">
+        <a href="<?php echo esc_url(home_url('/')); ?>" class="relative block h-5 w-[7.5rem] shrink-0 lg:h-10 lg:w-[15.5625rem] lg:justify-self-start">
             <?php if ($logo_id) : ?>
                 <?php echo wp_get_attachment_image($logo_id, 'medium', false, [
                     'class' => 'h-full w-full object-contain object-left',
@@ -36,13 +36,13 @@ $header_class = implode(' ', array_filter([
         wp_nav_menu([
             'theme_location' => 'primary',
             'container'      => 'nav',
-            'container_class'=> 'site-header__nav hidden lg:flex lg:flex-1 lg:justify-center',
+            'container_class'=> 'site-header__nav hidden lg:block lg:justify-self-center',
             'menu_class'     => 'flex gap-8',
             'fallback_cb'    => false,
         ]);
         ?>
 
-        <div class="flex shrink-0 items-center gap-4">
+        <div class="flex shrink-0 items-center gap-4 lg:justify-self-end">
             <?php if ($enquire) : ?>
                 <a class="btn-enquire <?php echo $on_hero ? 'btn-enquire-hero' : ''; ?>"
                    href="<?php echo esc_url($enquire['url']); ?>"
