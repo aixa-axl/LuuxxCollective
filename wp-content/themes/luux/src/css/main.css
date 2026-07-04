@@ -121,6 +121,9 @@
   }
 
   /* Hero scrims — Figma hero 76:4901 (desktop), 102:815 (mobile) */
+  .hero--home-bleed {
+    margin-top: calc(-1 * var(--wp-admin--admin-bar--height, 0px));
+  }
   .hero-scrim {
     background: linear-gradient(
       to right,
@@ -237,6 +240,9 @@
     background: var(--color-brand-white);
     color: var(--color-brand-primary);
   }
+  html.admin-bar .site-header--hero {
+    top: var(--wp-admin--admin-bar--height, 32px);
+  }
   .site-header__inner {
     display: flex;
     align-items: center;
@@ -298,7 +304,6 @@
       min-width: 0;
     }
     .site-header--hero {
-      position: absolute;
       border-bottom: 0;
       background: rgb(255 255 255 / 0.2);
       -webkit-backdrop-filter: blur(3.75px);

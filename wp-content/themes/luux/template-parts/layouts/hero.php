@@ -9,7 +9,7 @@ $image_id   = get_sub_field('background_image');
 $ctas       = get_sub_field('ctas');
 ?>
 
-<section class="relative h-[640px] overflow-hidden lg:h-[700px]">
+<section class="hero<?php echo is_front_page() ? ' hero--home-bleed' : ''; ?> relative h-[640px] overflow-hidden lg:h-[700px]">
     <?php if ($image_id) : ?>
         <?php echo wp_get_attachment_image($image_id, 'full', false, [
             'class'         => 'absolute inset-0 h-full w-full object-cover',
