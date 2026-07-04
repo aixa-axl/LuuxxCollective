@@ -120,6 +120,39 @@
     }
   }
 
+  /* Hero scrims — Figma hero 76:4901 (desktop), 102:815 (mobile) */
+  .hero-scrim {
+    background: linear-gradient(
+      to right,
+      rgb(12 21 53 / 0.8),
+      rgb(12 21 53 / 0.48) 80%,
+      rgb(12 21 53 / 0.2)
+    );
+  }
+  @media (min-width: 1024px) {
+    .hero-scrim {
+      background: linear-gradient(
+        to top,
+        rgb(12 21 53 / 0.8) 6.071%,
+        rgb(12 21 53 / 0.48) 40.844%,
+        rgb(12 21 53 / 0.2) 52.714%
+      );
+    }
+  }
+  .hero-scrim-mobile {
+    background: linear-gradient(
+      to top,
+      rgb(0 0 0 / 0.45),
+      rgb(0 0 0 / 0.3) 40%,
+      rgb(0 0 0 / 0.6)
+    );
+  }
+  @media (min-width: 1024px) {
+    .hero__ctas > .link-underline-block {
+      border-bottom: 1px solid currentColor;
+    }
+  }
+
   .link-underline {
     display: inline-block;
     font-family: var(--font-display);
