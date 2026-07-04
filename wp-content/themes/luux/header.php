@@ -9,21 +9,19 @@
 <?php wp_body_open(); ?>
 
 <?php
-/**
- * Site header.
- */
+$on_hero   = is_front_page();
+$logo_id   = function_exists('get_field') ? get_field('site_logo', 'option') : null;
+$enquire   = function_exists('get_field') ? get_field('enquire_link', 'option') : null;
 
-$on_hero      = is_front_page();
-$header_class = $on_hero
-    ? 'absolute inset-x-0 top-0 z-50 text-brand-white'
-    : 'relative z-50 border-b border-brand-cream bg-brand-white text-brand-primary';
-$logo_id      = function_exists('get_field') ? get_field('site_logo', 'option') : null;
-$enquire      = function_exists('get_field') ? get_field('enquire_link', 'option') : null;
-$menu_class   = $on_hero ? 'text-brand-white' : 'text-brand-primary';
+$header_class = implode(' ', array_filter([
+    'fixed inset-x-0 top-0 z-50 h-16 border-b',
+    'bg-white border-brand-cream text-brand-primary',
+    $on_hero ? 'lg:absolute lg:h-auto lg:border-transparent lg:bg-transparent lg:text-brand-white' : '',
+]));
 ?>
 
 <header class="<?php echo esc_attr($header_class); ?>" data-mobile-nav>
-    <div class="container-site flex items-center justify-between py-4 lg:py-6">
+    <div class="container-site flex h-full items-center justify-between lg:py-6">
         <a href="<?php echo esc_url(home_url('/')); ?>" class="relative block h-5 w-[7.5rem] shrink-0 lg:h-10 lg:w-[15.375rem]">
             <?php if ($logo_id) : ?>
                 <?php echo wp_get_attachment_image($logo_id, 'medium', false, [
@@ -39,14 +37,14 @@ $menu_class   = $on_hero ? 'text-brand-white' : 'text-brand-primary';
             'theme_location' => 'primary',
             'container'      => 'nav',
             'container_class'=> 'hidden lg:block',
-            'menu_class'     => 'flex gap-10 font-body text-body ' . $menu_class,
+            'menu_class'     => 'flex gap-10 font-body text-body ' . ($on_hero ? 'text-brand-white' : 'text-brand-primary'),
             'fallback_cb'    => false,
         ]);
         ?>
 
         <div class="flex items-center gap-4">
             <?php if ($enquire) : ?>
-                <a class="btn-enquire hidden lg:inline-block"
+                <a class="btn-enquire inline-block"
                    href="<?php echo esc_url($enquire['url']); ?>"
                    <?php echo ! empty($enquire['target']) ? 'target="_blank" rel="noopener"' : ''; ?>>
                     <?php echo esc_html($enquire['title'] ?: __('Enquire', 'luux')); ?>
@@ -70,14 +68,6 @@ $menu_class   = $on_hero ? 'text-brand-white' : 'text-brand-primary';
          class="border-t border-brand-cream bg-brand-white px-5 py-6 text-brand-primary lg:hidden"
          data-mobile-nav-panel
          hidden>
-        <?php if ($enquire) : ?>
-            <a class="btn-enquire mb-6 inline-block"
-               href="<?php echo esc_url($enquire['url']); ?>"
-               <?php echo ! empty($enquire['target']) ? 'target="_blank" rel="noopener"' : ''; ?>>
-                <?php echo esc_html($enquire['title'] ?: __('Enquire', 'luux')); ?>
-            </a>
-        <?php endif; ?>
-
         <?php
         wp_nav_menu([
             'theme_location' => 'primary',

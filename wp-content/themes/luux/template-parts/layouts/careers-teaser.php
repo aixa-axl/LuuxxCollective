@@ -13,7 +13,7 @@ $cta     = get_sub_field('cta');
         <?php if ($heading || $text) : ?>
             <div class="flex max-w-2xl flex-col gap-3">
                 <?php if ($heading) : ?>
-                    <h2 class="font-display text-h3 text-brand-dark"><?php echo esc_html($heading); ?></h2>
+                    <h2 class="font-display text-h3 leading-[1.1] text-brand-dark lg:text-h3 lg:leading-none"><?php echo esc_html($heading); ?></h2>
                 <?php endif; ?>
                 <?php if ($text) : ?>
                     <p class="font-body text-body text-brand-gold-muted"><?php echo esc_html($text); ?></p>

@@ -18,3 +18,5 @@ wp-content/themes/luux/assets/css/main.css
 /license.txt
 /readme.html
 /.htaccess
+/wp-content/themes/twentytwenty*/
+/wp-content/upgrade-temp-backup/

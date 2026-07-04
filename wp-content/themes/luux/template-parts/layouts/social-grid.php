@@ -10,7 +10,7 @@ $images  = get_sub_field('images');
 <section class="section-pad">
     <div class="container-site flex flex-col gap-10">
         <?php if ($heading) : ?>
-            <h2 class="max-w-sm font-display text-h2 text-brand-dark"><?php echo esc_html($heading); ?></h2>
+            <h2 class="font-display text-h3 leading-[1.1] text-brand-dark lg:text-h2 lg:leading-none"><?php echo esc_html($heading); ?></h2>
         <?php endif; ?>
 
         <?php if ($images) : ?>
