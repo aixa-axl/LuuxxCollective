@@ -7,14 +7,14 @@ wp-content/themes/luux/assets/css/main.css
 *.log
 
 # Local WP artefacts — repo tracks the theme only
-wp-admin/
-wp-includes/
-wp-content/uploads/
-wp-content/plugins/
-wp-content/upgrade/
-wp-*.php
-xmlrpc.php
-index.php
-license.txt
-readme.html
-.htaccess
+/wp-admin/
+/wp-includes/
+/wp-content/uploads/
+/wp-content/plugins/
+/wp-content/upgrade/
+/wp-*.php
+/xmlrpc.php
+/index.php
+/license.txt
+/readme.html
+/.htaccess
