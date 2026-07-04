@@ -1,0 +1,38 @@
+---
+description: Luux WordPress theme conventions — applies to all theme work
+alwaysApply: true
+---
+
+# Luux Theme Conventions
+
+Custom WordPress theme. Tailwind CSS v4 + ACF Pro Flexible Content. No page builders, no jQuery, no component libraries.
+
+## Workflow: Figma → layout
+
+When given a Figma section (via Figma MCP), produce exactly two artefacts:
+
+1. **Template part** at `template-parts/layouts/{layout-name}.php` (hyphenated filename)
+2. **ACF layout** added to the `layouts` object in `acf-json/group_luux_page_sections.json` (underscored layout name, keys prefixed `field_luux_{layout}_{field}`)
+
+`template-parts/layouts/hero.php` is the reference implementation — match its structure, escaping, and commenting style exactly.
+
+## Rules
+
+- Read all sub-fields with `get_sub_field()` at the top of the file; escape at output: `esc_html()` for text, `esc_url()` for links, `wp_kses_post()` for wysiwyg.
+- Images: ACF image fields return **IDs** (`"return_format": "id"`). Render with `wp_get_attachment_image($id, $size, false, ['class' => '...'])`. Never raw URLs. Hero/above-fold images get `'fetchpriority' => 'high'`; everything else gets `'loading' => 'lazy'`.
+- Links: ACF link fields return arrays `{url, title, target}` — always output all three, with `rel="noopener"` on `_blank`.
+- Optional fields guard their own markup with `if` — no empty tags.
+- Tailwind utilities only. Colours and fonts via theme tokens: `bg-brand-dark`, `bg-brand-navy`, `bg-brand-cream`, `text-brand-gold`, `font-display`, `font-body`. Never arbitrary values like `bg-[#3d3524]` — if a token is missing, add it to `@theme` in `src/css/main.css`.
+- Repeating items (cards, testimonials, gallery images, FAQ items) = ACF repeater sub-field, looped with `have_rows()/the_row()`.
+- Layout variants (reversed columns, dark/light background) = `true_false` or `select` sub-field toggling Tailwind classes — never a duplicate layout.
+- Buttons use `.btn` + `.btn-gold` / `.btn-navy` / `.btn-outline`.
+- Mobile-first responsive: base styles are mobile, scale up with `lg:`. Figma MCP output is desktop — always add the mobile behaviour.
+- Accessibility floor: semantic headings (one h1 per page, from the hero), alt text from attachment (never hardcoded), focus-visible states on interactive elements, `aria-hidden="true"` on decorative overlays.
+- Figma MCP output will be React/HTML-flavoured — translate to PHP template parts; keep the Tailwind classes, drop any React idioms.
+
+## Don't
+
+- No inline `<style>` or `<script>` in template parts (JS goes in `src/js`, styles in Tailwind).
+- No new top-level page templates — every page renders via `page.php` → `luux_render_sections()`.
+- No plugins for things a template part can do.
+- Never edit `assets/css/main.css` directly — it's compiled output.

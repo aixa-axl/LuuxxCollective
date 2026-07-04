@@ -1,0 +1,33 @@
+name: Deploy to WP Engine
+
+on:
+  push:
+    branches:
+      - main        # → production (add a staging branch → WPE_ENV_STAGING if wanted)
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: wp-content/themes/luux/package-lock.json
+
+      - name: Build Tailwind
+        working-directory: wp-content/themes/luux
+        run: |
+          npm ci
+          npm run build
+
+      - name: Deploy theme to WP Engine
+        uses: wpengine/github-action-wpe-site-deploy@v3
+        with:
+          WPE_SSHG_KEY_PRIVATE: ${{ secrets.WPE_SSHG_KEY_PRIVATE }}
+          WPE_ENV: ${{ secrets.WPE_ENV_NAME }}          # WP Engine environment name
+          SRC_PATH: wp-content/themes/luux/
+          REMOTE_PATH: wp-content/themes/luux/
+          FLAGS: -azvr --inplace --delete --exclude=node_modules --exclude=src --exclude=.git

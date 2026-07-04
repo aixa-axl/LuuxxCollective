@@ -1,0 +1,63 @@
+{
+  "key": "group_luux_page_sections",
+  "title": "Page Sections",
+  "fields": [
+    {
+      "key": "field_luux_page_sections",
+      "label": "Page Sections",
+      "name": "page_sections",
+      "type": "flexible_content",
+      "button_label": "Add Section",
+      "layouts": {
+        "layout_luux_hero": {
+          "key": "layout_luux_hero",
+          "name": "hero",
+          "label": "Hero",
+          "display": "block",
+          "sub_fields": [
+            {
+              "key": "field_luux_hero_heading",
+              "label": "Heading",
+              "name": "heading",
+              "type": "text"
+            },
+            {
+              "key": "field_luux_hero_subheading",
+              "label": "Subheading",
+              "name": "subheading",
+              "type": "text"
+            },
+            {
+              "key": "field_luux_hero_background_image",
+              "label": "Background Image",
+              "name": "background_image",
+              "type": "image",
+              "return_format": "id",
+              "preview_size": "medium"
+            },
+            {
+              "key": "field_luux_hero_cta",
+              "label": "CTA",
+              "name": "cta",
+              "type": "link",
+              "return_format": "array"
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "location": [
+    [
+      {
+        "param": "post_type",
+        "operator": "==",
+        "value": "page"
+      }
+    ]
+  ],
+  "position": "normal",
+  "style": "seamless",
+  "active": true,
+  "show_in_rest": 0
+}
