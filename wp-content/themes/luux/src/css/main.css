@@ -193,9 +193,29 @@
     border-radius: 2px;
   }
   .btn-enquire {
+    display: inline-block;
     border: 1px solid var(--color-brand-primary);
     color: var(--color-brand-primary);
     border-radius: 2px;
     padding: 0.5rem 1rem;
+    font-family: var(--font-display);
+    font-size: var(--text-body);
+    line-height: var(--text-body--line-height);
+    white-space: nowrap;
+    transition: opacity 150ms ease;
+  }
+  .btn-enquire:hover { opacity: 0.85; }
+  .btn-enquire:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 2px;
+  }
+  @media (min-width: 1024px) {
+    .btn-enquire {
+      padding: 0.75rem 1.5rem;
+    }
+  }
+  .btn-enquire-hero {
+    border-color: var(--color-brand-white);
+    color: var(--color-brand-white);
   }
 }

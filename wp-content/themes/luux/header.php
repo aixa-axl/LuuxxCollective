@@ -21,8 +21,8 @@ $header_class = implode(' ', array_filter([
 ?>
 
 <header class="<?php echo esc_attr($header_class); ?>" data-mobile-nav>
-    <div class="container-site flex h-full items-center justify-between lg:py-6">
-        <a href="<?php echo esc_url(home_url('/')); ?>" class="relative block h-5 w-[7.5rem] shrink-0 lg:h-10 lg:w-[15.375rem]">
+    <div class="container-site flex h-full items-center justify-between lg:grid lg:h-auto lg:grid-cols-[1fr_auto_1fr] lg:items-center lg:py-6">
+        <a href="<?php echo esc_url(home_url('/')); ?>" class="relative block h-5 w-[7.5rem] shrink-0 lg:h-10 lg:w-[15.375rem] lg:justify-self-start">
             <?php if ($logo_id) : ?>
                 <?php echo wp_get_attachment_image($logo_id, 'medium', false, [
                     'class' => 'h-full w-full object-contain object-left',
@@ -36,18 +36,18 @@ $header_class = implode(' ', array_filter([
         wp_nav_menu([
             'theme_location' => 'primary',
             'container'      => 'nav',
-            'container_class'=> 'hidden lg:block',
-            'menu_class'     => 'flex gap-10 font-body text-body ' . ($on_hero ? 'text-brand-white' : 'text-brand-primary'),
+            'container_class'=> 'hidden lg:block lg:justify-self-center',
+            'menu_class'     => 'flex gap-8 font-body text-body ' . ($on_hero ? 'text-brand-white' : 'text-brand-primary'),
             'fallback_cb'    => false,
         ]);
         ?>
 
-        <div class="flex items-center gap-4">
+        <div class="flex items-center gap-4 lg:justify-self-end">
             <?php if ($enquire) : ?>
-                <a class="btn-enquire inline-block"
+                <a class="btn-enquire <?php echo $on_hero ? 'btn-enquire-hero' : ''; ?>"
                    href="<?php echo esc_url($enquire['url']); ?>"
                    <?php echo ! empty($enquire['target']) ? 'target="_blank" rel="noopener"' : ''; ?>>
-                    <?php echo esc_html($enquire['title'] ?: __('Enquire', 'luux')); ?>
+                    <?php echo esc_html($enquire['title'] ?: __('Enquire Now', 'luux')); ?>
                 </a>
             <?php endif; ?>
 
