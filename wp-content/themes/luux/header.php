@@ -9,24 +9,28 @@
 <?php wp_body_open(); ?>
 
 <?php
-$on_hero   = is_front_page();
-$logo_id   = function_exists('get_field') ? get_field('site_logo', 'option') : null;
-$enquire   = function_exists('get_field') ? get_field('enquire_link', 'option') : null;
+$on_hero    = is_front_page();
+$logo_light = function_exists('get_field') ? get_field('site_logo', 'option') : null;
+$logo_dark  = function_exists('get_field') ? get_field('site_logo_dark', 'option') : null;
+$enquire    = function_exists('get_field') ? get_field('enquire_link', 'option') : null;
 
-$header_class = implode(' ', array_filter([
-    'site-header fixed inset-x-0 top-0 z-50 h-16 border-b',
-    'bg-white border-brand-cream text-brand-primary',
-    $on_hero ? 'site-header--hero lg:absolute' : '',
-]));
+$header_class = 'site-header' . ($on_hero ? ' site-header--hero' : '');
 ?>
 
 <header class="<?php echo esc_attr($header_class); ?>" data-mobile-nav>
-    <div class="site-header__inner container-site flex h-full items-center justify-between">
-        <a href="<?php echo esc_url(home_url('/')); ?>" class="site-header__logo relative block h-5 w-[7.5rem] shrink-0">
-            <?php if ($logo_id) : ?>
-                <?php echo wp_get_attachment_image($logo_id, 'medium', false, [
-                    'class' => 'h-full w-full object-contain object-left',
+    <div class="site-header__inner container-site">
+        <a href="<?php echo esc_url(home_url('/')); ?>" class="site-header__logo">
+            <?php if ($logo_light) : ?>
+                <?php echo wp_get_attachment_image($logo_light, 'medium', false, [
+                    'class' => 'site-header__logo-mark site-header__logo-mark--light',
                 ]); ?>
+            <?php endif; ?>
+            <?php if ($logo_dark) : ?>
+                <?php echo wp_get_attachment_image($logo_dark, 'medium', false, [
+                    'class' => 'site-header__logo-mark site-header__logo-mark--dark',
+                ]); ?>
+            <?php elseif ($logo_light) : ?>
+                <span class="site-header__logo-fallback font-display text-h3"><?php bloginfo('name'); ?></span>
             <?php else : ?>
                 <span class="font-display text-h3 lg:text-h2"><?php bloginfo('name'); ?></span>
             <?php endif; ?>
@@ -36,13 +40,13 @@ $header_class = implode(' ', array_filter([
         wp_nav_menu([
             'theme_location' => 'primary',
             'container'      => 'nav',
-            'container_class'=> 'site-header__nav hidden lg:flex lg:min-w-0 lg:flex-1 lg:items-center lg:justify-start',
-            'menu_class'     => 'flex gap-8',
+            'container_class'=> 'site-header__nav',
+            'menu_class'     => 'site-header__menu',
             'fallback_cb'    => false,
         ]);
         ?>
 
-        <div class="site-header__actions flex shrink-0 items-center gap-4">
+        <div class="site-header__actions">
             <?php if ($enquire) : ?>
                 <a class="btn-enquire <?php echo $on_hero ? 'btn-enquire-hero' : ''; ?>"
                    href="<?php echo esc_url($enquire['url']); ?>"

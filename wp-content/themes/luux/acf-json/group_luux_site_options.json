@@ -18,6 +18,15 @@
       "preview_size": "medium"
     },
     {
+      "key": "field_luux_options_site_logo_dark",
+      "label": "Logo (light backgrounds)",
+      "name": "site_logo_dark",
+      "type": "image",
+      "return_format": "id",
+      "preview_size": "medium",
+      "instructions": "Dark wordmark for the white mobile header and inner pages."
+    },
+    {
       "key": "field_luux_options_site_logo_light",
       "label": "Logo (footer / light text)",
       "name": "site_logo_light",
@@ -154,5 +163,5 @@
   "style": "default",
   "active": true,
   "show_in_rest": 0,
-  "modified": 1783188084
+  "modified": 1783190000
 }

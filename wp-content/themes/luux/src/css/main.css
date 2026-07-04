@@ -227,21 +227,62 @@
   }
 
   /* Site header — Figma trust-strip 76:5193 */
+  .site-header {
+    position: fixed;
+    inset-inline: 0;
+    top: 0;
+    z-index: 50;
+    height: 4rem;
+    border-bottom: 1px solid var(--color-brand-cream);
+    background: var(--color-brand-white);
+    color: var(--color-brand-primary);
+  }
+  .site-header__inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 100%;
+  }
+  .site-header__logo {
+    position: relative;
+    display: block;
+    flex-shrink: 0;
+    height: 1.25rem;
+    width: 7.5rem;
+  }
+  .site-header__logo img {
+    height: 100%;
+    width: 100%;
+    object-fit: contain;
+    object-position: left;
+  }
+  .site-header__logo-mark--light {
+    display: none;
+  }
+  .site-header__logo-mark--dark {
+    display: block;
+  }
+  .site-header__logo-fallback {
+    display: none;
+    font-size: var(--text-h3);
+    line-height: var(--text-h3--line-height);
+  }
+  .site-header__nav {
+    display: none;
+  }
+  .site-header__actions {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    gap: 1rem;
+  }
   @media (min-width: 1024px) {
     .site-header {
       height: auto;
       padding-top: 24px;
       padding-bottom: 16px;
     }
-    .site-header--hero {
-      border-bottom: 0;
-      background: rgb(255 255 255 / 0.2);
-      backdrop-filter: blur(3.75px);
-      color: var(--color-brand-white);
-    }
     .site-header__inner {
-      display: flex;
-      align-items: center;
       gap: 3rem;
       height: auto;
     }
@@ -249,9 +290,50 @@
       height: 2.5rem;
       width: 15.5625rem;
     }
+    .site-header__nav {
+      display: flex;
+      flex: 1 0 0;
+      align-items: center;
+      justify-content: flex-start;
+      min-width: 0;
+    }
+    .site-header--hero {
+      position: absolute;
+      border-bottom: 0;
+      background: rgb(255 255 255 / 0.2);
+      -webkit-backdrop-filter: blur(3.75px);
+      backdrop-filter: blur(3.75px);
+      color: var(--color-brand-white);
+    }
+    .site-header--hero .site-header__logo-mark--dark,
+    .site-header--hero .site-header__logo-fallback {
+      display: none;
+    }
+    .site-header--hero .site-header__logo-mark--light {
+      display: block;
+    }
+  }
+
+  @media (max-width: 1023px) {
+    .site-header--hero .site-header__logo-mark--light {
+      display: none;
+    }
+    .site-header--hero .site-header__logo-mark--dark {
+      display: block;
+    }
+    .site-header--hero .site-header__logo-fallback {
+      display: block;
+    }
+    .site-header--hero .btn-enquire-hero {
+      border-color: var(--color-brand-primary);
+      color: var(--color-brand-primary);
+      border-radius: 2px;
+    }
   }
 
   .site-header__nav ul {
+    display: flex;
+    gap: 2rem;
     list-style: none;
     margin: 0;
     padding: 0;
