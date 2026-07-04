@@ -226,7 +226,31 @@
     border-radius: 2px;
   }
 
-  /* Site header — desktop hero overlay (Figma trust-strip 76:5193) */
+  /* Site header — Figma trust-strip 76:5193 */
+  @media (min-width: 1024px) {
+    .site-header {
+      height: auto;
+      padding-top: 24px;
+      padding-bottom: 16px;
+    }
+    .site-header--hero {
+      border-bottom: 0;
+      background: rgb(255 255 255 / 0.2);
+      backdrop-filter: blur(3.75px);
+      color: var(--color-brand-white);
+    }
+    .site-header__inner {
+      display: flex;
+      align-items: center;
+      gap: 3rem;
+      height: auto;
+    }
+    .site-header__logo {
+      height: 2.5rem;
+      width: 15.5625rem;
+    }
+  }
+
   .site-header__nav ul {
     list-style: none;
     margin: 0;
