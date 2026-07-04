@@ -192,6 +192,31 @@
     padding: 1rem;
     border-radius: 2px;
   }
+
+  /* Site header — desktop hero overlay (Figma trust-strip 76:5193) */
+  .site-header__nav ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .site-header__nav a {
+    font-family: var(--font-body);
+    font-size: var(--text-caption);
+    line-height: var(--text-caption--line-height);
+    color: inherit;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: opacity 150ms ease;
+  }
+  .site-header__nav a:hover,
+  .site-header__nav a:focus-visible {
+    opacity: 0.85;
+  }
+  .site-header__nav a:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 2px;
+  }
+
   .btn-enquire {
     display: inline-block;
     border: 1px solid var(--color-brand-primary);
@@ -217,5 +242,6 @@
   .btn-enquire-hero {
     border-color: var(--color-brand-white);
     color: var(--color-brand-white);
+    border-radius: 0;
   }
 }

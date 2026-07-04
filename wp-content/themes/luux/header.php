@@ -14,15 +14,15 @@ $logo_id   = function_exists('get_field') ? get_field('site_logo', 'option') : n
 $enquire   = function_exists('get_field') ? get_field('enquire_link', 'option') : null;
 
 $header_class = implode(' ', array_filter([
-    'fixed inset-x-0 top-0 z-50 h-16 border-b',
+    'site-header fixed inset-x-0 top-0 z-50 h-16 border-b',
     'bg-white border-brand-cream text-brand-primary',
-    $on_hero ? 'lg:absolute lg:h-auto lg:border-transparent lg:bg-transparent lg:text-brand-white' : '',
+    $on_hero ? 'lg:absolute lg:border-0 lg:bg-white/20 lg:backdrop-blur-[3.75px] lg:text-brand-white' : '',
 ]));
 ?>
 
 <header class="<?php echo esc_attr($header_class); ?>" data-mobile-nav>
-    <div class="container-site flex h-full items-center justify-between lg:grid lg:h-auto lg:grid-cols-[1fr_auto_1fr] lg:items-center lg:py-6">
-        <a href="<?php echo esc_url(home_url('/')); ?>" class="relative block h-5 w-[7.5rem] shrink-0 lg:h-10 lg:w-[15.375rem] lg:justify-self-start">
+    <div class="container-site flex h-full items-center justify-between gap-12 lg:h-auto lg:justify-normal lg:pt-6 lg:pb-4">
+        <a href="<?php echo esc_url(home_url('/')); ?>" class="relative block h-5 w-[7.5rem] shrink-0 lg:h-10 lg:w-[15.5625rem]">
             <?php if ($logo_id) : ?>
                 <?php echo wp_get_attachment_image($logo_id, 'medium', false, [
                     'class' => 'h-full w-full object-contain object-left',
@@ -36,13 +36,13 @@ $header_class = implode(' ', array_filter([
         wp_nav_menu([
             'theme_location' => 'primary',
             'container'      => 'nav',
-            'container_class'=> 'hidden lg:block lg:justify-self-center',
-            'menu_class'     => 'flex gap-8 font-body text-body ' . ($on_hero ? 'text-brand-white' : 'text-brand-primary'),
+            'container_class'=> 'site-header__nav hidden lg:flex lg:flex-1 lg:justify-center',
+            'menu_class'     => 'flex gap-8',
             'fallback_cb'    => false,
         ]);
         ?>
 
-        <div class="flex items-center gap-4 lg:justify-self-end">
+        <div class="flex shrink-0 items-center gap-4">
             <?php if ($enquire) : ?>
                 <a class="btn-enquire <?php echo $on_hero ? 'btn-enquire-hero' : ''; ?>"
                    href="<?php echo esc_url($enquire['url']); ?>"
