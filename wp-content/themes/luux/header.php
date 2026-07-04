@@ -8,10 +8,30 @@
 <body <?php body_class(); ?>>
 <?php wp_body_open(); ?>
 
-<header class="absolute inset-x-0 top-0 z-50">
-    <div class="container-site flex items-center justify-between py-6">
-        <a href="<?php echo esc_url(home_url('/')); ?>" class="font-display text-2xl text-white">
-            <?php bloginfo('name'); ?>
+<?php
+/**
+ * Site header.
+ */
+
+$on_hero      = is_front_page();
+$header_class = $on_hero
+    ? 'absolute inset-x-0 top-0 z-50 text-brand-white'
+    : 'relative z-50 border-b border-brand-cream bg-brand-white text-brand-primary';
+$logo_id      = function_exists('get_field') ? get_field('site_logo', 'option') : null;
+$enquire      = function_exists('get_field') ? get_field('enquire_link', 'option') : null;
+$menu_class   = $on_hero ? 'text-brand-white' : 'text-brand-primary';
+?>
+
+<header class="<?php echo esc_attr($header_class); ?>" data-mobile-nav>
+    <div class="container-site flex items-center justify-between py-4 lg:py-6">
+        <a href="<?php echo esc_url(home_url('/')); ?>" class="relative block h-5 w-[7.5rem] shrink-0 lg:h-10 lg:w-[15.375rem]">
+            <?php if ($logo_id) : ?>
+                <?php echo wp_get_attachment_image($logo_id, 'medium', false, [
+                    'class' => 'h-full w-full object-contain object-left',
+                ]); ?>
+            <?php else : ?>
+                <span class="font-display text-h3 lg:text-h2"><?php bloginfo('name'); ?></span>
+            <?php endif; ?>
         </a>
 
         <?php
@@ -19,12 +39,53 @@
             'theme_location' => 'primary',
             'container'      => 'nav',
             'container_class'=> 'hidden lg:block',
-            'menu_class'     => 'flex gap-8 text-sm tracking-widest uppercase text-white',
+            'menu_class'     => 'flex gap-10 font-body text-body ' . $menu_class,
             'fallback_cb'    => false,
         ]);
         ?>
 
-        <!-- TODO: mobile menu toggle — build with header from Figma MCP -->
+        <div class="flex items-center gap-4">
+            <?php if ($enquire) : ?>
+                <a class="btn-enquire hidden lg:inline-block"
+                   href="<?php echo esc_url($enquire['url']); ?>"
+                   <?php echo ! empty($enquire['target']) ? 'target="_blank" rel="noopener"' : ''; ?>>
+                    <?php echo esc_html($enquire['title'] ?: __('Enquire', 'luux')); ?>
+                </a>
+            <?php endif; ?>
+
+            <button type="button"
+                    class="flex size-6 items-center justify-center lg:hidden"
+                    data-mobile-nav-toggle
+                    aria-expanded="false"
+                    aria-controls="mobile-nav-panel">
+                <span class="sr-only"><?php esc_html_e('Open menu', 'luux'); ?></span>
+                <svg class="size-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-width="1.5" d="M4 7h16M4 12h16M4 17h16"/>
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <div id="mobile-nav-panel"
+         class="border-t border-brand-cream bg-brand-white px-5 py-6 text-brand-primary lg:hidden"
+         data-mobile-nav-panel
+         hidden>
+        <?php if ($enquire) : ?>
+            <a class="btn-enquire mb-6 inline-block"
+               href="<?php echo esc_url($enquire['url']); ?>"
+               <?php echo ! empty($enquire['target']) ? 'target="_blank" rel="noopener"' : ''; ?>>
+                <?php echo esc_html($enquire['title'] ?: __('Enquire', 'luux')); ?>
+            </a>
+        <?php endif; ?>
+
+        <?php
+        wp_nav_menu([
+            'theme_location' => 'primary',
+            'container'      => 'nav',
+            'menu_class'     => 'flex flex-col gap-4 font-body text-body-lg',
+            'fallback_cb'    => false,
+        ]);
+        ?>
     </div>
 </header>
 

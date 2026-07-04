@@ -1,55 +1,48 @@
 <?php
 /**
  * Layout: hero
- * ─────────────────────────────────────────────────────────────
- * THE REFERENCE LAYOUT. Every other layout follows these conventions:
- *
- *  1. One file per layout in template-parts/layouts/, hyphenated filename
- *     matching the ACF layout name (underscored): hero → hero.php,
- *     image_text_split → image-text-split.php
- *  2. Read fields with get_sub_field() at the top, escape at output
- *     (esc_html / esc_url / wp_kses_post for rich text).
- *  3. Images are attachment IDs, rendered via wp_get_attachment_image()
- *     with an explicit size — never raw URLs, never unsized <img>.
- *  4. Tailwind utilities only; colours/fonts via brand tokens
- *     (bg-brand-dark, font-display) — no arbitrary hex values.
- *  5. Optional fields guard their own markup — a missing subheading
- *     shouldn't leave an empty tag behind.
- *  6. Section spacing lives on the section, not the page.
  */
 
 $heading    = get_sub_field('heading');
 $subheading = get_sub_field('subheading');
 $image_id   = get_sub_field('background_image');
-$cta        = get_sub_field('cta'); // link field: array{url, title, target}
+$ctas       = get_sub_field('ctas');
 ?>
 
-<section class="relative flex min-h-[90vh] items-end">
+<section class="relative flex h-[700px] items-center justify-center overflow-hidden">
     <?php if ($image_id) : ?>
         <?php echo wp_get_attachment_image($image_id, 'full', false, [
             'class'         => 'absolute inset-0 h-full w-full object-cover',
-            'fetchpriority' => 'high', // hero image: never lazy-load
+            'fetchpriority' => 'high',
         ]); ?>
-        <div class="absolute inset-0 bg-black/25" aria-hidden="true"></div>
+        <div class="absolute inset-0 bg-gradient-to-t from-brand-primary/80 via-brand-primary/50 to-brand-primary/20" aria-hidden="true"></div>
     <?php endif; ?>
 
-    <div class="container-site relative pb-20 text-white">
-        <?php if ($heading) : ?>
-            <h1 class="font-display max-w-3xl text-5xl leading-tight lg:text-7xl">
-                <?php echo esc_html($heading); ?>
-            </h1>
+    <div class="container-site relative z-10 flex max-w-[58.375rem] flex-col items-center gap-8 text-center text-brand-white">
+        <?php if ($heading || $subheading) : ?>
+            <div class="flex flex-col gap-4">
+                <?php if ($heading) : ?>
+                    <h1 class="font-display text-h1 leading-[0.88]"><?php echo esc_html($heading); ?></h1>
+                <?php endif; ?>
+                <?php if ($subheading) : ?>
+                    <p class="font-body text-body"><?php echo esc_html($subheading); ?></p>
+                <?php endif; ?>
+            </div>
         <?php endif; ?>
 
-        <?php if ($subheading) : ?>
-            <p class="mt-4 max-w-xl text-lg opacity-90"><?php echo esc_html($subheading); ?></p>
-        <?php endif; ?>
-
-        <?php if ($cta) : ?>
-            <a class="btn btn-gold mt-8"
-               href="<?php echo esc_url($cta['url']); ?>"
-               <?php echo $cta['target'] ? 'target="_blank" rel="noopener"' : ''; ?>>
-                <?php echo esc_html($cta['title']); ?>
-            </a>
+        <?php if ($ctas) : ?>
+            <div class="flex flex-wrap items-center justify-center gap-10">
+                <?php foreach ($ctas as $row) :
+                    $link = $row['link'] ?? null;
+                    if (empty($link['url'])) continue;
+                    ?>
+                    <a class="link-underline text-brand-white"
+                       href="<?php echo esc_url($link['url']); ?>"
+                       <?php echo ! empty($link['target']) ? 'target="_blank" rel="noopener"' : ''; ?>>
+                        <?php echo esc_html($link['title']); ?>
+                    </a>
+                <?php endforeach; ?>
+            </div>
         <?php endif; ?>
     </div>
 </section>

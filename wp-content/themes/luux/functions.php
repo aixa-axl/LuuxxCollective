@@ -13,8 +13,10 @@ add_action('after_setup_theme', function () {
     add_theme_support('html5', ['search-form', 'gallery', 'caption', 'style', 'script']);
 
     register_nav_menus([
-        'primary' => __('Primary Navigation', 'luux'),
-        'footer'  => __('Footer Navigation', 'luux'),
+        'primary'             => __('Primary Navigation', 'luux'),
+        'footer'              => __('Footer Navigation', 'luux'),
+        'footer_travel'       => __('Footer — Travel Styles', 'luux'),
+        'footer_destinations' => __('Footer — Destinations', 'luux'),
     ]);
 });
 
@@ -45,6 +47,20 @@ add_filter('acf/settings/save_json', fn() => get_template_directory() . '/acf-js
 add_filter('acf/settings/load_json', function ($paths) {
     $paths[] = get_template_directory() . '/acf-json';
     return $paths;
+});
+
+/* ── ACF Options page ───────────────────────────────────── */
+add_action('acf/init', function () {
+    if (! function_exists('acf_add_options_page')) {
+        return;
+    }
+    acf_add_options_page([
+        'page_title' => __('Site Options', 'luux'),
+        'menu_title' => __('Site Options', 'luux'),
+        'menu_slug'  => 'luux-site-options',
+        'capability' => 'edit_posts',
+        'redirect'   => false,
+    ]);
 });
 
 /* ── Flexible Content router ────────────────────────────── *

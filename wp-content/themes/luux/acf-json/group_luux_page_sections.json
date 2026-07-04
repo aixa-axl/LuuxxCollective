@@ -36,7 +36,458 @@
               "preview_size": "medium"
             },
             {
-              "key": "field_luux_hero_cta",
+              "key": "field_luux_hero_ctas",
+              "label": "CTAs",
+              "name": "ctas",
+              "type": "repeater",
+              "layout": "table",
+              "button_label": "Add CTA",
+              "sub_fields": [
+                {
+                  "key": "field_luux_hero_cta_link",
+                  "label": "Link",
+                  "name": "link",
+                  "type": "link",
+                  "return_format": "array"
+                }
+              ]
+            }
+          ]
+        },
+        "layout_luux_featured_offers": {
+          "key": "layout_luux_featured_offers",
+          "name": "featured_offers",
+          "label": "Featured Offers",
+          "display": "block",
+          "sub_fields": [
+            {
+              "key": "field_luux_featured_offers_section_label",
+              "label": "Section Label",
+              "name": "section_label",
+              "type": "text"
+            },
+            {
+              "key": "field_luux_featured_offers_heading",
+              "label": "Heading",
+              "name": "heading",
+              "type": "text"
+            },
+            {
+              "key": "field_luux_featured_offers_intro",
+              "label": "Intro",
+              "name": "intro",
+              "type": "textarea",
+              "rows": 3
+            },
+            {
+              "key": "field_luux_featured_offers_offers",
+              "label": "Offers",
+              "name": "offers",
+              "type": "repeater",
+              "layout": "block",
+              "button_label": "Add Offer",
+              "sub_fields": [
+                {
+                  "key": "field_luux_featured_offers_image",
+                  "label": "Image",
+                  "name": "image",
+                  "type": "image",
+                  "return_format": "id",
+                  "preview_size": "medium"
+                },
+                {
+                  "key": "field_luux_featured_offers_title",
+                  "label": "Title",
+                  "name": "title",
+                  "type": "text"
+                },
+                {
+                  "key": "field_luux_featured_offers_description",
+                  "label": "Description",
+                  "name": "description",
+                  "type": "textarea",
+                  "rows": 3
+                },
+                {
+                  "key": "field_luux_featured_offers_price",
+                  "label": "Price",
+                  "name": "price",
+                  "type": "text"
+                },
+                {
+                  "key": "field_luux_featured_offers_link",
+                  "label": "Link",
+                  "name": "link",
+                  "type": "link",
+                  "return_format": "array"
+                }
+              ]
+            }
+          ]
+        },
+        "layout_luux_cta_strip": {
+          "key": "layout_luux_cta_strip",
+          "name": "cta_strip",
+          "label": "CTA Strip",
+          "display": "block",
+          "sub_fields": [
+            {
+              "key": "field_luux_cta_strip_text",
+              "label": "Text",
+              "name": "text",
+              "type": "text"
+            },
+            {
+              "key": "field_luux_cta_strip_primary_link",
+              "label": "Primary Link",
+              "name": "primary_link",
+              "type": "link",
+              "return_format": "array"
+            },
+            {
+              "key": "field_luux_cta_strip_secondary_link",
+              "label": "Secondary Link",
+              "name": "secondary_link",
+              "type": "link",
+              "return_format": "array"
+            }
+          ]
+        },
+        "layout_luux_travel_style": {
+          "key": "layout_luux_travel_style",
+          "name": "travel_style",
+          "label": "Travel Style",
+          "display": "block",
+          "sub_fields": [
+            {
+              "key": "field_luux_travel_style_section_label",
+              "label": "Section Label",
+              "name": "section_label",
+              "type": "text"
+            },
+            {
+              "key": "field_luux_travel_style_heading",
+              "label": "Heading",
+              "name": "heading",
+              "type": "text"
+            },
+            {
+              "key": "field_luux_travel_style_categories",
+              "label": "Categories",
+              "name": "categories",
+              "type": "repeater",
+              "layout": "table",
+              "button_label": "Add Category",
+              "sub_fields": [
+                {
+                  "key": "field_luux_travel_style_image",
+                  "label": "Image",
+                  "name": "image",
+                  "type": "image",
+                  "return_format": "id",
+                  "preview_size": "medium"
+                },
+                {
+                  "key": "field_luux_travel_style_title",
+                  "label": "Title",
+                  "name": "title",
+                  "type": "text"
+                }
+              ]
+            },
+            {
+              "key": "field_luux_travel_style_footer_heading",
+              "label": "Footer Heading",
+              "name": "footer_heading",
+              "type": "text"
+            },
+            {
+              "key": "field_luux_travel_style_cta",
+              "label": "CTA",
+              "name": "cta",
+              "type": "link",
+              "return_format": "array"
+            }
+          ]
+        },
+        "layout_luux_destinations": {
+          "key": "layout_luux_destinations",
+          "name": "destinations",
+          "label": "Destinations",
+          "display": "block",
+          "sub_fields": [
+            {
+              "key": "field_luux_destinations_section_label",
+              "label": "Section Label",
+              "name": "section_label",
+              "type": "text"
+            },
+            {
+              "key": "field_luux_destinations_heading",
+              "label": "Heading",
+              "name": "heading",
+              "type": "text"
+            },
+            {
+              "key": "field_luux_destinations_destinations",
+              "label": "Destinations",
+              "name": "destinations",
+              "type": "repeater",
+              "layout": "table",
+              "button_label": "Add Destination",
+              "sub_fields": [
+                {
+                  "key": "field_luux_destinations_image",
+                  "label": "Image",
+                  "name": "image",
+                  "type": "image",
+                  "return_format": "id",
+                  "preview_size": "medium"
+                },
+                {
+                  "key": "field_luux_destinations_title",
+                  "label": "Title",
+                  "name": "title",
+                  "type": "text"
+                },
+                {
+                  "key": "field_luux_destinations_link",
+                  "label": "Link",
+                  "name": "link",
+                  "type": "link",
+                  "return_format": "array"
+                }
+              ]
+            }
+          ]
+        },
+        "layout_luux_contact_strip": {
+          "key": "layout_luux_contact_strip",
+          "name": "contact_strip",
+          "label": "Contact Strip",
+          "display": "block",
+          "sub_fields": [
+            {
+              "key": "field_luux_contact_strip_caption",
+              "label": "Caption",
+              "name": "caption",
+              "type": "text"
+            },
+            {
+              "key": "field_luux_contact_strip_text",
+              "label": "Text",
+              "name": "text",
+              "type": "textarea",
+              "rows": 2
+            },
+            {
+              "key": "field_luux_contact_strip_primary_link",
+              "label": "Primary Button",
+              "name": "primary_link",
+              "type": "link",
+              "return_format": "array"
+            },
+            {
+              "key": "field_luux_contact_strip_secondary_link",
+              "label": "Secondary Button",
+              "name": "secondary_link",
+              "type": "link",
+              "return_format": "array"
+            }
+          ]
+        },
+        "layout_luux_usps": {
+          "key": "layout_luux_usps",
+          "name": "usps",
+          "label": "USPs",
+          "display": "block",
+          "sub_fields": [
+            {
+              "key": "field_luux_usps_section_label",
+              "label": "Section Label",
+              "name": "section_label",
+              "type": "text"
+            },
+            {
+              "key": "field_luux_usps_heading",
+              "label": "Heading",
+              "name": "heading",
+              "type": "text"
+            },
+            {
+              "key": "field_luux_usps_items",
+              "label": "Items",
+              "name": "items",
+              "type": "repeater",
+              "layout": "block",
+              "button_label": "Add Item",
+              "sub_fields": [
+                {
+                  "key": "field_luux_usps_icon",
+                  "label": "Icon",
+                  "name": "icon",
+                  "type": "image",
+                  "return_format": "id",
+                  "preview_size": "thumbnail"
+                },
+                {
+                  "key": "field_luux_usps_title",
+                  "label": "Title",
+                  "name": "title",
+                  "type": "text"
+                },
+                {
+                  "key": "field_luux_usps_description",
+                  "label": "Description",
+                  "name": "description",
+                  "type": "textarea",
+                  "rows": 3
+                }
+              ]
+            }
+          ]
+        },
+        "layout_luux_group_section": {
+          "key": "layout_luux_group_section",
+          "name": "group_section",
+          "label": "Group Section",
+          "display": "block",
+          "sub_fields": [
+            {
+              "key": "field_luux_group_section_heading",
+              "label": "Heading",
+              "name": "heading",
+              "type": "text"
+            },
+            {
+              "key": "field_luux_group_section_text",
+              "label": "Text",
+              "name": "text",
+              "type": "textarea",
+              "rows": 3
+            },
+            {
+              "key": "field_luux_group_section_logos",
+              "label": "Logos",
+              "name": "logos",
+              "type": "repeater",
+              "layout": "table",
+              "button_label": "Add Logo",
+              "sub_fields": [
+                {
+                  "key": "field_luux_group_section_logo_image",
+                  "label": "Image",
+                  "name": "image",
+                  "type": "image",
+                  "return_format": "id",
+                  "preview_size": "medium"
+                }
+              ]
+            }
+          ]
+        },
+        "layout_luux_social_grid": {
+          "key": "layout_luux_social_grid",
+          "name": "social_grid",
+          "label": "Social Grid",
+          "display": "block",
+          "sub_fields": [
+            {
+              "key": "field_luux_social_grid_heading",
+              "label": "Heading",
+              "name": "heading",
+              "type": "text"
+            },
+            {
+              "key": "field_luux_social_grid_images",
+              "label": "Images",
+              "name": "images",
+              "type": "gallery",
+              "return_format": "id",
+              "preview_size": "medium"
+            }
+          ]
+        },
+        "layout_luux_reviews": {
+          "key": "layout_luux_reviews",
+          "name": "reviews",
+          "label": "Reviews",
+          "display": "block",
+          "sub_fields": [
+            {
+              "key": "field_luux_reviews_heading",
+              "label": "Heading",
+              "name": "heading",
+              "type": "text"
+            },
+            {
+              "key": "field_luux_reviews_view_all_link",
+              "label": "View All Link",
+              "name": "view_all_link",
+              "type": "link",
+              "return_format": "array"
+            },
+            {
+              "key": "field_luux_reviews_testimonials",
+              "label": "Testimonials",
+              "name": "testimonials",
+              "type": "repeater",
+              "layout": "block",
+              "button_label": "Add Testimonial",
+              "sub_fields": [
+                {
+                  "key": "field_luux_reviews_rating",
+                  "label": "Rating",
+                  "name": "rating",
+                  "type": "number",
+                  "min": 1,
+                  "max": 5,
+                  "step": 1
+                },
+                {
+                  "key": "field_luux_reviews_quote",
+                  "label": "Quote",
+                  "name": "quote",
+                  "type": "textarea",
+                  "rows": 4
+                },
+                {
+                  "key": "field_luux_reviews_name",
+                  "label": "Name",
+                  "name": "name",
+                  "type": "text"
+                },
+                {
+                  "key": "field_luux_reviews_date",
+                  "label": "Date",
+                  "name": "date",
+                  "type": "text"
+                }
+              ]
+            }
+          ]
+        },
+        "layout_luux_careers_teaser": {
+          "key": "layout_luux_careers_teaser",
+          "name": "careers_teaser",
+          "label": "Careers Teaser",
+          "display": "block",
+          "sub_fields": [
+            {
+              "key": "field_luux_careers_teaser_heading",
+              "label": "Heading",
+              "name": "heading",
+              "type": "text"
+            },
+            {
+              "key": "field_luux_careers_teaser_text",
+              "label": "Text",
+              "name": "text",
+              "type": "textarea",
+              "rows": 3
+            },
+            {
+              "key": "field_luux_careers_teaser_cta",
               "label": "CTA",
               "name": "cta",
               "type": "link",
@@ -59,5 +510,6 @@
   "position": "normal",
   "style": "seamless",
   "active": true,
-  "show_in_rest": 0
+  "show_in_rest": 0,
+  "modified": 1783188084
 }

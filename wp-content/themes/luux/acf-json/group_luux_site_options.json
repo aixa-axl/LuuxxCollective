@@ -1,0 +1,158 @@
+{
+  "key": "group_luux_site_options",
+  "title": "Site Options",
+  "fields": [
+    {
+      "key": "field_luux_options_tab_brand",
+      "label": "Brand",
+      "name": "",
+      "type": "tab",
+      "placement": "top"
+    },
+    {
+      "key": "field_luux_options_site_logo",
+      "label": "Logo (dark backgrounds)",
+      "name": "site_logo",
+      "type": "image",
+      "return_format": "id",
+      "preview_size": "medium"
+    },
+    {
+      "key": "field_luux_options_site_logo_light",
+      "label": "Logo (footer / light text)",
+      "name": "site_logo_light",
+      "type": "image",
+      "return_format": "id",
+      "preview_size": "medium"
+    },
+    {
+      "key": "field_luux_options_enquire_link",
+      "label": "Enquire Link",
+      "name": "enquire_link",
+      "type": "link",
+      "return_format": "array"
+    },
+    {
+      "key": "field_luux_options_tab_footer",
+      "label": "Footer",
+      "name": "",
+      "type": "tab",
+      "placement": "top"
+    },
+    {
+      "key": "field_luux_options_footer_tagline",
+      "label": "Footer Tagline",
+      "name": "footer_tagline",
+      "type": "text"
+    },
+    {
+      "key": "field_luux_options_footer_group_text",
+      "label": "Group Attribution",
+      "name": "footer_group_text",
+      "type": "text",
+      "default_value": "Part of the Travel Seen Group"
+    },
+    {
+      "key": "field_luux_options_tab_contact",
+      "label": "Contact",
+      "name": "",
+      "type": "tab",
+      "placement": "top"
+    },
+    {
+      "key": "field_luux_options_contact_intro",
+      "label": "Contact Intro",
+      "name": "contact_intro",
+      "type": "textarea",
+      "rows": 3
+    },
+    {
+      "key": "field_luux_options_contact_email",
+      "label": "Email",
+      "name": "contact_email",
+      "type": "email"
+    },
+    {
+      "key": "field_luux_options_contact_phone",
+      "label": "Phone",
+      "name": "contact_phone",
+      "type": "text"
+    },
+    {
+      "key": "field_luux_options_tab_social",
+      "label": "Social",
+      "name": "",
+      "type": "tab",
+      "placement": "top"
+    },
+    {
+      "key": "field_luux_options_social_links",
+      "label": "Social Links",
+      "name": "social_links",
+      "type": "repeater",
+      "layout": "table",
+      "button_label": "Add Social Link",
+      "sub_fields": [
+        {
+          "key": "field_luux_options_social_label",
+          "label": "Label",
+          "name": "label",
+          "type": "text"
+        },
+        {
+          "key": "field_luux_options_social_url",
+          "label": "URL",
+          "name": "url",
+          "type": "url"
+        },
+        {
+          "key": "field_luux_options_social_icon",
+          "label": "Icon",
+          "name": "icon",
+          "type": "image",
+          "return_format": "id",
+          "preview_size": "thumbnail"
+        }
+      ]
+    },
+    {
+      "key": "field_luux_options_tab_legal",
+      "label": "Legal",
+      "name": "",
+      "type": "tab",
+      "placement": "top"
+    },
+    {
+      "key": "field_luux_options_legal_links",
+      "label": "Legal Links",
+      "name": "legal_links",
+      "type": "repeater",
+      "layout": "table",
+      "button_label": "Add Legal Link",
+      "sub_fields": [
+        {
+          "key": "field_luux_options_legal_link",
+          "label": "Link",
+          "name": "link",
+          "type": "link",
+          "return_format": "array"
+        }
+      ]
+    }
+  ],
+  "location": [
+    [
+      {
+        "param": "options_page",
+        "operator": "==",
+        "value": "luux-site-options"
+      }
+    ]
+  ],
+  "menu_order": 0,
+  "position": "normal",
+  "style": "default",
+  "active": true,
+  "show_in_rest": 0,
+  "modified": 1783188084
+}

@@ -3,74 +3,152 @@
 /*
   DESIGN TOKENS — Tailwind v4 CSS-first config.
   ─────────────────────────────────────────────
-  These are PLACEHOLDERS eyeballed from the Figma screenshots.
-  Step 1 of the build: pull the real values via Figma MCP
-  (variables / styles on the homepage frame) and replace everything
-  in this @theme block. Nothing outside this block should ever
-  hardcode a colour, font, or container width.
+  Sourced from Figma variables + text styles on homepage-highfi
+  (v2 site frames page, node 76:4900). Nohemi roles → Novar.
+  Nothing outside this block should hardcode a colour, font, or width.
 */
 @theme {
-  /* Palette — replace with Figma variables */
-  --color-brand-dark: #3d3524;   /* dark olive/brown sections */
-  --color-brand-navy: #1c2b45;   /* footer / CTA band */
-  --color-brand-cream: #f5f1e8;  /* light section background */
-  --color-brand-gold: #a89a6b;   /* accent / buttons */
-  --color-brand-ink: #2a2a26;    /* body text on light */
+  /* Palette — Figma colour variables */
+  --color-brand-white: #ffffff;             /* font/white */
+  --color-brand-primary: #0c1535;           /* font/blue-primary, Primary */
+  --color-brand-primary-muted: #0c153580;   /* font/blue-secondary */
+  --color-brand-dark: #332300;              /* background/background-dark, font/gold-primary */
+  --color-brand-dark-deep: #1b1300;         /* footer / contact strips */
+  --color-brand-gold: #b5a96e;              /* font/gold-accent, Gold/Accent */
+  --color-brand-gold-muted: #3e2b00b2;      /* font/gold-secondary */
+  --color-brand-cream: #c0bba2;             /* background/background-mid */
+  --color-brand-cream-light: #c0bba24d;     /* background/background-light */
+  --color-brand-ink: #0c1535;               /* body text on light backgrounds */
+  --color-brand-navy: #1b1300;              /* alias — dark footer / CTA bands */
 
-  /* Type — replace family names once fonts are confirmed in Figma */
-  --font-display: "PlaceholderSerif", Georgia, serif;
-  --font-body: "PlaceholderSans", system-ui, sans-serif;
+  /* Type families — Nohemi (button, secondary header) → Novar */
+  --font-display: "Novar", Georgia, serif;
+  --font-body: "Google Sans Flex", system-ui, sans-serif;
 
-  /* Layout */
-  --container-site: 80rem;       /* match Figma desktop container */
-  --spacing-section: 6rem;       /* default vertical rhythm between sections */
+  /* Type scale — Figma text styles */
+  --text-h1: 4rem;                          /* 64px hero display */
+  --text-h1--line-height: 0.88;
+  --text-h2: 3rem;                          /* 48px */
+  --text-h2--line-height: 1;
+  --text-h3: 2rem;                          /* 32px */
+  --text-h3--line-height: 1;
+  --text-quote: 1.5rem;                     /* 24px testimonials */
+  --text-quote--line-height: 1;
+  --text-body-lg: 1.125rem;                 /* 18px large body */
+  --text-body-lg--line-height: 1;
+  --text-body: 1rem;                        /* 16px body / button / label */
+  --text-body--line-height: 1;
+  --text-body-sm: 0.875rem;                 /* 14px small body */
+  --text-body-sm--line-height: 1;
+  --text-caption: 0.75rem;                  /* 12px caption */
+  --text-caption--line-height: 1;
+
+  /* Font weights referenced in Figma styles */
+  --font-weight-display: 400;
+  --font-weight-body: 400;
+  --font-weight-caption: 900;
+
+  /* Layout — 1440px frame, 80px gutters, 120px section padding */
+  --container-site: 90rem;                  /* 1440px desktop frame width */
+  --spacing-gutter: 5rem;                   /* padding/large — 80px */
+  --spacing-section: 7.5rem;                /* 120px vertical section padding */
+  --spacing-section-md: 2.5rem;             /* padding/medium — 40px */
+  --spacing-section-gap: 4rem;              /* 64px heading-to-content gap */
 }
 
-/* Self-hosted webfonts — drop files in assets/fonts and update names */
+/* Self-hosted webfonts — assets/fonts/ */
 @font-face {
-  font-family: "PlaceholderSerif";
-  src: url("../fonts/display.woff2") format("woff2");
-  font-weight: 400 700;
+  font-family: "Novar";
+  src: url("../../assets/fonts/novar.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
   font-display: swap;
 }
 @font-face {
-  font-family: "PlaceholderSans";
-  src: url("../fonts/body.woff2") format("woff2");
-  font-weight: 400 600;
+  font-family: "Google Sans Flex";
+  src: url("../../assets/fonts/google-sans-flex.ttf") format("truetype");
+  font-weight: 100 900;
+  font-style: normal;
   font-display: swap;
 }
 
 @layer base {
   body {
     font-family: var(--font-body);
+    font-size: var(--text-body);
+    line-height: var(--text-body--line-height);
     color: var(--color-brand-ink);
-    background: var(--color-brand-cream);
+    background: var(--color-brand-white);
     -webkit-font-smoothing: antialiased;
   }
   h1, h2, h3, h4 {
     font-family: var(--font-display);
+    font-weight: var(--font-weight-display);
   }
 }
 
 @layer components {
-  /* The one shared component class worth having — everything else is utilities */
   .container-site {
     width: 100%;
     max-width: var(--container-site);
     margin-inline: auto;
     padding-inline: 1.25rem;
   }
+  @media (min-width: 1024px) {
+    .container-site {
+      padding-inline: var(--spacing-gutter);
+    }
+  }
+
+  .section-pad {
+    padding-block: var(--spacing-section-md);
+  }
+  @media (min-width: 1024px) {
+    .section-pad {
+      padding-block: var(--spacing-section);
+    }
+  }
+
+  .link-underline {
+    display: inline-block;
+    font-family: var(--font-display);
+    font-size: var(--text-body);
+    line-height: var(--text-body--line-height);
+    border-bottom: 1px solid currentColor;
+    padding-block: 0.75rem;
+    transition: opacity 150ms ease;
+  }
+  .link-underline:hover { opacity: 0.75; }
+  .link-underline:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 4px;
+  }
+
   .btn {
     display: inline-block;
-    padding: 0.875rem 2rem;
-    font-family: var(--font-body);
-    font-size: 0.8125rem;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
+    font-family: var(--font-display);
+    font-size: var(--text-body);
+    line-height: var(--text-body--line-height);
+    padding: 0.75rem 1.5rem;
     transition: opacity 150ms ease;
   }
   .btn:hover { opacity: 0.85; }
-  .btn-gold { background: var(--color-brand-gold); color: #fff; }
-  .btn-navy { background: var(--color-brand-navy); color: #fff; }
-  .btn-outline { border: 1px solid currentColor; }
+  .btn:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 2px;
+  }
+  .btn-filled {
+    background: var(--color-brand-cream);
+    color: var(--color-brand-dark);
+  }
+  .btn-outline {
+    border: 1px solid var(--color-brand-cream);
+    color: var(--color-brand-cream);
+  }
+  .btn-enquire {
+    border: 1px solid var(--color-brand-primary);
+    color: var(--color-brand-primary);
+    border-radius: 2px;
+    padding: 0.5rem 1rem;
+  }
 }
