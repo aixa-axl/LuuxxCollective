@@ -22,17 +22,23 @@ $secondary_link = get_sub_field('secondary_link');
 
         <?php if ($primary_link || $secondary_link) : ?>
             <div class="flex w-full flex-col gap-3 lg:w-auto lg:flex-row lg:gap-4">
-                <?php if (! empty($primary_link['url'])) : ?>
+                <?php if (! empty($primary_link['url'])) :
+                    $primary_scheme = wp_parse_url($primary_link['url'], PHP_URL_SCHEME);
+                    $primary_new_tab = ! empty($primary_link['target']) && ! in_array($primary_scheme, ['tel', 'mailto'], true);
+                    ?>
                     <a class="btn btn-filled btn-block whitespace-nowrap"
                        href="<?php echo esc_url($primary_link['url']); ?>"
-                       <?php echo ! empty($primary_link['target']) ? 'target="_blank" rel="noopener"' : ''; ?>>
+                       <?php echo $primary_new_tab ? 'target="_blank" rel="noopener"' : ''; ?>>
                         <?php echo esc_html($primary_link['title']); ?>
                     </a>
                 <?php endif; ?>
-                <?php if (! empty($secondary_link['url'])) : ?>
+                <?php if (! empty($secondary_link['url'])) :
+                    $secondary_scheme = wp_parse_url($secondary_link['url'], PHP_URL_SCHEME);
+                    $secondary_new_tab = ! empty($secondary_link['target']) && ! in_array($secondary_scheme, ['tel', 'mailto'], true);
+                    ?>
                     <a class="btn btn-outline btn-block whitespace-nowrap"
                        href="<?php echo esc_url($secondary_link['url']); ?>"
-                       <?php echo ! empty($secondary_link['target']) ? 'target="_blank" rel="noopener"' : ''; ?>>
+                       <?php echo $secondary_new_tab ? 'target="_blank" rel="noopener"' : ''; ?>>
                         <?php echo esc_html($secondary_link['title']); ?>
                     </a>
                 <?php endif; ?>

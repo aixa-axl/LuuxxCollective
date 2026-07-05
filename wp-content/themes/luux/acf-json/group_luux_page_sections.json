@@ -285,7 +285,8 @@
               "label": "Primary Button",
               "name": "primary_link",
               "type": "link",
-              "return_format": "array"
+              "return_format": "array",
+              "instructions": "For a phone button, set URL to tel:+442071234567 (no spaces, no http). Link text e.g. Call Us Now."
             },
             {
               "key": "field_luux_contact_strip_secondary_link",
