@@ -125,6 +125,89 @@
       ]
     },
     {
+      "key": "field_luux_options_tab_instagram",
+      "label": "Instagram",
+      "name": "",
+      "type": "tab",
+      "placement": "top"
+    },
+    {
+      "key": "field_luux_options_instagram_username",
+      "label": "Username",
+      "name": "instagram_username",
+      "type": "text",
+      "default_value": "luxxcollective.travel",
+      "instructions": "Public profile handle (without @). Used for profile links."
+    },
+    {
+      "key": "field_luux_options_instagram_user_id",
+      "label": "Instagram User ID",
+      "name": "instagram_user_id",
+      "type": "text",
+      "instructions": "Numeric Instagram Business/Creator account ID from the Meta Graph API."
+    },
+    {
+      "key": "field_luux_options_instagram_access_token",
+      "label": "Access Token",
+      "name": "instagram_access_token",
+      "type": "textarea",
+      "rows": 3,
+      "instructions": "Long-lived Instagram Graph API access token. Generate via Meta for Developers (requires Business/Creator account linked to a Facebook Page)."
+    },
+    {
+      "key": "field_luux_options_instagram_post_count",
+      "label": "Posts to show",
+      "name": "instagram_post_count",
+      "type": "number",
+      "default_value": 8,
+      "min": 1,
+      "max": 25,
+      "step": 1,
+      "instructions": "Default number of recent posts in the Social Grid section."
+    },
+    {
+      "key": "field_luux_options_instagram_cache_hours",
+      "label": "Cache duration (hours)",
+      "name": "instagram_cache_hours",
+      "type": "number",
+      "default_value": 1,
+      "min": 1,
+      "max": 24,
+      "step": 1,
+      "instructions": "How long to cache the feed before fetching new posts."
+    },
+    {
+      "key": "field_luux_options_instagram_cron_message",
+      "label": "Automated token refresh",
+      "name": "",
+      "type": "message",
+      "message": "Set LUUX_CRON_SECRET in WP Engine environment variables (or wp-config.php). Then add a WP Engine cron job (weekly):\n\ncurl -X POST -H \"Authorization: Bearer YOUR_SECRET\" https://YOUR-SITE.com/wp-json/luux/v1/instagram/refresh\n\nThe token auto-refreshes when within 14 days of expiry. A weekly WP Cron backup also runs from the theme.",
+      "new_lines": "wpautop",
+      "esc_html": 0
+    },
+    {
+      "key": "field_luux_options_instagram_token_expires_at",
+      "label": "Token expires at",
+      "name": "instagram_token_expires_at",
+      "type": "number",
+      "instructions": "Auto-managed Unix timestamp. Set automatically on first save (60 days) and after each refresh."
+    },
+    {
+      "key": "field_luux_options_instagram_last_refresh",
+      "label": "Last refresh",
+      "name": "instagram_last_refresh",
+      "type": "number",
+      "instructions": "Auto-managed Unix timestamp of the last successful token refresh."
+    },
+    {
+      "key": "field_luux_options_instagram_refresh_error",
+      "label": "Last refresh error",
+      "name": "instagram_refresh_error",
+      "type": "textarea",
+      "rows": 2,
+      "instructions": "Auto-managed. Cleared on successful refresh. If populated, re-authenticate in Meta and paste a new token."
+    },
+    {
       "key": "field_luux_options_tab_legal",
       "label": "Legal",
       "name": "",
@@ -163,5 +246,5 @@
   "style": "default",
   "active": true,
   "show_in_rest": 0,
-  "modified": 1783190000
+  "modified": 1783215000
 }

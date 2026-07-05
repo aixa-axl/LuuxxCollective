@@ -399,12 +399,14 @@
               "type": "text"
             },
             {
-              "key": "field_luux_social_grid_images",
-              "label": "Images",
-              "name": "images",
-              "type": "gallery",
-              "return_format": "id",
-              "preview_size": "medium"
+              "key": "field_luux_social_grid_post_count",
+              "label": "Post count",
+              "name": "post_count",
+              "type": "number",
+              "min": 0,
+              "max": 25,
+              "step": 1,
+              "instructions": "Optional. Leave empty to use the default from Site Options → Instagram."
             }
           ]
         },
@@ -511,5 +513,5 @@
   "style": "seamless",
   "active": true,
   "show_in_rest": 0,
-  "modified": 1783188084
+  "modified": 1783210000
 }

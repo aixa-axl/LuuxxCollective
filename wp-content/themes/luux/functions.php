@@ -6,6 +6,8 @@
 
 defined('ABSPATH') || exit;
 
+require get_template_directory() . '/inc/instagram.php';
+
 /* ── Theme supports & menus ─────────────────────────────── */
 add_action('after_setup_theme', function () {
     add_theme_support('title-tag');
