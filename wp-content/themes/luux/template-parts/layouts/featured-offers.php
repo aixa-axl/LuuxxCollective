@@ -50,7 +50,7 @@ $offers  = get_sub_field('offers');
                                     <p class="font-body text-body text-brand-primary"><?php echo esc_html($offer['price']); ?></p>
                                 <?php endif; ?>
                                 <?php if (! empty($offer['link']['url'])) : ?>
-                                    <a class="link-underline w-fit text-brand-gold"
+                                    <a class="w-fit text-brand-gold"
                                        href="<?php echo esc_url($offer['link']['url']); ?>"
                                        <?php echo ! empty($offer['link']['target']) ? 'target="_blank" rel="noopener"' : ''; ?>>
                                         <?php echo esc_html($offer['link']['title'] ?: __('Discover This Offer →', 'luux')); ?>
