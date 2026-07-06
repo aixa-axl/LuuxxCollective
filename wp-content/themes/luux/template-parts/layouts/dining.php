@@ -1,19 +1,21 @@
 <?php
 /**
- * Layout: dining
+ * Layout: dining — Figma 76:3353
  */
 
-$section_label = get_sub_field('section_label');
-$heading       = get_sub_field('heading');
-$text          = get_sub_field('text');
+$section_label     = get_sub_field('section_label');
+$heading           = get_sub_field('heading');
+$text              = get_sub_field('text');
 $highlights        = get_sub_field('highlights');
 $hero_media_type   = get_sub_field('hero_media_type') ?: 'image';
 $image_hero        = get_sub_field('image_hero');
 $hero_video_id     = get_sub_field('hero_video');
 $image_left        = get_sub_field('image_left');
-$image_top     = get_sub_field('image_top');
-$image_bottom  = get_sub_field('image_bottom');
-$section_id    = get_sub_field('section_id');
+$image_top         = get_sub_field('image_top');
+$image_bottom      = get_sub_field('image_bottom');
+$section_id        = get_sub_field('section_id');
+
+$has_hero = ($hero_media_type === 'video' && $hero_video_id) || ($hero_media_type !== 'video' && $image_hero);
 ?>
 
 <section<?php echo $section_id ? ' id="' . esc_attr($section_id) . '"' : ''; ?> class="dining section-pad bg-brand-cream-light">
@@ -26,7 +28,7 @@ $section_id    = get_sub_field('section_id');
                 <h2 class="font-display text-h3 text-brand-dark lg:text-h2"><?php echo esc_html($heading); ?></h2>
             <?php endif; ?>
             <?php if ($text) : ?>
-                <p class="font-body text-body-lg text-brand-gold-muted"><?php echo esc_html($text); ?></p>
+                <p class="dining__intro-text font-body text-body-lg text-brand-gold-muted"><?php echo esc_html($text); ?></p>
             <?php endif; ?>
             <?php if ($highlights) : ?>
                 <ul class="dining__highlights">
@@ -39,41 +41,13 @@ $section_id    = get_sub_field('section_id');
             <?php endif; ?>
         </div>
 
-        <div class="dining__gallery" aria-hidden="false">
-            <div class="dining__gallery-left">
-                <?php if ($image_left) : ?>
-                    <div class="dining__image dining__image--tall">
-                        <?php echo wp_get_attachment_image($image_left, 'large', false, [
-                            'class'   => 'h-full w-full object-cover',
-                            'loading' => 'lazy',
-                        ]); ?>
-                    </div>
-                <?php endif; ?>
-                <div class="dining__gallery-stack">
-                    <?php if ($image_top) : ?>
-                        <div class="dining__image dining__image--mid">
-                            <?php echo wp_get_attachment_image($image_top, 'medium_large', false, [
-                                'class'   => 'h-full w-full object-cover',
-                                'loading' => 'lazy',
-                            ]); ?>
-                        </div>
-                    <?php endif; ?>
-                    <?php if ($image_bottom) : ?>
-                        <div class="dining__image dining__image--short">
-                            <?php echo wp_get_attachment_image($image_bottom, 'medium_large', false, [
-                                'class'   => 'h-full w-full object-cover',
-                                'loading' => 'lazy',
-                            ]); ?>
-                        </div>
-                    <?php endif; ?>
-                </div>
-            </div>
-            <?php if ($hero_media_type === 'video' && $hero_video_id) :
-                $hero_video_url = wp_get_attachment_url($hero_video_id);
-                $hero_video_mime = get_post_mime_type($hero_video_id);
-                ?>
-                <div class="dining__image dining__image--hero dining__image--video">
-                    <video class="dining__video h-full w-full object-cover"
+        <?php if ($has_hero) : ?>
+            <div class="dining__hero<?php echo ($hero_media_type === 'video' && $hero_video_id) ? ' dining__hero--video' : ''; ?>">
+                <?php if ($hero_media_type === 'video' && $hero_video_id) :
+                    $hero_video_url  = wp_get_attachment_url($hero_video_id);
+                    $hero_video_mime = get_post_mime_type($hero_video_id);
+                    ?>
+                    <video class="dining__video"
                            autoplay
                            muted
                            loop
@@ -82,15 +56,40 @@ $section_id    = get_sub_field('section_id');
                             <source src="<?php echo esc_url($hero_video_url); ?>"<?php echo $hero_video_mime ? ' type="' . esc_attr($hero_video_mime) . '"' : ''; ?>>
                         <?php endif; ?>
                     </video>
-                </div>
-            <?php elseif ($image_hero) : ?>
-                <div class="dining__image dining__image--hero">
+                <?php elseif ($image_hero) : ?>
                     <?php echo wp_get_attachment_image($image_hero, 'large', false, [
-                        'class'   => 'h-full w-full object-cover',
+                        'class'   => 'dining__hero-image',
                         'loading' => 'lazy',
                     ]); ?>
-                </div>
-            <?php endif; ?>
-        </div>
+                <?php endif; ?>
+            </div>
+        <?php endif; ?>
+
+        <?php if ($image_left) : ?>
+            <div class="dining__image dining__image--tall">
+                <?php echo wp_get_attachment_image($image_left, 'large', false, [
+                    'class'   => 'dining__media',
+                    'loading' => 'lazy',
+                ]); ?>
+            </div>
+        <?php endif; ?>
+
+        <?php if ($image_top) : ?>
+            <div class="dining__image dining__image--mid">
+                <?php echo wp_get_attachment_image($image_top, 'large', false, [
+                    'class'   => 'dining__media',
+                    'loading' => 'lazy',
+                ]); ?>
+            </div>
+        <?php endif; ?>
+
+        <?php if ($image_bottom) : ?>
+            <div class="dining__image dining__image--short">
+                <?php echo wp_get_attachment_image($image_bottom, 'large', false, [
+                    'class'   => 'dining__media',
+                    'loading' => 'lazy',
+                ]); ?>
+            </div>
+        <?php endif; ?>
     </div>
 </section>
