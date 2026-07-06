@@ -29,10 +29,11 @@ $header_class = 'site-header' . ($on_hero ? ' site-header--hero' : '');
                 <?php echo wp_get_attachment_image($logo_dark, 'medium', false, [
                     'class' => 'site-header__logo-mark site-header__logo-mark--dark',
                 ]); ?>
-            <?php elseif ($logo_light) : ?>
-                <span class="site-header__logo-fallback font-display text-h3"><?php bloginfo('name'); ?></span>
-            <?php else : ?>
-                <span class="font-display text-h3 lg:text-h2"><?php bloginfo('name'); ?></span>
+            <?php endif; ?>
+            <?php if (! $logo_light && ! $logo_dark) : ?>
+                <span class="site-header__logo-text font-display"><?php bloginfo('name'); ?></span>
+            <?php elseif ($logo_light && ! $logo_dark) : ?>
+                <span class="site-header__logo-text site-header__logo-fallback font-display"><?php bloginfo('name'); ?></span>
             <?php endif; ?>
         </a>
 
@@ -51,12 +52,13 @@ $header_class = 'site-header' . ($on_hero ? ' site-header--hero' : '');
                 <a class="btn-enquire <?php echo $on_hero ? 'btn-enquire-hero' : ''; ?>"
                    href="<?php echo esc_url($enquire['url']); ?>"
                    <?php echo ! empty($enquire['target']) ? 'target="_blank" rel="noopener"' : ''; ?>>
-                    <?php echo esc_html($enquire['title'] ?: __('Enquire Now', 'luux')); ?>
+                    <span class="site-header__enquire-short"><?php esc_html_e('Enquire', 'luux'); ?></span>
+                    <span class="site-header__enquire-full"><?php echo esc_html($enquire['title'] ?: __('Enquire Now', 'luux')); ?></span>
                 </a>
             <?php endif; ?>
 
             <button type="button"
-                    class="flex size-6 items-center justify-center lg:hidden"
+                    class="site-header__menu-toggle"
                     data-mobile-nav-toggle
                     aria-expanded="false"
                     aria-controls="mobile-nav-panel">
