@@ -893,17 +893,25 @@
               ]
             },
             {
-              "key": "field_luux_dining_image_left",
+              "key": "field_luux_dining_image_top_left",
+              "label": "Top Left Image",
+              "name": "image_top_left",
+              "type": "image",
+              "return_format": "id",
+              "preview_size": "medium"
+            },
+            {
+              "key": "field_luux_dining_image_bottom_left",
               "label": "Bottom Left Image",
-              "name": "image_left",
+              "name": "image_bottom_left",
               "type": "image",
               "return_format": "id",
               "preview_size": "medium",
-              "instructions": "Optional. Tall image in the bottom-left of the mosaic. Leave empty to hide."
+              "instructions": "Optional. Leave empty to hide this slot."
             },
             {
               "key": "field_luux_dining_image_top",
-              "label": "Image Top Right",
+              "label": "Top Right Image",
               "name": "image_top",
               "type": "image",
               "return_format": "id",
@@ -911,7 +919,7 @@
             },
             {
               "key": "field_luux_dining_image_bottom",
-              "label": "Image Bottom Right",
+              "label": "Bottom Right Image",
               "name": "image_bottom",
               "type": "image",
               "return_format": "id",

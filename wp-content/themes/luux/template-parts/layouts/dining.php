@@ -3,27 +3,30 @@
  * Layout: dining — Figma 76:3353
  */
 
-$section_label     = get_sub_field('section_label');
-$heading           = get_sub_field('heading');
-$text              = get_sub_field('text');
-$highlights        = get_sub_field('highlights');
-$hero_media_type   = get_sub_field('hero_media_type') ?: 'image';
-$image_hero        = get_sub_field('image_hero');
-$hero_video_id     = get_sub_field('hero_video');
-$image_left        = get_sub_field('image_left');
-$image_top         = get_sub_field('image_top');
-$image_bottom      = get_sub_field('image_bottom');
-$section_id        = get_sub_field('section_id');
+$section_label       = get_sub_field('section_label');
+$heading             = get_sub_field('heading');
+$text                = get_sub_field('text');
+$highlights          = get_sub_field('highlights');
+$hero_media_type     = get_sub_field('hero_media_type') ?: 'image';
+$image_hero          = get_sub_field('image_hero');
+$hero_video_id       = get_sub_field('hero_video');
+$image_top_left      = get_sub_field('image_top_left') ?: get_sub_field('image_left');
+$image_bottom_left   = get_sub_field('image_bottom_left');
+$image_top           = get_sub_field('image_top');
+$image_bottom        = get_sub_field('image_bottom');
+$section_id          = get_sub_field('section_id');
 
 $has_hero = ($hero_media_type === 'video' && $hero_video_id) || ($hero_media_type !== 'video' && $image_hero);
-$layout_classes = 'dining__layout';
-if ( ! $image_left ) {
-    $layout_classes .= ' dining__layout--no-left';
+$has_mosaic = $image_top_left || $image_bottom_left || $image_top || $image_bottom;
+
+$mosaic_classes = 'dining__mosaic';
+if ( ! $image_bottom_left ) {
+    $mosaic_classes .= ' dining__mosaic--no-bottom-left';
 }
 ?>
 
 <section<?php echo $section_id ? ' id="' . esc_attr($section_id) . '"' : ''; ?> class="dining section-pad bg-brand-cream-light">
-    <div class="container-site <?php echo esc_attr($layout_classes); ?>">
+    <div class="container-site dining__layout">
         <div class="dining__intro">
             <?php if ($section_label) : ?>
                 <p class="font-body text-body uppercase text-brand-gold"><?php echo esc_html($section_label); ?></p>
@@ -69,30 +72,47 @@ if ( ! $image_left ) {
             </div>
         <?php endif; ?>
 
-        <?php if ($image_left) : ?>
-            <div class="dining__image dining__image--tall">
-                <?php echo wp_get_attachment_image($image_left, 'large', false, [
-                    'class'   => 'dining__media',
-                    'loading' => 'lazy',
-                ]); ?>
-            </div>
-        <?php endif; ?>
+        <?php if ($has_mosaic) : ?>
+            <div class="<?php echo esc_attr($mosaic_classes); ?>">
+                <div class="dining__mosaic-col dining__mosaic-col--left">
+                    <?php if ($image_top_left) : ?>
+                        <div class="dining__image dining__image--top-left">
+                            <?php echo wp_get_attachment_image($image_top_left, 'large', false, [
+                                'class'   => 'dining__media',
+                                'loading' => 'lazy',
+                            ]); ?>
+                        </div>
+                    <?php endif; ?>
 
-        <?php if ($image_top) : ?>
-            <div class="dining__image dining__image--mid">
-                <?php echo wp_get_attachment_image($image_top, 'large', false, [
-                    'class'   => 'dining__media',
-                    'loading' => 'lazy',
-                ]); ?>
-            </div>
-        <?php endif; ?>
+                    <?php if ($image_bottom_left) : ?>
+                        <div class="dining__image dining__image--bottom-left">
+                            <?php echo wp_get_attachment_image($image_bottom_left, 'large', false, [
+                                'class'   => 'dining__media',
+                                'loading' => 'lazy',
+                            ]); ?>
+                        </div>
+                    <?php endif; ?>
+                </div>
 
-        <?php if ($image_bottom) : ?>
-            <div class="dining__image dining__image--short">
-                <?php echo wp_get_attachment_image($image_bottom, 'large', false, [
-                    'class'   => 'dining__media',
-                    'loading' => 'lazy',
-                ]); ?>
+                <div class="dining__mosaic-col dining__mosaic-col--right">
+                    <?php if ($image_top) : ?>
+                        <div class="dining__image dining__image--top-right">
+                            <?php echo wp_get_attachment_image($image_top, 'large', false, [
+                                'class'   => 'dining__media',
+                                'loading' => 'lazy',
+                            ]); ?>
+                        </div>
+                    <?php endif; ?>
+
+                    <?php if ($image_bottom) : ?>
+                        <div class="dining__image dining__image--bottom-right">
+                            <?php echo wp_get_attachment_image($image_bottom, 'large', false, [
+                                'class'   => 'dining__media',
+                                'loading' => 'lazy',
+                            ]); ?>
+                        </div>
+                    <?php endif; ?>
+                </div>
             </div>
         <?php endif; ?>
     </div>

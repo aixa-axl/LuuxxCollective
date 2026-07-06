@@ -838,6 +838,17 @@
     height: 100%;
     object-fit: cover;
   }
+  .dining__mosaic {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.5rem;
+    align-items: start;
+  }
+  .dining__mosaic-col {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
   .dining__image {
     overflow: hidden;
     width: 100%;
@@ -848,14 +859,15 @@
     height: 100%;
     object-fit: cover;
   }
-  .dining__image--tall {
-    aspect-ratio: 296 / 500;
-  }
-  .dining__image--mid {
+  .dining__image--top-left {
     aspect-ratio: 296 / 333;
   }
-  .dining__image--short {
+  .dining__image--bottom-left,
+  .dining__image--bottom-right {
     aspect-ratio: 296 / 300;
+  }
+  .dining__image--top-right {
+    aspect-ratio: 296 / 500;
   }
   @media (max-width: 1023px) {
     .dining__layout {
@@ -865,8 +877,7 @@
       grid-template-areas:
         "intro intro"
         "hero hero"
-        "tall top"
-        "tall bottom";
+        "mosaic mosaic";
     }
     .dining__intro {
       grid-area: intro;
@@ -875,21 +886,8 @@
     .dining__hero {
       grid-area: hero;
     }
-    .dining__image--tall {
-      grid-area: tall;
-    }
-    .dining__image--mid {
-      grid-area: top;
-    }
-    .dining__image--short {
-      grid-area: bottom;
-    }
-    .dining__layout--no-left {
-      grid-template-areas:
-        "intro intro"
-        "hero hero"
-        "top top"
-        "bottom bottom";
+    .dining__mosaic {
+      grid-area: mosaic;
     }
   }
   @media (min-width: 1024px) {
@@ -903,8 +901,8 @@
         "intro intro hero"
         "intro intro hero"
         "intro intro hero"
-        "tall  top   hero"
-        "tall  bottom hero";
+        "mosaic mosaic hero"
+        "mosaic mosaic hero";
     }
     .dining__intro {
       grid-area: intro;
@@ -916,35 +914,28 @@
       min-height: 57.125rem;
       aspect-ratio: auto;
     }
-    .dining__image--tall {
-      grid-area: tall;
-      height: 31.25rem;
-      aspect-ratio: auto;
-      padding-top: 5rem;
-      box-sizing: content-box;
+    .dining__mosaic {
+      grid-area: mosaic;
+      gap: 2rem;
     }
-    .dining__image--mid {
-      grid-area: top;
+    .dining__mosaic-col {
+      gap: 2rem;
+    }
+    .dining__mosaic-col--left {
+      padding-top: 5rem;
+    }
+    .dining__image--top-left {
       height: 20.8125rem;
       aspect-ratio: auto;
     }
-    .dining__image--short {
-      grid-area: bottom;
-      height: 18.75rem;
+    .dining__image--top-right {
+      height: 31.25rem;
       aspect-ratio: auto;
     }
-    .dining__layout--no-left {
-      grid-template-columns: minmax(0, 18.5rem) minmax(0, 39rem);
-      grid-template-areas:
-        "intro hero"
-        "intro hero"
-        "intro hero"
-        "top   hero"
-        "bottom hero";
-    }
-    .dining__layout--no-left .dining__image--mid,
-    .dining__layout--no-left .dining__image--short {
-      max-width: 18.5rem;
+    .dining__image--bottom-left,
+    .dining__image--bottom-right {
+      height: 18.75rem;
+      aspect-ratio: auto;
     }
     .dining__highlights {
       grid-template-columns: repeat(2, max-content);
