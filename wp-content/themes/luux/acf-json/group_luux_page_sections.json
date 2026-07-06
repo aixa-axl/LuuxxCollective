@@ -917,12 +917,51 @@
               "preview_size": "medium"
             },
             {
+              "key": "field_luux_dining_hero_media_type",
+              "label": "Hero Media Type",
+              "name": "hero_media_type",
+              "type": "button_group",
+              "choices": {
+                "image": "Image",
+                "video": "Video"
+              },
+              "default_value": "image",
+              "return_format": "value"
+            },
+            {
               "key": "field_luux_dining_image_hero",
               "label": "Hero Image",
               "name": "image_hero",
               "type": "image",
               "return_format": "id",
-              "preview_size": "medium"
+              "preview_size": "medium",
+              "conditional_logic": [
+                [
+                  {
+                    "field": "field_luux_dining_hero_media_type",
+                    "operator": "==",
+                    "value": "image"
+                  }
+                ]
+              ]
+            },
+            {
+              "key": "field_luux_dining_hero_video",
+              "label": "Hero Video",
+              "name": "hero_video",
+              "type": "file",
+              "return_format": "id",
+              "mime_types": "mp4,webm,mov",
+              "instructions": "Upload an MP4, WebM, or MOV file.",
+              "conditional_logic": [
+                [
+                  {
+                    "field": "field_luux_dining_hero_media_type",
+                    "operator": "==",
+                    "value": "video"
+                  }
+                ]
+              ]
             },
             {
               "key": "field_luux_dining_section_id",
@@ -1200,5 +1239,5 @@
   "style": "seamless",
   "active": true,
   "show_in_rest": 0,
-  "modified": 1783300000
+  "modified": 1783303600
 }

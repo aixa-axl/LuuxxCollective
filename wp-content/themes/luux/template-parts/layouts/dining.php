@@ -6,9 +6,11 @@
 $section_label = get_sub_field('section_label');
 $heading       = get_sub_field('heading');
 $text          = get_sub_field('text');
-$highlights    = get_sub_field('highlights');
-$image_hero    = get_sub_field('image_hero');
-$image_left    = get_sub_field('image_left');
+$highlights        = get_sub_field('highlights');
+$hero_media_type   = get_sub_field('hero_media_type') ?: 'image';
+$image_hero        = get_sub_field('image_hero');
+$hero_video_id     = get_sub_field('hero_video');
+$image_left        = get_sub_field('image_left');
 $image_top     = get_sub_field('image_top');
 $image_bottom  = get_sub_field('image_bottom');
 $section_id    = get_sub_field('section_id');
@@ -66,7 +68,22 @@ $section_id    = get_sub_field('section_id');
                     <?php endif; ?>
                 </div>
             </div>
-            <?php if ($image_hero) : ?>
+            <?php if ($hero_media_type === 'video' && $hero_video_id) :
+                $hero_video_url = wp_get_attachment_url($hero_video_id);
+                $hero_video_mime = get_post_mime_type($hero_video_id);
+                ?>
+                <div class="dining__image dining__image--hero dining__image--video">
+                    <video class="dining__video h-full w-full object-cover"
+                           autoplay
+                           muted
+                           loop
+                           playsinline>
+                        <?php if ($hero_video_url) : ?>
+                            <source src="<?php echo esc_url($hero_video_url); ?>"<?php echo $hero_video_mime ? ' type="' . esc_attr($hero_video_mime) . '"' : ''; ?>>
+                        <?php endif; ?>
+                    </video>
+                </div>
+            <?php elseif ($image_hero) : ?>
                 <div class="dining__image dining__image--hero">
                     <?php echo wp_get_attachment_image($image_hero, 'large', false, [
                         'class'   => 'h-full w-full object-cover',

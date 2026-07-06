@@ -852,6 +852,13 @@
   .dining__image--hero {
     aspect-ratio: 3 / 4;
   }
+  .dining__image--video {
+    position: relative;
+    overflow: hidden;
+  }
+  .dining__video {
+    display: block;
+  }
   @media (min-width: 1024px) {
     .dining__layout {
       display: grid;
