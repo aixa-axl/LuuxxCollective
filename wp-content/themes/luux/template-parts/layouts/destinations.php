@@ -34,7 +34,7 @@ $destinations = get_sub_field('destinations');
                         class="group flex items-center gap-4 rounded border border-brand-cream-light p-3 lg:flex-col lg:items-center lg:gap-4 lg:border-0 lg:p-0"
                         <?php echo $attrs; ?>>
                         <?php if (! empty($destination['image'])) : ?>
-                            <div class="relative size-20 shrink-0 overflow-hidden rounded-sm lg:aspect-square lg:w-full lg:rounded">
+                            <div class="destination-card__image relative size-20 shrink-0 overflow-hidden rounded-sm">
                                 <?php echo wp_get_attachment_image($destination['image'], 'medium_large', false, [
                                     'class'   => 'h-full w-full object-cover transition-transform duration-300 lg:group-hover:scale-105',
                                     'loading' => 'lazy',
