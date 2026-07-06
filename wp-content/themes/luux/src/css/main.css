@@ -933,30 +933,39 @@
     }
   }
 
-  /* Property gallery — 76:3373 */
+  /* Property gallery — Figma 76:3373 */
   .property-gallery__grid {
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
   }
+  .property-gallery__col {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    min-width: 0;
+  }
   .property-gallery__cell {
     overflow: hidden;
-    min-height: 12rem;
+    width: 100%;
   }
-  .property-gallery__cell--col1-top,
-  .property-gallery__cell--col2-top,
-  .property-gallery__cell--col3-top {
+  .property-gallery__media {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .property-gallery__cell--col1-top {
     aspect-ratio: 405 / 400;
   }
   .property-gallery__cell--col1-bottom {
     aspect-ratio: 405 / 474;
   }
-  .property-gallery__cell--col2-bottom,
-  .property-gallery__cell--col3-bottom {
-    aspect-ratio: 405 / 400;
-  }
   .property-gallery__cell--col2-top {
     aspect-ratio: 405 / 500;
+  }
+  .property-gallery__cell--col2-bottom {
+    aspect-ratio: 405 / 400;
   }
   .property-gallery__cell--col3-top {
     aspect-ratio: 405 / 600;
@@ -966,13 +975,37 @@
   }
   @media (min-width: 1024px) {
     .property-gallery__grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      flex-direction: row;
+      align-items: flex-start;
       gap: 2rem;
-      align-items: start;
+    }
+    .property-gallery__col {
+      flex: 1 1 0;
+      gap: 2rem;
+    }
+    .property-gallery__col--2 {
+      padding-top: 5rem;
+    }
+    .property-gallery__cell {
+      aspect-ratio: auto;
+    }
+    .property-gallery__cell--col1-top {
+      height: 25rem;
+    }
+    .property-gallery__cell--col1-bottom {
+      height: 29.625rem;
     }
     .property-gallery__cell--col2-top {
-      margin-top: 5rem;
+      height: 31.25rem;
+    }
+    .property-gallery__cell--col2-bottom {
+      height: 25rem;
+    }
+    .property-gallery__cell--col3-top {
+      height: 37.5rem;
+    }
+    .property-gallery__cell--col3-bottom {
+      height: 18.75rem;
     }
   }
 

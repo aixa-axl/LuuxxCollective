@@ -1005,6 +1005,7 @@
               "type": "repeater",
               "layout": "block",
               "button_label": "Add Image",
+              "instructions": "Add 6 images. Set each Cell Size to place it in the masonry grid (Column 1–3, Top/Bottom). Order in the list does not matter.",
               "sub_fields": [
                 {
                   "key": "field_luux_property_gallery_image",

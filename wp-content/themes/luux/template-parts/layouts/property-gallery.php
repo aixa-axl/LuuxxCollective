@@ -1,6 +1,6 @@
 <?php
 /**
- * Layout: property-gallery
+ * Layout: property-gallery — Figma 76:3373
  */
 
 $heading    = get_sub_field('heading');
@@ -11,6 +11,30 @@ $section_id = get_sub_field('section_id');
 if (! $images) {
     return;
 }
+
+$slots = [
+    'col1-top'    => null,
+    'col1-bottom' => null,
+    'col2-top'    => null,
+    'col2-bottom' => null,
+    'col3-top'    => null,
+    'col3-bottom' => null,
+];
+
+foreach ($images as $item) {
+    if (empty($item['image']) || empty($item['size'])) {
+        continue;
+    }
+    if (array_key_exists($item['size'], $slots)) {
+        $slots[$item['size']] = (int) $item['image'];
+    }
+}
+
+$columns = [
+    1 => ['col1-top', 'col1-bottom'],
+    2 => ['col2-top', 'col2-bottom'],
+    3 => ['col3-top', 'col3-bottom'],
+];
 ?>
 
 <section<?php echo $section_id ? ' id="' . esc_attr($section_id) . '"' : ''; ?> class="property-gallery section-pad">
@@ -27,15 +51,31 @@ if (! $images) {
         <?php endif; ?>
 
         <div class="property-gallery__grid">
-            <?php foreach ($images as $item) :
-                if (empty($item['image'])) continue;
-                $size = $item['size'] ?? 'medium';
+            <?php foreach ($columns as $col_num => $cell_keys) :
+                $has_column = false;
+                foreach ($cell_keys as $key) {
+                    if ($slots[$key]) {
+                        $has_column = true;
+                        break;
+                    }
+                }
+                if (! $has_column) {
+                    continue;
+                }
                 ?>
-                <div class="property-gallery__cell property-gallery__cell--<?php echo esc_attr($size); ?>">
-                    <?php echo wp_get_attachment_image($item['image'], 'large', false, [
-                        'class'   => 'h-full w-full object-cover',
-                        'loading' => 'lazy',
-                    ]); ?>
+                <div class="property-gallery__col property-gallery__col--<?php echo esc_attr((string) $col_num); ?>">
+                    <?php foreach ($cell_keys as $key) :
+                        if (! $slots[$key]) {
+                            continue;
+                        }
+                        ?>
+                        <div class="property-gallery__cell property-gallery__cell--<?php echo esc_attr($key); ?>">
+                            <?php echo wp_get_attachment_image($slots[$key], 'large', false, [
+                                'class'   => 'property-gallery__media',
+                                'loading' => 'lazy',
+                            ]); ?>
+                        </div>
+                    <?php endforeach; ?>
                 </div>
             <?php endforeach; ?>
         </div>
