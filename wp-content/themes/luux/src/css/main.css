@@ -240,9 +240,8 @@
 
   .destination-card__image {
     @media (min-width: 1024px) {
-      width: 100%;
-      height: auto;
-      aspect-ratio: 3 / 1;
+      width: 14.375rem;  /* 230px — Figma destinations 76:4996 */
+      height: 14.375rem;
     }
   }
 
