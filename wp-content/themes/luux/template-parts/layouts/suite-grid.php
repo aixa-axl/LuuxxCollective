@@ -25,9 +25,7 @@ if (! $suites) {
                 <?php if ($heading) : ?>
                     <h2 class="font-display text-h3 text-brand-dark lg:text-h2"><?php echo esc_html($heading); ?></h2>
                 <?php endif; ?>
-            </div>
-
-            <?php if ($categories && count($categories) > 1) : ?>
+                <?php if ($categories && count($categories) > 1) : ?>
                 <div class="suite-grid__filters">
                     <?php if ($filter_label) : ?>
                         <p class="suite-grid__filter-label font-body text-body-lg text-brand-dark"><?php echo esc_html($filter_label); ?></p>
@@ -48,6 +46,9 @@ if (! $suites) {
                     </div>
                 </div>
             <?php endif; ?>
+            </div>
+
+            
         </div>
 
         <div class="suite-grid__carousel"
