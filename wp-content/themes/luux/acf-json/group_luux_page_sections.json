@@ -894,11 +894,12 @@
             },
             {
               "key": "field_luux_dining_image_left",
-              "label": "Image Left",
+              "label": "Bottom Left Image",
               "name": "image_left",
               "type": "image",
               "return_format": "id",
-              "preview_size": "medium"
+              "preview_size": "medium",
+              "instructions": "Optional. Tall image in the bottom-left of the mosaic. Leave empty to hide."
             },
             {
               "key": "field_luux_dining_image_top",

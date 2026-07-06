@@ -16,10 +16,14 @@ $image_bottom      = get_sub_field('image_bottom');
 $section_id        = get_sub_field('section_id');
 
 $has_hero = ($hero_media_type === 'video' && $hero_video_id) || ($hero_media_type !== 'video' && $image_hero);
+$layout_classes = 'dining__layout';
+if ( ! $image_left ) {
+    $layout_classes .= ' dining__layout--no-left';
+}
 ?>
 
 <section<?php echo $section_id ? ' id="' . esc_attr($section_id) . '"' : ''; ?> class="dining section-pad bg-brand-cream-light">
-    <div class="container-site dining__layout">
+    <div class="container-site <?php echo esc_attr($layout_classes); ?>">
         <div class="dining__intro">
             <?php if ($section_label) : ?>
                 <p class="font-body text-body uppercase text-brand-gold"><?php echo esc_html($section_label); ?></p>

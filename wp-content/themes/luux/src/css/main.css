@@ -884,6 +884,13 @@
     .dining__image--short {
       grid-area: bottom;
     }
+    .dining__layout--no-left {
+      grid-template-areas:
+        "intro intro"
+        "hero hero"
+        "top top"
+        "bottom bottom";
+    }
   }
   @media (min-width: 1024px) {
     .dining__layout {
@@ -925,6 +932,19 @@
       grid-area: bottom;
       height: 18.75rem;
       aspect-ratio: auto;
+    }
+    .dining__layout--no-left {
+      grid-template-columns: minmax(0, 18.5rem) minmax(0, 39rem);
+      grid-template-areas:
+        "intro hero"
+        "intro hero"
+        "intro hero"
+        "top   hero"
+        "bottom hero";
+    }
+    .dining__layout--no-left .dining__image--mid,
+    .dining__layout--no-left .dining__image--short {
+      max-width: 18.5rem;
     }
     .dining__highlights {
       grid-template-columns: repeat(2, max-content);
