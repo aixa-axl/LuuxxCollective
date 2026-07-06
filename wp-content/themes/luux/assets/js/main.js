@@ -37,32 +37,150 @@
     });
   });
 
-  /* Suite grid filter */
-  document.querySelectorAll('[data-suite-filter]').forEach((root) => {
+  /* Suite grid — filter + carousel */
+  document.querySelectorAll('[data-suite-grid]').forEach((root) => {
     const triggers = root.querySelectorAll('[data-suite-filter-trigger]');
-    const cards = root.querySelectorAll('[data-suite-category]');
-    if (!triggers.length) return;
+    const allCards = root.querySelectorAll('.suite-grid__card');
+    const track = root.querySelector('.suite-grid__track');
+    const dotsContainer = root.querySelector('.suite-grid__dots');
+    const carousel = root.querySelector('.suite-grid__carousel');
+    if (!track || !allCards.length) return;
 
-    function filter(slug) {
-      triggers.forEach((btn) => {
-        btn.setAttribute('aria-selected', btn.getAttribute('data-suite-filter-trigger') === slug ? 'true' : 'false');
-      });
-      cards.forEach((card) => {
-        const match = !slug || card.getAttribute('data-suite-category') === slug;
+    const desktopQuery = window.matchMedia('(min-width: 1024px)');
+    const reducedMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+    let activeFilter = '';
+    let pageIndex = 0;
+    let timer = null;
+    const intervalMs = 6000;
+
+    function visibleCards() {
+      return Array.from(allCards).filter((card) => !card.classList.contains('is-hidden'));
+    }
+
+    function slidesPerView() {
+      return desktopQuery.matches ? 3 : 1;
+    }
+
+    function pageCount() {
+      const count = visibleCards().length;
+      const perView = slidesPerView();
+      if (count <= perView) return 0;
+      return count - perView + 1;
+    }
+
+    function slideStep() {
+      const card = visibleCards()[0];
+      if (!card) return 0;
+      const gap = 32;
+      return card.offsetWidth + gap;
+    }
+
+    function applyFilter(slug) {
+      activeFilter = slug;
+      allCards.forEach((card) => {
+        const cat = card.getAttribute('data-suite-category');
+        const match = !slug || cat === slug;
         card.classList.toggle('is-hidden', !match);
       });
+      triggers.forEach((btn) => {
+        const selected = Boolean(slug) && btn.getAttribute('data-suite-filter-trigger') === slug;
+        btn.setAttribute('aria-selected', selected ? 'true' : 'false');
+      });
+      pageIndex = 0;
+      updateCarousel();
     }
 
     triggers.forEach((trigger) => {
       trigger.addEventListener('click', () => {
-        filter(trigger.getAttribute('data-suite-filter-trigger'));
+        const slug = trigger.getAttribute('data-suite-filter-trigger');
+        applyFilter(activeFilter === slug ? '' : slug);
       });
     });
 
-    const first = triggers[0];
-    if (first) {
-      filter(first.getAttribute('data-suite-filter-trigger'));
+    function renderDots() {
+      if (!dotsContainer) return;
+      const pages = pageCount();
+      dotsContainer.innerHTML = '';
+      if (pages < 2) {
+        dotsContainer.hidden = true;
+        return;
+      }
+      dotsContainer.hidden = false;
+      for (let i = 0; i < pages; i++) {
+        const dot = document.createElement('button');
+        dot.type = 'button';
+        dot.className = 'suite-grid__dot' + (i === pageIndex ? ' is-active' : '');
+        dot.setAttribute('role', 'tab');
+        dot.setAttribute('aria-label', `Go to page ${i + 1}`);
+        dot.setAttribute('aria-selected', i === pageIndex ? 'true' : 'false');
+        dot.dataset.suiteGridDot = String(i);
+        dot.addEventListener('click', () => {
+          pageIndex = i;
+          goToPage();
+          startAutoplay();
+        });
+        dotsContainer.appendChild(dot);
+      }
     }
+
+    function setActiveDots() {
+      if (!dotsContainer) return;
+      dotsContainer.querySelectorAll('.suite-grid__dot').forEach((dot, i) => {
+        const active = i === pageIndex;
+        dot.classList.toggle('is-active', active);
+        dot.setAttribute('aria-selected', active ? 'true' : 'false');
+      });
+    }
+
+    function goToPage() {
+      const step = slideStep();
+      track.style.transform = `translateX(-${pageIndex * step}px)`;
+      setActiveDots();
+    }
+
+    function stopAutoplay() {
+      if (timer) {
+        clearInterval(timer);
+        timer = null;
+      }
+    }
+
+    function startAutoplay() {
+      stopAutoplay();
+      if (pageCount() < 2 || reducedMotionQuery.matches) return;
+      timer = window.setInterval(() => {
+        const pages = pageCount();
+        if (pages < 2) return;
+        pageIndex = (pageIndex + 1) % pages;
+        goToPage();
+      }, intervalMs);
+    }
+
+    function updateCarousel() {
+      const pages = pageCount();
+      if (pageIndex >= pages) {
+        pageIndex = 0;
+      }
+      track.style.transform = pages ? '' : '';
+      renderDots();
+      goToPage();
+      startAutoplay();
+    }
+
+    if (carousel) {
+      carousel.addEventListener('mouseenter', stopAutoplay);
+      carousel.addEventListener('mouseleave', startAutoplay);
+      carousel.addEventListener('focusin', stopAutoplay);
+      carousel.addEventListener('focusout', startAutoplay);
+    }
+
+    desktopQuery.addEventListener('change', updateCarousel);
+    window.addEventListener('resize', () => {
+      goToPage();
+      renderDots();
+    });
+
+    updateCarousel();
   });
 
   /* FAQ accordion */
