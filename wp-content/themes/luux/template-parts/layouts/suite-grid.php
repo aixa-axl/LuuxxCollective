@@ -85,9 +85,7 @@ if (! $suites) {
                                        href="<?php echo esc_url($suite['link']['url']); ?>"
                                        <?php echo ! empty($suite['link']['target']) ? 'target="_blank" rel="noopener"' : ''; ?>>
                                         <?php echo esc_html($suite['link']['title']); ?>
-                                        <svg class="suite-grid__link-icon" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-                                            <path d="M5 3l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                                        </svg>
+
                                     </a>
                                 <?php endif; ?>
                             </div>
