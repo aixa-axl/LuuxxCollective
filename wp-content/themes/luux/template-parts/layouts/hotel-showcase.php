@@ -1,0 +1,102 @@
+<?php
+/**
+ * Layout: hotel-showcase
+ */
+
+$heading    = get_sub_field('heading');
+$intro      = get_sub_field('intro');
+$footnote   = get_sub_field('footnote');
+$hotels     = get_sub_field('hotels');
+$section_id = get_sub_field('section_id');
+
+if (! $hotels) {
+    return;
+}
+
+$panel_id = 'hotel-showcase-' . get_row_index();
+?>
+
+<section<?php echo $section_id ? ' id="' . esc_attr($section_id) . '"' : ''; ?> class="hotel-showcase section-pad bg-brand-cream-light" data-tab-panel="<?php echo esc_attr($panel_id); ?>">
+    <div class="container-site flex flex-col gap-10 lg:gap-12">
+        <?php if ($heading || $intro || $footnote) : ?>
+            <div class="mx-auto flex max-w-3xl flex-col gap-6 text-center lg:gap-12">
+                <?php if ($heading) : ?>
+                    <h2 class="font-display text-h3 text-brand-dark lg:text-h2"><?php echo esc_html($heading); ?></h2>
+                <?php endif; ?>
+                <?php if ($intro) : ?>
+                    <p class="font-display text-body-lg text-brand-gold-muted lg:text-h3"><?php echo esc_html($intro); ?></p>
+                <?php endif; ?>
+                <?php if ($footnote) : ?>
+                    <p class="font-display text-body text-brand-gold-muted"><?php echo esc_html($footnote); ?></p>
+                <?php endif; ?>
+            </div>
+        <?php endif; ?>
+
+        <?php if (count($hotels) > 1) : ?>
+            <div class="hotel-showcase__pills" role="tablist" aria-label="<?php esc_attr_e('Hotels', 'luux'); ?>">
+                <?php foreach ($hotels as $i => $hotel) :
+                    if (empty($hotel['name'])) continue;
+                    ?>
+                    <button type="button"
+                            class="hotel-showcase__pill"
+                            role="tab"
+                            id="<?php echo esc_attr($panel_id . '-tab-' . $i); ?>"
+                            aria-selected="<?php echo $i === 0 ? 'true' : 'false'; ?>"
+                            aria-controls="<?php echo esc_attr($panel_id . '-panel-' . $i); ?>"
+                            data-tab-trigger="<?php echo esc_attr((string) $i); ?>">
+                        <?php echo esc_html($hotel['name']); ?>
+                    </button>
+                <?php endforeach; ?>
+            </div>
+        <?php endif; ?>
+
+        <div class="hotel-showcase__panels">
+            <?php foreach ($hotels as $i => $hotel) : ?>
+                <article class="hotel-showcase__panel<?php echo $i === 0 ? ' is-active' : ''; ?>"
+                         role="tabpanel"
+                         id="<?php echo esc_attr($panel_id . '-panel-' . $i); ?>"
+                         aria-labelledby="<?php echo esc_attr($panel_id . '-tab-' . $i); ?>"
+                         data-tab-content="<?php echo esc_attr((string) $i); ?>"
+                         <?php echo $i === 0 ? '' : 'hidden'; ?>>
+                    <div class="hotel-showcase__card">
+                        <?php if (! empty($hotel['image'])) : ?>
+                            <div class="hotel-showcase__media">
+                                <?php echo wp_get_attachment_image($hotel['image'], 'large', false, [
+                                    'class'   => 'h-full w-full object-cover',
+                                    'loading' => 'lazy',
+                                ]); ?>
+                            </div>
+                        <?php endif; ?>
+                        <div class="hotel-showcase__content">
+                            <?php if (! empty($hotel['name'])) : ?>
+                                <h3 class="font-display text-h3 text-brand-dark"><?php echo esc_html($hotel['name']); ?></h3>
+                            <?php endif; ?>
+                            <?php if (! empty($hotel['description'])) : ?>
+                                <p class="font-body text-body-lg text-brand-gold-muted"><?php echo esc_html($hotel['description']); ?></p>
+                            <?php endif; ?>
+                            <?php if (! empty($hotel['inclusions'])) : ?>
+                                <ul class="hotel-showcase__inclusions">
+                                    <?php foreach ($hotel['inclusions'] as $row) :
+                                        if (empty($row['text'])) continue;
+                                        ?>
+                                        <li class="font-body text-body text-brand-dark">
+                                            <span class="text-brand-gold-muted" aria-hidden="true">✓</span>
+                                            <?php echo esc_html($row['text']); ?>
+                                        </li>
+                                    <?php endforeach; ?>
+                                </ul>
+                            <?php endif; ?>
+                            <?php if (! empty($hotel['cta']['url'])) : ?>
+                                <a class="link-underline text-brand-dark"
+                                   href="<?php echo esc_url($hotel['cta']['url']); ?>"
+                                   <?php echo ! empty($hotel['cta']['target']) ? 'target="_blank" rel="noopener"' : ''; ?>>
+                                    <?php echo esc_html($hotel['cta']['title']); ?>
+                                </a>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                </article>
+            <?php endforeach; ?>
+        </div>
+    </div>
+</section>

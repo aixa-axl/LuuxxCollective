@@ -70,6 +70,21 @@ add_action('acf/init', function () {
  * Underscores in layout names map to hyphens in filenames:
  * image_text_split → template-parts/layouts/image-text-split.php
  */
+function luux_uses_hero_header(): bool {
+    if (is_front_page()) {
+        return true;
+    }
+    if (! function_exists('get_field')) {
+        return false;
+    }
+    $sections = get_field('page_sections');
+    if (empty($sections) || ! is_array($sections)) {
+        return false;
+    }
+    $first = $sections[0]['acf_fc_layout'] ?? '';
+    return in_array($first, ['hero', 'resort_hero'], true);
+}
+
 function luux_render_sections(): void {
     if (!function_exists('have_rows') || !have_rows('page_sections')) {
         return;

@@ -9,7 +9,7 @@
 <?php wp_body_open(); ?>
 
 <?php
-$on_hero    = is_front_page();
+$on_hero    = luux_uses_hero_header();
 $logo_light = function_exists('get_field') ? get_field('site_logo', 'option') : null;
 $logo_dark  = function_exists('get_field') ? get_field('site_logo_dark', 'option') : null;
 $enquire    = function_exists('get_field') ? get_field('enquire_link', 'option') : null;

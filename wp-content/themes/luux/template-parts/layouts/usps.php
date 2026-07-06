@@ -3,12 +3,15 @@
  * Layout: usps
  */
 
-$label   = get_sub_field('section_label');
-$heading = get_sub_field('heading');
-$items   = get_sub_field('items');
+$label            = get_sub_field('section_label');
+$heading          = get_sub_field('heading');
+$items            = get_sub_field('items');
+$light_background = get_sub_field('light_background');
+$section_id       = get_sub_field('section_id');
+$bg_class         = $light_background ? 'bg-brand-white' : 'bg-brand-cream-light';
 ?>
 
-<section class="bg-brand-cream-light section-pad">
+<section<?php echo $section_id ? ' id="' . esc_attr($section_id) . '"' : ''; ?> class="<?php echo esc_attr($bg_class); ?> section-pad">
     <div class="container-site flex flex-col gap-10 lg:flex-row lg:gap-32">
         <?php if ($label || $heading) : ?>
             <div class="section-heading max-w-sm shrink-0 lg:gap-6">
