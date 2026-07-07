@@ -324,17 +324,12 @@
 
   /* Site header — Figma trust-strip 76:5193 */
   .site-header {
-    position: fixed;
-    inset-inline: 0;
-    top: 0;
+    position: relative;
     z-index: 50;
     height: 4rem;
     border-bottom: 1px solid var(--color-brand-cream);
     background: var(--color-brand-white);
     color: var(--color-brand-primary);
-  }
-  html.admin-bar .site-header {
-    top: var(--wp-admin--admin-bar--height, 32px);
   }
   .site-header__inner {
     display: flex;
@@ -407,11 +402,17 @@
     height: 1.5rem;
   }
   .site-header--hero {
+    position: absolute;
+    inset-inline: 0;
+    top: 0;
     border-bottom: 0;
     background: rgb(255 255 255 / 0.2);
     -webkit-backdrop-filter: blur(3.75px);
     backdrop-filter: blur(3.75px);
     color: var(--color-brand-white);
+  }
+  html.admin-bar .site-header--hero {
+    top: var(--wp-admin--admin-bar--height, 32px);
   }
   .site-header--hero .site-header__logo-mark--dark,
   .site-header--hero .site-header__logo-fallback,
