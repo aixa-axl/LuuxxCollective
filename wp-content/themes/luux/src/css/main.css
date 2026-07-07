@@ -751,6 +751,9 @@
     max-width: 25rem;
     text-align: center;
   }
+  .video-tours__text > * + * {
+    margin-top: 1rem;
+  }
   @media (min-width: 1024px) {
     .video-tours {
       padding-block: 10rem;

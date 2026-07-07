@@ -712,8 +712,10 @@
               "key": "field_luux_video_tours_text",
               "label": "Text",
               "name": "text",
-              "type": "textarea",
-              "rows": 3
+              "type": "wysiwyg",
+              "tabs": "visual",
+              "toolbar": "basic",
+              "media_upload": 0
             },
             {
               "key": "field_luux_video_tours_media_type_left",

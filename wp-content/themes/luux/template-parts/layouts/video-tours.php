@@ -53,7 +53,7 @@ $render_media = static function ($type, $image_id, $video_id) {
                     <h2 class="font-display text-h3 text-brand-primary lg:text-h2"><?php echo esc_html($heading); ?></h2>
                 <?php endif; ?>
                 <?php if ($text) : ?>
-                    <p class="font-body text-body text-brand-primary"><?php echo esc_html($text); ?></p>
+                    <div class="video-tours__text font-body text-body text-brand-primary"><?php echo wp_kses_post($text); ?></div>
                 <?php endif; ?>
             </div>
         <?php endif; ?>
