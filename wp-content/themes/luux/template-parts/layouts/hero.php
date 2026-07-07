@@ -5,16 +5,32 @@
 
 $heading    = get_sub_field('heading');
 $subheading = get_sub_field('subheading');
+$media_type = get_sub_field('media_type') ?: 'image';
 $image_id   = get_sub_field('background_image');
+$video_id   = get_sub_field('background_video');
 $ctas       = get_sub_field('ctas');
+
+$has_video = ($media_type === 'video' && $video_id);
+$has_media = $has_video || $image_id;
 ?>
 
 <section class="hero<?php echo is_front_page() ? ' hero--home-bleed' : ''; ?> relative h-[640px] overflow-hidden lg:h-[700px]">
-    <?php if ($image_id) : ?>
+    <?php if ($has_video) :
+        $video_url  = wp_get_attachment_url($video_id);
+        $video_mime = get_post_mime_type($video_id);
+        ?>
+        <video class="absolute inset-0 h-full w-full object-cover" autoplay muted loop playsinline>
+            <?php if ($video_url) : ?>
+                <source src="<?php echo esc_url($video_url); ?>"<?php echo $video_mime ? ' type="' . esc_attr($video_mime) . '"' : ''; ?>>
+            <?php endif; ?>
+        </video>
+    <?php elseif ($image_id) : ?>
         <?php echo wp_get_attachment_image($image_id, 'full', false, [
             'class'         => 'absolute inset-0 h-full w-full object-cover',
             'fetchpriority' => 'high',
         ]); ?>
+    <?php endif; ?>
+    <?php if ($has_media) : ?>
         <div class="hero-scrim absolute inset-0" aria-hidden="true"></div>
     <?php endif; ?>
 
