@@ -50,7 +50,7 @@ $slide_count    = is_array($categories) ? count($categories) : 0;
                 </div>
 
                 <?php if ($slide_count > 1) : ?>
-                    <div class="travel-carousel__dots hidden md:flex" role="tablist" aria-label="<?php esc_attr_e('Carousel pagination', 'luux'); ?>">
+                    <div class="travel-carousel__dots" role="tablist" aria-label="<?php esc_attr_e('Carousel pagination', 'luux'); ?>">
                         <?php for ($i = 0; $i < $slide_count; $i++) : ?>
                             <button type="button"
                                     class="travel-carousel__dot<?php echo $i === 0 ? ' is-active' : ''; ?>"
