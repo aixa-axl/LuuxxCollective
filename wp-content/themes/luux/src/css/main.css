@@ -1305,9 +1305,9 @@
   .planning-cta__inner {
     display: flex;
     flex-direction: column;
-    align-items: flex-start;
+    align-items: center;
     gap: 2.5rem;
-    text-align: left;
+    text-align: center;
   }
   .planning-cta__copy {
     display: flex;
