@@ -22,7 +22,7 @@ $destinations = get_sub_field('destinations');
         <?php endif; ?>
 
         <?php if ($destinations) : ?>
-            <div class="flex flex-col gap-4 lg:grid lg:grid-cols-5 lg:gap-8">
+            <div class="flex flex-col gap-4 lg:grid lg:grid-cols-3 lg:gap-8 xl:grid-cols-5">
                 <?php foreach ($destinations as $destination) :
                     $link = $destination['link'] ?? null;
                     $tag  = ! empty($link['url']) ? 'a' : 'article';
