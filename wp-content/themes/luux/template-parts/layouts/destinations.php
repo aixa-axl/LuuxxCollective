@@ -44,11 +44,9 @@ $destinations = get_sub_field('destinations');
                         <?php if (! empty($destination['title'])) : ?>
                             <p class="flex-1 font-body text-body-lg text-brand-primary lg:flex-none lg:text-center"><?php echo esc_html($destination['title']); ?></p>
                         <?php endif; ?>
-                        <?php if (! empty($link['url'])) : ?>
-                            <svg class="size-5 shrink-0 text-brand-primary lg:hidden" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                                <path d="M7.5 5l5 5-5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                            </svg>
-                        <?php endif; ?>
+                        <svg class="size-5 shrink-0 text-brand-gold lg:hidden" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                            <path d="M7.5 5l5 5-5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
                     </<?php echo $tag; ?>>
                 <?php endforeach; ?>
             </div>
