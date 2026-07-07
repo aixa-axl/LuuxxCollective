@@ -60,7 +60,7 @@ $footer_bg    = function_exists('luux_uses_blue_footer') && luux_uses_blue_foote
                 <?php endif; ?>
 
                 <p class="hidden font-body text-caption font-black opacity-50 lg:block">
-                    &copy; <?php echo esc_html(date('Y')); ?> <?php bloginfo('name'); ?>. <?php esc_html_e('All rights reserved.', 'luux'); ?>
+                    &copy; <?php echo esc_html(date('Y')); ?> Luxx Collective. <?php esc_html_e('All rights reserved.', 'luux'); ?>
                 </p>
             </div>
 
@@ -108,7 +108,7 @@ $footer_bg    = function_exists('luux_uses_blue_footer') && luux_uses_blue_foote
     <div class="border-t border-brand-white/10">
         <div class="container-site flex flex-col gap-6 py-10 lg:flex-row lg:items-center lg:justify-between lg:gap-4">
             <p class="font-body text-caption font-black opacity-40 lg:hidden">
-                &copy; <?php echo esc_html(date('Y')); ?> <?php bloginfo('name'); ?>. <?php esc_html_e('All rights reserved.', 'luux'); ?>
+                &copy; <?php echo esc_html(date('Y')); ?> Luxx Collective. <?php esc_html_e('All rights reserved.', 'luux'); ?>
             </p>
 
             <?php if ($group_text) : ?>
