@@ -32,7 +32,7 @@ $section_id = get_sub_field('section_id');
                 <p class="font-body text-body-lg"><?php echo esc_html($text); ?></p>
             <?php endif; ?>
             <?php if (! empty($cta['url'])) : ?>
-                <a class="link-underline text-brand-white"
+                <a class="link-underline self-start text-brand-white"
                    href="<?php echo esc_url($cta['url']); ?>"
                    <?php echo ! empty($cta['target']) ? 'target="_blank" rel="noopener"' : ''; ?>>
                     <?php echo esc_html($cta['title']); ?>
