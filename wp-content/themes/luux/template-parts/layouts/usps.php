@@ -12,7 +12,7 @@ $bg_class         = $light_background ? 'bg-brand-white' : 'bg-brand-cream-light
 ?>
 
 <section<?php echo $section_id ? ' id="' . esc_attr($section_id) . '"' : ''; ?> class="<?php echo esc_attr($bg_class); ?> section-pad">
-    <div class="container-site flex flex-col gap-10 lg:flex-row lg:gap-32">
+    <div class="container-site flex flex-col gap-10 xl:flex-row xl:gap-32">
         <?php if ($label || $heading) : ?>
             <div class="section-heading max-w-sm shrink-0 lg:gap-6">
                 <?php if ($label) : ?>
@@ -25,7 +25,7 @@ $bg_class         = $light_background ? 'bg-brand-white' : 'bg-brand-cream-light
         <?php endif; ?>
 
         <?php if ($items) : ?>
-            <div class="flex flex-1 flex-col gap-8 lg:grid lg:grid-cols-2 lg:gap-8 lg:pt-10">
+            <div class="flex flex-1 flex-col gap-8 lg:grid lg:grid-cols-2 lg:gap-8 xl:pt-10">
                 <?php foreach ($items as $item) : ?>
                     <article class="flex flex-col gap-4 lg:items-center lg:gap-6 lg:text-center">
                         <?php if (! empty($item['icon'])) : ?>

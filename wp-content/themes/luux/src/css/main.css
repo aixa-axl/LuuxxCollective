@@ -763,13 +763,13 @@
   .video-tours__text > * + * {
     margin-top: 1rem;
   }
-  @media (min-width: 1024px) {
+  @media (min-width: 1200px) {
     .video-tours {
       padding-block: 10rem;
     }
     .video-tours__grid {
       flex-direction: row;
-      flex-wrap: wrap;
+      flex-wrap: nowrap;
       justify-content: center;
       gap: 2.5rem;
     }
