@@ -9,7 +9,7 @@ $cta     = get_sub_field('cta');
 ?>
 
 <section class="border-y border-brand-cream bg-brand-cream-light section-pad">
-    <div class="container-site flex flex-col items-start gap-8 text-left lg:items-center lg:text-center">
+    <div class="container-site flex flex-col items-center gap-8 text-center">
         <?php if ($heading || $text) : ?>
             <div class="flex max-w-2xl flex-col gap-3">
                 <?php if ($heading) : ?>
@@ -22,7 +22,7 @@ $cta     = get_sub_field('cta');
         <?php endif; ?>
 
         <?php if (! empty($cta['url'])) : ?>
-            <a class="link-underline text-brand-dark"
+            <a class="link-underline w-full text-center text-brand-dark md:w-auto md:text-left"
                href="<?php echo esc_url($cta['url']); ?>"
                <?php echo ! empty($cta['target']) ? 'target="_blank" rel="noopener"' : ''; ?>>
                 <?php echo esc_html($cta['title']); ?>
