@@ -26,7 +26,7 @@ $logos   = get_sub_field('logos');
                 <?php foreach ($logos as $logo) :
                     if (empty($logo['image'])) continue;
                     ?>
-                    <div class="flex h-10 w-full items-center justify-center bg-brand-white/10 p-2 lg:w-32">
+                    <div class="flex h-14 w-full items-center justify-center lg:w-40">
                         <?php echo wp_get_attachment_image($logo['image'], 'medium', false, [
                             'class'   => 'max-h-full max-w-full object-contain',
                             'loading' => 'lazy',
