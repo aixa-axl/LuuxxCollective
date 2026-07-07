@@ -129,9 +129,9 @@
   .hero-scrim {
     background: linear-gradient(
       to right,
-      rgb(12 21 53 / 0.8),
-      rgb(12 21 53 / 0.48) 80%,
-      rgb(12 21 53 / 0.2)
+      rgb(12 21 53 / 0.45),
+      rgb(12 21 53 / 0.28) 80%,
+      rgb(12 21 53 / 0.12)
     );
   }
   @media (min-width: 1024px) {
