@@ -16,7 +16,6 @@ $ctas       = get_sub_field('ctas');
             'fetchpriority' => 'high',
         ]); ?>
         <div class="hero-scrim absolute inset-0" aria-hidden="true"></div>
-        <div class="hero-scrim-mobile absolute inset-0 lg:hidden" aria-hidden="true"></div>
     <?php endif; ?>
 
     <div class="absolute inset-x-0 bottom-0 z-10 flex w-full flex-col items-center gap-6 px-5 pb-16 text-center text-brand-white lg:inset-x-auto lg:bottom-auto lg:left-1/2 lg:top-[calc(50%+167px)] lg:w-full lg:max-w-[58.375rem] lg:-translate-x-1/2 lg:-translate-y-1/2 lg:gap-8 lg:px-0 lg:pb-0">
