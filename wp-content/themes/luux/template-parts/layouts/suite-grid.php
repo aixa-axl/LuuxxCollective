@@ -81,7 +81,7 @@ if (! $suites) {
                                     <p class="font-body text-body text-brand-gold-muted"><?php echo esc_html($suite['description']); ?></p>
                                 <?php endif; ?>
                                 <?php if (! empty($suite['link']['url'])) : ?>
-                                    <a class="suite-grid__link font-ui font-semibold text-body text-brand-dark"
+                                    <a class="suite-grid__link font-ui font-medium text-body text-brand-dark"
                                        href="<?php echo esc_url($suite['link']['url']); ?>"
                                        <?php echo ! empty($suite['link']['target']) ? 'target="_blank" rel="noopener"' : ''; ?>>
                                         <?php echo esc_html($suite['link']['title']); ?>

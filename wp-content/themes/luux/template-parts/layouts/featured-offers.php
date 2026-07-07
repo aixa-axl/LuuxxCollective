@@ -14,7 +14,7 @@ $offers  = get_sub_field('offers');
         <?php if ($label || $heading || $intro) : ?>
             <div class="section-heading max-w-[40rem]">
                 <?php if ($label) : ?>
-                    <p class="font-ui font-semibold text-body uppercase text-brand-gold"><?php echo esc_html($label); ?></p>
+                    <p class="font-ui font-medium text-body uppercase text-brand-gold"><?php echo esc_html($label); ?></p>
                 <?php endif; ?>
                 <?php if ($heading) : ?>
                     <h2 class="font-display text-h3 leading-[1.1] text-brand-primary lg:text-h2 lg:leading-none"><?php echo esc_html($heading); ?></h2>

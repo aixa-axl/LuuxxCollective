@@ -16,7 +16,7 @@ $slide_count    = is_array($categories) ? count($categories) : 0;
         <?php if ($label || $heading) : ?>
             <div class="section-heading text-left lg:items-center lg:text-center">
                 <?php if ($label) : ?>
-                    <p class="font-ui font-semibold text-body uppercase text-brand-gold-muted"><?php echo esc_html($label); ?></p>
+                    <p class="font-ui font-medium text-body uppercase text-brand-gold-muted"><?php echo esc_html($label); ?></p>
                 <?php endif; ?>
                 <?php if ($heading) : ?>
                     <h2 class="font-display text-h3 leading-[1.1] text-brand-dark lg:text-h2 lg:leading-none"><?php echo esc_html($heading); ?></h2>

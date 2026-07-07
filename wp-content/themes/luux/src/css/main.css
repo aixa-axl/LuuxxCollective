@@ -299,7 +299,7 @@
   .link-underline {
     display: inline-block;
     font-family: var(--font-ui);
-    font-weight: 600;
+    font-weight: 500;
     font-size: var(--text-body);
     line-height: var(--text-body--line-height);
     border-bottom: 1px solid currentColor;
@@ -317,7 +317,7 @@
     width: 100%;
     justify-content: center;
     font-family: var(--font-ui);
-    font-weight: 600;
+    font-weight: 500;
     font-size: var(--text-body);
     line-height: var(--text-body--line-height);
     padding-block: 1rem;
@@ -345,7 +345,7 @@
   .btn {
     display: inline-block;
     font-family: var(--font-ui);
-    font-weight: 600;
+    font-weight: 500;
     font-size: var(--text-body);
     line-height: var(--text-body--line-height);
     padding: 0.75rem 1.5rem;
@@ -561,7 +561,7 @@
     border-radius: 2px;
     padding: 0.5rem 1rem;
     font-family: var(--font-ui);
-    font-weight: 600;
+    font-weight: 500;
     font-size: var(--text-body);
     line-height: var(--text-body--line-height);
     white-space: nowrap;
@@ -1454,7 +1454,7 @@
     justify-content: center;
     padding: 1.5rem 1rem;
     font-family: var(--font-ui);
-    font-weight: 600;
+    font-weight: 500;
     font-size: var(--text-body);
     line-height: var(--text-body--line-height);
     text-transform: uppercase;
@@ -1531,7 +1531,7 @@
     border-radius: 0;
     background: var(--color-brand-gold);
     font-family: var(--font-ui);
-    font-weight: 600;
+    font-weight: 500;
     font-size: var(--text-body);
     line-height: var(--text-body--line-height);
     text-transform: uppercase;
