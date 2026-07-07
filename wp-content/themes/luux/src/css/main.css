@@ -1146,6 +1146,10 @@
       height: 7.9375rem;
       aspect-ratio: auto;
     }
+    #sani-dining .dining__mosaic-col--single .dining__image {
+      height: 31.25rem;
+      aspect-ratio: auto;
+    }
     .dining__highlights {
       grid-template-columns: repeat(2, max-content);
       column-gap: 1.25rem;

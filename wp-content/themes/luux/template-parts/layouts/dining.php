@@ -24,6 +24,12 @@ if ( ! $image_bottom_left ) {
     $mosaic_classes .= ' dining__mosaic--no-bottom-left';
 }
 
+// A column with a single image gets a modifier so it can be sized taller.
+$left_single_class  = ($image_top_left && ! $image_bottom_left) || ($image_bottom_left && ! $image_top_left)
+    ? ' dining__mosaic-col--single' : '';
+$right_single_class = ($image_top && ! $image_bottom) || ($image_bottom && ! $image_top)
+    ? ' dining__mosaic-col--single' : '';
+
 // Ordered slides for the mobile-only carousel (all media in one track).
 $carousel_slides = [];
 if ($hero_media_type === 'video' && $hero_video_id) {
@@ -87,7 +93,7 @@ foreach ([$image_top_left, $image_top, $image_bottom_left, $image_bottom] as $ca
 
         <?php if ($has_mosaic) : ?>
             <div class="<?php echo esc_attr($mosaic_classes); ?>">
-                <div class="dining__mosaic-col dining__mosaic-col--left">
+                <div class="dining__mosaic-col dining__mosaic-col--left<?php echo $left_single_class; ?>">
                     <?php if ($image_top_left) : ?>
                         <div class="dining__image dining__image--top-left">
                             <?php echo wp_get_attachment_image($image_top_left, 'large', false, [
@@ -107,7 +113,7 @@ foreach ([$image_top_left, $image_top, $image_bottom_left, $image_bottom] as $ca
                     <?php endif; ?>
                 </div>
 
-                <div class="dining__mosaic-col dining__mosaic-col--right">
+                <div class="dining__mosaic-col dining__mosaic-col--right<?php echo $right_single_class; ?>">
                     <?php if ($image_top) : ?>
                         <div class="dining__image dining__image--top-right">
                             <?php echo wp_get_attachment_image($image_top, 'large', false, [
