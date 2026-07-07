@@ -1359,23 +1359,29 @@
   }
   .contact-card__form input[type="submit"]:hover { opacity: 0.9; }
   .contact-card__form .wpcf7-spinner {
-    position: absolute;
+    position: absolute !important;
     right: 0;
     bottom: -1.75rem;
-    margin: 0;
+    margin: 0 !important;
   }
-  /* Keep the submit flush to the column bottom; only reserve space when a
-     validation / mail response actually appears. */
+  /* Contact Form 7 renders a response box + spinner after the submit and its
+     own stylesheet gives them large margins (`.wpcf7 form .wpcf7-response-output`
+     is more specific than a plain class), which shoves the button upward and
+     breaks column alignment once the plugin CSS loads. Force zero footprint
+     when empty; only reserve space once an actual status message appears. */
   .contact-card__form .wpcf7-response-output {
-    margin: 0;
+    margin: 0 !important;
+    padding: 0 !important;
+    border-width: 0 !important;
   }
   .contact-card__form .wpcf7-response-output.wpcf7-validation-errors,
   .contact-card__form .wpcf7-response-output.wpcf7-mail-sent-ok,
   .contact-card__form .wpcf7-response-output.wpcf7-mail-sent-ng,
   .contact-card__form .wpcf7-response-output.wpcf7-spam-blocked,
   .contact-card__form .wpcf7-response-output.wpcf7-acceptance-missing {
-    margin-top: 0.75rem;
-    padding: 0.75rem 1rem;
+    margin-top: 0.75rem !important;
+    padding: 0.75rem 1rem !important;
+    border-width: 2px !important;
   }
   @media (min-width: 1024px) {
     .contact-options__columns {
