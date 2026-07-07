@@ -14,7 +14,7 @@ $bg_class         = $light_background ? 'bg-brand-white' : 'bg-brand-cream-light
 <section<?php echo $section_id ? ' id="' . esc_attr($section_id) . '"' : ''; ?> class="<?php echo esc_attr($bg_class); ?> section-pad">
     <div class="container-site flex flex-col gap-10 xl:flex-row xl:gap-32">
         <?php if ($label || $heading) : ?>
-            <div class="section-heading max-w-sm shrink-0 lg:gap-6">
+            <div class="section-heading shrink-0 lg:gap-6 xl:max-w-sm">
                 <?php if ($label) : ?>
                     <p class="font-ui font-medium text-body uppercase text-brand-gold"><?php echo esc_html($label); ?></p>
                 <?php endif; ?>
