@@ -22,7 +22,7 @@ $logos   = get_sub_field('logos');
         <?php endif; ?>
 
         <?php if ($logos) : ?>
-            <div class="grid grid-cols-2 gap-4 xl:flex xl:flex-wrap xl:gap-8">
+            <div class="grid grid-cols-2 gap-4 lg:grid-cols-3 xl:flex xl:flex-wrap xl:gap-8">
                 <?php foreach ($logos as $logo) :
                     if (empty($logo['image'])) continue;
                     ?>
