@@ -716,12 +716,63 @@
               "rows": 3
             },
             {
+              "key": "field_luux_video_tours_media_type_left",
+              "label": "Left Media Type",
+              "name": "media_type_left",
+              "type": "button_group",
+              "choices": {
+                "image": "Image",
+                "video": "Video"
+              },
+              "default_value": "image",
+              "return_format": "value"
+            },
+            {
               "key": "field_luux_video_tours_image_left",
               "label": "Image Left",
               "name": "image_left",
               "type": "image",
               "return_format": "id",
-              "preview_size": "medium"
+              "preview_size": "medium",
+              "conditional_logic": [
+                [
+                  {
+                    "field": "field_luux_video_tours_media_type_left",
+                    "operator": "==",
+                    "value": "image"
+                  }
+                ]
+              ]
+            },
+            {
+              "key": "field_luux_video_tours_video_left",
+              "label": "Video Left",
+              "name": "video_left",
+              "type": "file",
+              "return_format": "id",
+              "mime_types": "mp4,webm,mov",
+              "instructions": "Upload an MP4, WebM, or MOV file. Plays muted and loops automatically.",
+              "conditional_logic": [
+                [
+                  {
+                    "field": "field_luux_video_tours_media_type_left",
+                    "operator": "==",
+                    "value": "video"
+                  }
+                ]
+              ]
+            },
+            {
+              "key": "field_luux_video_tours_media_type_right",
+              "label": "Right Media Type",
+              "name": "media_type_right",
+              "type": "button_group",
+              "choices": {
+                "image": "Image",
+                "video": "Video"
+              },
+              "default_value": "image",
+              "return_format": "value"
             },
             {
               "key": "field_luux_video_tours_image_right",
@@ -729,7 +780,34 @@
               "name": "image_right",
               "type": "image",
               "return_format": "id",
-              "preview_size": "medium"
+              "preview_size": "medium",
+              "conditional_logic": [
+                [
+                  {
+                    "field": "field_luux_video_tours_media_type_right",
+                    "operator": "==",
+                    "value": "image"
+                  }
+                ]
+              ]
+            },
+            {
+              "key": "field_luux_video_tours_video_right",
+              "label": "Video Right",
+              "name": "video_right",
+              "type": "file",
+              "return_format": "id",
+              "mime_types": "mp4,webm,mov",
+              "instructions": "Upload an MP4, WebM, or MOV file. Plays muted and loops automatically.",
+              "conditional_logic": [
+                [
+                  {
+                    "field": "field_luux_video_tours_media_type_right",
+                    "operator": "==",
+                    "value": "video"
+                  }
+                ]
+              ]
             },
             {
               "key": "field_luux_video_tours_section_id",
