@@ -210,6 +210,100 @@
     updateStickyNav();
   }
 
+  /* Reviews carousel — mobile only, auto-scroll */
+  document.querySelectorAll('[data-reviews-carousel]').forEach((root) => {
+    const track = root.querySelector('.reviews__track');
+    const cards = root.querySelectorAll('.reviews__card');
+    const dotsContainer = root.querySelector('[data-reviews-dots]');
+    if (!track || cards.length < 2) return;
+
+    const mobileQuery = window.matchMedia('(max-width: 1023px)');
+    const reducedMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+    let index = 0;
+    let timer = null;
+    const intervalMs = 7000; // long enough to read a few lines
+
+    function slideStep() {
+      const card = cards[0];
+      if (!card) return 0;
+      const gap = 16;
+      return card.offsetWidth + gap;
+    }
+
+    function setActiveDot() {
+      if (!dotsContainer) return;
+      dotsContainer.querySelectorAll('.reviews__dot').forEach((dot, i) => {
+        const active = i === index;
+        dot.classList.toggle('is-active', active);
+        dot.setAttribute('aria-selected', active ? 'true' : 'false');
+      });
+    }
+
+    function renderDots() {
+      if (!dotsContainer) return;
+      dotsContainer.innerHTML = '';
+      cards.forEach((_, i) => {
+        const dot = document.createElement('button');
+        dot.type = 'button';
+        dot.className = 'reviews__dot' + (i === index ? ' is-active' : '');
+        dot.setAttribute('role', 'tab');
+        dot.setAttribute('aria-label', `Go to review ${i + 1}`);
+        dot.setAttribute('aria-selected', i === index ? 'true' : 'false');
+        dot.addEventListener('click', () => {
+          goTo(i);
+          start();
+        });
+        dotsContainer.appendChild(dot);
+      });
+    }
+
+    function goTo(next) {
+      index = (next + cards.length) % cards.length;
+      track.style.transform = `translateX(-${index * slideStep()}px)`;
+      setActiveDot();
+    }
+
+    function stop() {
+      if (timer) {
+        clearInterval(timer);
+        timer = null;
+      }
+    }
+
+    function start() {
+      stop();
+      if (!mobileQuery.matches || reducedMotionQuery.matches) return;
+      timer = window.setInterval(() => goTo(index + 1), intervalMs);
+    }
+
+    function reset() {
+      stop();
+      if (mobileQuery.matches) {
+        goTo(index);
+        start();
+      } else {
+        track.style.transform = '';
+        index = 0;
+        setActiveDot();
+      }
+    }
+
+    root.addEventListener('mouseenter', stop);
+    root.addEventListener('mouseleave', start);
+    root.addEventListener('focusin', stop);
+    root.addEventListener('focusout', start);
+    root.addEventListener('touchstart', stop, { passive: true });
+    root.addEventListener('touchend', start, { passive: true });
+
+    mobileQuery.addEventListener('change', reset);
+    window.addEventListener('resize', () => {
+      if (mobileQuery.matches) goTo(index);
+    });
+
+    renderDots();
+    reset();
+  });
+
   /* Travel style carousel */
   const carousels = document.querySelectorAll('[data-travel-carousel]');
   if (!carousels.length) return;

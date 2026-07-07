@@ -24,27 +24,32 @@ $testimonials = get_sub_field('testimonials');
         </div>
 
         <?php if ($testimonials) : ?>
-            <div class="flex flex-col gap-6 lg:grid lg:grid-cols-3 lg:gap-8">
-                <?php foreach ($testimonials as $i => $item) : ?>
-                    <blockquote class="<?php echo $i === 0 ? 'flex' : 'hidden lg:flex'; ?> flex-col gap-5 rounded border border-brand-gold p-6 lg:border-0 lg:p-8">
-                        <?php if (! empty($item['rating'])) : ?>
-                            <p class="font-body text-body-sm text-brand-gold" aria-label="<?php echo esc_attr(sprintf(__('%s out of 5 stars', 'luux'), $item['rating'])); ?>">
-                                <?php echo esc_html(str_repeat('★', (int) $item['rating'])); ?>
-                            </p>
-                        <?php endif; ?>
-                        <?php if (! empty($item['quote'])) : ?>
-                            <p class="font-display text-body-lg text-brand-white lg:text-quote"><?php echo esc_html($item['quote']); ?></p>
-                        <?php endif; ?>
-                        <footer class="flex flex-col gap-1 font-body text-body text-brand-white">
-                            <?php if (! empty($item['name'])) : ?>
-                                <cite class="not-italic"><?php echo esc_html($item['name']); ?></cite>
-                            <?php endif; ?>
-                            <?php if (! empty($item['date'])) : ?>
-                                <time class="opacity-60"><?php echo esc_html($item['date']); ?></time>
-                            <?php endif; ?>
-                        </footer>
-                    </blockquote>
-                <?php endforeach; ?>
+            <div class="reviews__carousel" data-reviews-carousel>
+                <div class="reviews__viewport">
+                    <div class="reviews__track flex gap-4 lg:grid lg:grid-cols-3 lg:gap-8">
+                        <?php foreach ($testimonials as $item) : ?>
+                            <blockquote class="reviews__card flex w-full flex-shrink-0 flex-col gap-5 rounded border border-brand-gold p-6 lg:w-auto lg:border-0 lg:p-8">
+                                <?php if (! empty($item['rating'])) : ?>
+                                    <p class="font-body text-body-sm text-brand-gold" aria-label="<?php echo esc_attr(sprintf(__('%s out of 5 stars', 'luux'), $item['rating'])); ?>">
+                                        <?php echo esc_html(str_repeat('★', (int) $item['rating'])); ?>
+                                    </p>
+                                <?php endif; ?>
+                                <?php if (! empty($item['quote'])) : ?>
+                                    <p class="font-display text-body-lg text-brand-white lg:text-quote"><?php echo esc_html($item['quote']); ?></p>
+                                <?php endif; ?>
+                                <footer class="flex flex-col gap-1 font-body text-body text-brand-white">
+                                    <?php if (! empty($item['name'])) : ?>
+                                        <cite class="not-italic"><?php echo esc_html($item['name']); ?></cite>
+                                    <?php endif; ?>
+                                    <?php if (! empty($item['date'])) : ?>
+                                        <time class="opacity-60"><?php echo esc_html($item['date']); ?></time>
+                                    <?php endif; ?>
+                                </footer>
+                            </blockquote>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+                <div class="reviews__dots lg:hidden" data-reviews-dots role="tablist" aria-label="<?php esc_attr_e('Reviews', 'luux'); ?>"></div>
             </div>
         <?php endif; ?>
 

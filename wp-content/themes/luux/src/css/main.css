@@ -158,6 +158,48 @@
     }
   }
 
+  /* Reviews carousel — mobile auto-scroll (desktop stays a 3-col grid) */
+  .reviews__carousel {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+  .reviews__viewport {
+    overflow: hidden;
+  }
+  .reviews__track {
+    transition: transform 600ms ease;
+    will-change: transform;
+  }
+  .reviews__dots {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+  }
+  .reviews__dot {
+    width: 0.5rem;
+    height: 0.5rem;
+    padding: 0;
+    border: 0;
+    border-radius: 9999px;
+    background: rgb(255 255 255 / 0.3);
+    cursor: pointer;
+    transition: background 150ms ease;
+  }
+  .reviews__dot.is-active {
+    background: var(--color-brand-gold);
+  }
+  @media (min-width: 1024px) {
+    .reviews__viewport {
+      overflow: visible;
+    }
+    .reviews__track {
+      transform: none !important;
+      transition: none;
+      will-change: auto;
+    }
+  }
+
   /* Travel style carousel — Figma travel-style 76:4950 */
   .travel-carousel__viewport {
     width: 100%;
