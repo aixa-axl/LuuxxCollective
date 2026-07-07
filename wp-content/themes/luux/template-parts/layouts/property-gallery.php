@@ -40,7 +40,7 @@ $columns = [
 <section<?php echo $section_id ? ' id="' . esc_attr($section_id) . '"' : ''; ?> class="property-gallery section-pad">
     <div class="container-site flex flex-col gap-10 lg:gap-16">
         <?php if ($heading || $text) : ?>
-            <div class="mx-auto flex max-w-md flex-col gap-6 text-left lg:gap-10 lg:text-center">
+            <div class="flex max-w-md flex-col gap-6 text-left lg:mx-auto lg:gap-10 lg:text-center">
                 <?php if ($heading) : ?>
                     <h2 class="font-display text-h3 text-brand-primary lg:text-h2"><?php echo esc_html($heading); ?></h2>
                 <?php endif; ?>
