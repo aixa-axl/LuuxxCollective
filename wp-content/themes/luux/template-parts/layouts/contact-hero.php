@@ -8,7 +8,7 @@ $image_id   = get_sub_field('background_image');
 $section_id = get_sub_field('section_id');
 ?>
 
-<section<?php echo $section_id ? ' id="' . esc_attr($section_id) . '"' : ''; ?> class="contact-hero relative flex h-[26.25rem] items-center justify-center overflow-hidden lg:h-[43.75rem]">
+<section<?php echo $section_id ? ' id="' . esc_attr($section_id) . '"' : ''; ?> class="contact-hero relative flex h-[26.25rem] items-center justify-center overflow-hidden lg:h-[30.625rem]">
     <?php if ($image_id) : ?>
         <?php echo wp_get_attachment_image($image_id, 'full', false, [
             'class'         => 'absolute inset-0 h-full w-full object-cover',
