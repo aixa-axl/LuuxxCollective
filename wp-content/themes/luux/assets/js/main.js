@@ -91,11 +91,13 @@
     goTo(0);
   });
 
-  /* Suite grid — filter + carousel */
+  /* Suite grid — filter + carousel + overflow grid */
   document.querySelectorAll('[data-suite-grid]').forEach((root) => {
     const triggers = root.querySelectorAll('[data-suite-filter-trigger]');
     const allCards = root.querySelectorAll('.suite-grid__card');
     const track = root.querySelector('.suite-grid__track');
+    const viewport = root.querySelector('.suite-grid__viewport');
+    const overflow = root.querySelector('[data-suite-overflow]');
     const dotsContainer = root.querySelector('.suite-grid__dots');
     const carousel = root.querySelector('.suite-grid__carousel');
     if (!track || !allCards.length) return;
@@ -107,26 +109,59 @@
     let timer = null;
     const intervalMs = 6000;
 
-    function visibleCards() {
-      return Array.from(allCards).filter((card) => !card.classList.contains('is-hidden'));
+    function isMobileCarousel() {
+      return !desktopQuery.matches;
+    }
+
+    function carouselCards() {
+      return Array.from(track.querySelectorAll('.suite-grid__card:not(.is-hidden)'));
     }
 
     function slidesPerView() {
-      return desktopQuery.matches ? 3 : 1;
+      if (isMobileCarousel()) return 1;
+      return 3;
     }
 
     function pageCount() {
-      const count = visibleCards().length;
+      const count = carouselCards().length;
       const perView = slidesPerView();
       if (count <= perView) return 0;
       return count - perView + 1;
     }
 
     function slideStep() {
-      const card = visibleCards()[0];
+      const card = carouselCards()[0];
       if (!card) return 0;
       const gap = 32;
       return card.offsetWidth + gap;
+    }
+
+    function moveOverflowToTrack() {
+      if (!overflow) return;
+      Array.from(overflow.querySelectorAll('.suite-grid__card')).forEach((card) => {
+        track.appendChild(card);
+      });
+      overflow.hidden = true;
+    }
+
+    function restoreTrackOrder() {
+      const sorted = Array.from(allCards).sort(
+        (a, b) => Number(a.dataset.suiteIndex) - Number(b.dataset.suiteIndex)
+      );
+      sorted.forEach((card) => track.appendChild(card));
+    }
+
+    function layoutCards() {
+      moveOverflowToTrack();
+      restoreTrackOrder();
+
+      const visible = carouselCards();
+      root.classList.toggle('suite-grid--filtered', Boolean(activeFilter));
+
+      if (activeFilter && desktopQuery.matches && visible.length > 3) {
+        visible.slice(3).forEach((card) => overflow.appendChild(card));
+        if (overflow) overflow.hidden = false;
+      }
     }
 
     function applyFilter(slug) {
@@ -151,8 +186,6 @@
       });
     });
 
-    /* Clicking the empty background (not a card, control, or link) resets to
-       the default view showing all suites. */
     root.addEventListener('click', (event) => {
       if (event.target.closest('.suite-grid__card, .suite-grid__pill, .suite-grid__dot, a, button')) {
         return;
@@ -198,9 +231,41 @@
     }
 
     function goToPage() {
+      const cards = carouselCards();
+      if (isMobileCarousel()) {
+        const card = cards[pageIndex];
+        if (card && viewport) {
+          viewport.scrollTo({
+            left: card.offsetLeft,
+            behavior: reducedMotionQuery.matches ? 'auto' : 'smooth',
+          });
+        }
+        setActiveDots();
+        return;
+      }
       const step = slideStep();
       track.style.transform = `translateX(-${pageIndex * step}px)`;
       setActiveDots();
+    }
+
+    function syncPageFromScroll() {
+      if (!isMobileCarousel() || !viewport) return;
+      const cards = carouselCards();
+      if (!cards.length) return;
+      const scrollLeft = viewport.scrollLeft;
+      let nearest = 0;
+      let nearestDistance = Infinity;
+      cards.forEach((card, i) => {
+        const distance = Math.abs(card.offsetLeft - scrollLeft);
+        if (distance < nearestDistance) {
+          nearestDistance = distance;
+          nearest = i;
+        }
+      });
+      if (nearest !== pageIndex) {
+        pageIndex = nearest;
+        setActiveDots();
+      }
     }
 
     function stopAutoplay() {
@@ -212,7 +277,7 @@
 
     function startAutoplay() {
       stopAutoplay();
-      if (pageCount() < 2 || reducedMotionQuery.matches) return;
+      if (isMobileCarousel() || pageCount() < 2 || reducedMotionQuery.matches) return;
       timer = window.setInterval(() => {
         const pages = pageCount();
         if (pages < 2) return;
@@ -222,13 +287,28 @@
     }
 
     function updateCarousel() {
+      layoutCards();
       const pages = pageCount();
-      if (pageIndex >= pages) {
+      if (pages > 0 && pageIndex >= pages) {
+        pageIndex = pages - 1;
+      }
+      if (pages === 0) {
         pageIndex = 0;
       }
-      track.style.transform = pages ? '' : '';
+
+      if (isMobileCarousel()) {
+        track.style.transform = '';
+        if (viewport) viewport.scrollLeft = 0;
+      } else {
+        track.style.transform = pages ? '' : '';
+      }
+
       renderDots();
-      goToPage();
+      if (!isMobileCarousel()) {
+        goToPage();
+      } else {
+        setActiveDots();
+      }
       startAutoplay();
     }
 
@@ -239,9 +319,18 @@
       carousel.addEventListener('focusout', startAutoplay);
     }
 
-    desktopQuery.addEventListener('change', updateCarousel);
+    if (viewport) {
+      viewport.addEventListener('scroll', syncPageFromScroll, { passive: true });
+    }
+
+    desktopQuery.addEventListener('change', () => {
+      pageIndex = 0;
+      updateCarousel();
+    });
     window.addEventListener('resize', () => {
-      goToPage();
+      if (!isMobileCarousel()) {
+        goToPage();
+      }
       renderDots();
     });
 

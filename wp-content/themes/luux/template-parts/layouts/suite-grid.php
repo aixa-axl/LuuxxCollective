@@ -55,12 +55,13 @@ if (! $suites) {
              aria-label="<?php esc_attr_e('Suites', 'luux'); ?>">
             <div class="suite-grid__viewport">
                 <div class="suite-grid__track">
-                    <?php foreach ($suites as $suite) :
+                    <?php foreach ($suites as $index => $suite) :
                         $cat_slug = ! empty($suite['category']) ? sanitize_title($suite['category']) : '';
                         $offset   = $suite['vertical_offset'] ?? 'none';
                         ?>
                         <article class="suite-grid__card suite-grid__card--offset-<?php echo esc_attr($offset); ?>"
-                                 data-suite-category="<?php echo esc_attr($cat_slug); ?>">
+                                 data-suite-category="<?php echo esc_attr($cat_slug); ?>"
+                                 data-suite-index="<?php echo esc_attr((string) $index); ?>">
                             <?php if (! empty($suite['image'])) : ?>
                                 <div class="suite-grid__media">
                                     <?php echo wp_get_attachment_image($suite['image'], 'large', false, [
@@ -94,5 +95,7 @@ if (! $suites) {
             </div>
             <div class="suite-grid__dots" role="tablist" aria-label="<?php esc_attr_e('Carousel pagination', 'luux'); ?>" hidden></div>
         </div>
+
+        <div class="suite-grid__overflow" data-suite-overflow hidden></div>
     </div>
 </section>
