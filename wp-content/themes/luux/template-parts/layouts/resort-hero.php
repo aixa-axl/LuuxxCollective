@@ -6,17 +6,33 @@
 $eyebrow    = get_sub_field('eyebrow');
 $heading    = get_sub_field('heading');
 $text       = get_sub_field('text');
+$media_type = get_sub_field('media_type') ?: 'image';
 $image_id   = get_sub_field('background_image');
+$video_id   = get_sub_field('background_video');
 $cta        = get_sub_field('cta');
 $section_id = get_sub_field('section_id');
+
+$has_video = ($media_type === 'video' && $video_id);
+$has_media = $has_video || $image_id;
 ?>
 
 <section<?php echo $section_id ? ' id="' . esc_attr($section_id) . '"' : ''; ?> class="resort-hero relative h-[640px] overflow-hidden lg:h-[780px]">
-    <?php if ($image_id) : ?>
+    <?php if ($has_video) :
+        $video_url  = wp_get_attachment_url($video_id);
+        $video_mime = get_post_mime_type($video_id);
+        ?>
+        <video class="absolute inset-0 h-full w-full object-cover" autoplay muted loop playsinline>
+            <?php if ($video_url) : ?>
+                <source src="<?php echo esc_url($video_url); ?>"<?php echo $video_mime ? ' type="' . esc_attr($video_mime) . '"' : ''; ?>>
+            <?php endif; ?>
+        </video>
+    <?php elseif ($image_id) : ?>
         <?php echo wp_get_attachment_image($image_id, 'full', false, [
             'class'         => 'absolute inset-0 h-full w-full object-cover',
             'fetchpriority' => 'high',
         ]); ?>
+    <?php endif; ?>
+    <?php if ($has_media) : ?>
         <div class="resort-hero__scrim absolute inset-0" aria-hidden="true"></div>
     <?php endif; ?>
 

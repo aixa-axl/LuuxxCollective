@@ -550,12 +550,51 @@
               "rows": 4
             },
             {
+              "key": "field_luux_resort_hero_media_type",
+              "label": "Background Media Type",
+              "name": "media_type",
+              "type": "button_group",
+              "choices": {
+                "image": "Image",
+                "video": "Video"
+              },
+              "default_value": "image",
+              "return_format": "value"
+            },
+            {
               "key": "field_luux_resort_hero_background_image",
               "label": "Background Image",
               "name": "background_image",
               "type": "image",
               "return_format": "id",
-              "preview_size": "medium"
+              "preview_size": "medium",
+              "conditional_logic": [
+                [
+                  {
+                    "field": "field_luux_resort_hero_media_type",
+                    "operator": "==",
+                    "value": "image"
+                  }
+                ]
+              ]
+            },
+            {
+              "key": "field_luux_resort_hero_background_video",
+              "label": "Background Video",
+              "name": "background_video",
+              "type": "file",
+              "return_format": "id",
+              "mime_types": "mp4,webm,mov",
+              "instructions": "Upload an MP4, WebM, or MOV file. Plays muted and loops automatically.",
+              "conditional_logic": [
+                [
+                  {
+                    "field": "field_luux_resort_hero_media_type",
+                    "operator": "==",
+                    "value": "video"
+                  }
+                ]
+              ]
             },
             {
               "key": "field_luux_resort_hero_cta",
