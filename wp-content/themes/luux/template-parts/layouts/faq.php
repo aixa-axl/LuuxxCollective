@@ -15,7 +15,7 @@ if (! $items) {
 <section<?php echo $section_id ? ' id="' . esc_attr($section_id) . '"' : ''; ?> class="faq section-pad" data-faq>
     <div class="container-site flex flex-col gap-10 lg:gap-16">
         <?php if ($heading) : ?>
-            <h2 class="text-center font-display text-h3 text-brand-primary lg:text-h2"><?php echo esc_html($heading); ?></h2>
+            <h2 class="text-left font-display text-h3 text-brand-primary lg:text-center lg:text-h2"><?php echo esc_html($heading); ?></h2>
         <?php endif; ?>
 
         <div class="faq__list mx-auto w-full max-w-3xl">

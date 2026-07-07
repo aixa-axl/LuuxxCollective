@@ -11,7 +11,7 @@ $destinations = get_sub_field('destinations');
 <section class="section-pad">
     <div class="container-site flex flex-col gap-10 lg:gap-16">
         <?php if ($label || $heading) : ?>
-            <div class="section-heading items-center text-center">
+            <div class="section-heading text-left lg:items-center lg:text-center">
                 <?php if ($label) : ?>
                     <p class="font-display text-body uppercase text-brand-gold"><?php echo esc_html($label); ?></p>
                 <?php endif; ?>

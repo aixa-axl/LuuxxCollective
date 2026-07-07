@@ -19,7 +19,7 @@ $panel_id = 'hotel-showcase-' . get_row_index();
 <section<?php echo $section_id ? ' id="' . esc_attr($section_id) . '"' : ''; ?> class="hotel-showcase section-pad bg-brand-cream-light" data-hotel-showcase>
     <div class="container-site flex flex-col gap-10 lg:gap-12">
         <?php if ($heading || $intro || $footnote) : ?>
-            <div class="mx-auto flex max-w-3xl flex-col gap-6 text-center lg:gap-12">
+            <div class="mx-auto flex max-w-3xl flex-col gap-6 text-left lg:gap-12 lg:text-center">
                 <?php if ($heading) : ?>
                     <h2 class="font-display text-h3 text-brand-dark lg:text-h2"><?php echo esc_html($heading); ?></h2>
                 <?php endif; ?>
