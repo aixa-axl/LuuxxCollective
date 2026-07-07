@@ -1205,6 +1205,187 @@
             }
           ]
         },
+        "layout_luux_contact_hero": {
+          "key": "layout_luux_contact_hero",
+          "name": "contact_hero",
+          "label": "Contact Hero",
+          "display": "block",
+          "sub_fields": [
+            {
+              "key": "field_luux_contact_hero_heading",
+              "label": "Heading",
+              "name": "heading",
+              "type": "text"
+            },
+            {
+              "key": "field_luux_contact_hero_background_image",
+              "label": "Background Image",
+              "name": "background_image",
+              "type": "image",
+              "return_format": "id",
+              "preview_size": "medium"
+            },
+            {
+              "key": "field_luux_contact_hero_section_id",
+              "label": "Section ID",
+              "name": "section_id",
+              "type": "text"
+            }
+          ]
+        },
+        "layout_luux_contact_options": {
+          "key": "layout_luux_contact_options",
+          "name": "contact_options",
+          "label": "Contact Options",
+          "display": "block",
+          "sub_fields": [
+            {
+              "key": "field_luux_contact_options_heading",
+              "label": "Heading",
+              "name": "heading",
+              "type": "text"
+            },
+            {
+              "key": "field_luux_contact_options_subheading",
+              "label": "Subheading",
+              "name": "subheading",
+              "type": "textarea",
+              "rows": 2
+            },
+            {
+              "key": "field_luux_contact_options_wa_tab",
+              "label": "WhatsApp Column",
+              "name": "",
+              "type": "tab",
+              "placement": "top"
+            },
+            {
+              "key": "field_luux_contact_options_whatsapp_title",
+              "label": "Title",
+              "name": "whatsapp_title",
+              "type": "text",
+              "default_value": "WhatsApp Us"
+            },
+            {
+              "key": "field_luux_contact_options_whatsapp_text",
+              "label": "Text",
+              "name": "whatsapp_text",
+              "type": "textarea",
+              "rows": 4
+            },
+            {
+              "key": "field_luux_contact_options_whatsapp_link",
+              "label": "Button Link",
+              "name": "whatsapp_link",
+              "type": "link",
+              "return_format": "array",
+              "instructions": "Use a https://wa.me/ link. Button label comes from the link title (e.g. Open WhatsApp)."
+            },
+            {
+              "key": "field_luux_contact_options_call_tab",
+              "label": "Call Column",
+              "name": "",
+              "type": "tab",
+              "placement": "top"
+            },
+            {
+              "key": "field_luux_contact_options_call_title",
+              "label": "Title",
+              "name": "call_title",
+              "type": "text",
+              "default_value": "Call us today"
+            },
+            {
+              "key": "field_luux_contact_options_call_text",
+              "label": "Text",
+              "name": "call_text",
+              "type": "textarea",
+              "rows": 4
+            },
+            {
+              "key": "field_luux_contact_options_call_phone",
+              "label": "Phone Number",
+              "name": "call_phone",
+              "type": "text",
+              "instructions": "e.g. +44 (0)20 7123 4567"
+            },
+            {
+              "key": "field_luux_contact_options_call_button_label",
+              "label": "Button Label",
+              "name": "call_button_label",
+              "type": "text",
+              "default_value": "Call Now"
+            },
+            {
+              "key": "field_luux_contact_options_form_tab",
+              "label": "Paper Trail Column",
+              "name": "",
+              "type": "tab",
+              "placement": "top"
+            },
+            {
+              "key": "field_luux_contact_options_form_title",
+              "label": "Title",
+              "name": "form_title",
+              "type": "text",
+              "default_value": "Paper Trail"
+            },
+            {
+              "key": "field_luux_contact_options_form_text",
+              "label": "Text",
+              "name": "form_text",
+              "type": "textarea",
+              "rows": 3
+            },
+            {
+              "key": "field_luux_contact_options_form_id",
+              "label": "Contact Form 7 ID",
+              "name": "form_id",
+              "type": "text",
+              "instructions": "Requires the Contact Form 7 plugin. Enter the form ID (Contact → Forms shows it in the shortcode, e.g. id=\"123\")."
+            },
+            {
+              "key": "field_luux_contact_options_section_id",
+              "label": "Section ID",
+              "name": "section_id",
+              "type": "text"
+            }
+          ]
+        },
+        "layout_luux_general_enquiries": {
+          "key": "layout_luux_general_enquiries",
+          "name": "general_enquiries",
+          "label": "General Enquiries",
+          "display": "block",
+          "sub_fields": [
+            {
+              "key": "field_luux_general_enquiries_heading",
+              "label": "Heading",
+              "name": "heading",
+              "type": "text",
+              "default_value": "General enquiries"
+            },
+            {
+              "key": "field_luux_general_enquiries_text",
+              "label": "Text",
+              "name": "text",
+              "type": "textarea",
+              "rows": 3
+            },
+            {
+              "key": "field_luux_general_enquiries_email",
+              "label": "Email Address",
+              "name": "email",
+              "type": "email"
+            },
+            {
+              "key": "field_luux_general_enquiries_section_id",
+              "label": "Section ID",
+              "name": "section_id",
+              "type": "text"
+            }
+          ]
+        },
         "layout_luux_careers_teaser": {
           "key": "layout_luux_careers_teaser",
           "name": "careers_teaser",

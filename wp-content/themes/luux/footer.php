@@ -13,11 +13,12 @@ $contact_text = function_exists('get_field') ? get_field('contact_intro', 'optio
 $group_text   = function_exists('get_field') ? get_field('footer_group_text', 'option') : '';
 $socials      = function_exists('get_field') ? get_field('social_links', 'option') : [];
 $legal_links  = function_exists('get_field') ? get_field('legal_links', 'option') : [];
+$footer_bg    = function_exists('luux_uses_blue_footer') && luux_uses_blue_footer() ? 'bg-brand-primary' : 'bg-brand-navy';
 ?>
 
 </main>
 
-<footer class="bg-brand-navy text-brand-white">
+<footer class="<?php echo esc_attr($footer_bg); ?> text-brand-white">
     <div class="container-site pt-16 pb-10 lg:section-pad lg:pt-20 lg:pb-10">
         <div class="flex flex-col gap-12 lg:grid lg:grid-cols-4 lg:gap-20">
             <div class="flex flex-col gap-6 lg:gap-8">

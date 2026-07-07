@@ -21,6 +21,7 @@
   --color-brand-ink: #0c1535;               /* body text on light backgrounds */
   --color-brand-navy: #1b1300;              /* alias — dark footer / CTA bands */
   --color-brand-primary-soft: #acb4d3;      /* muted text on navy CTA */
+  --color-whatsapp: #61ce70;                /* WhatsApp brand green — contact CTA */
 
   /* Type families — Nohemi (button, secondary header) → Novar */
   --font-display: "Novar", Georgia, serif;
@@ -1234,6 +1235,129 @@
     }
     .sticky-nav__specialist {
       display: inline-block;
+    }
+  }
+
+  /* Contact hero — Figma 76:5683 */
+  .contact-hero__scrim {
+    background: linear-gradient(
+      90deg,
+      rgb(12 21 53 / 0.8) 0%,
+      rgb(12 21 53 / 0.2) 55%
+    );
+  }
+
+  /* Contact options — Figma 76:5686 */
+  .contact-options__columns {
+    display: flex;
+    flex-direction: column;
+    gap: 2.5rem;
+  }
+  .contact-card {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    padding: 2.5rem 0;
+  }
+  .contact-card__body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+    text-align: center;
+  }
+  .contact-card__button {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem 1rem;
+    font-family: var(--font-display);
+    font-size: var(--text-body);
+    line-height: var(--text-body--line-height);
+    text-transform: uppercase;
+    color: var(--color-brand-white);
+    transition: opacity 150ms ease;
+  }
+  .contact-card__button:hover { opacity: 0.9; }
+  .contact-card__button:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 2px;
+  }
+  .contact-card__button--whatsapp { background: var(--color-whatsapp); }
+  .contact-card__button--call { background: var(--color-brand-primary); }
+  .contact-card__body + .contact-card__button {
+    margin-top: auto;
+  }
+
+  /* Paper Trail — Contact Form 7 markup */
+  .contact-card__form {
+    margin-top: auto;
+    width: 100%;
+  }
+  .contact-card__form .wpcf7-form > p {
+    margin: 0 0 0.75rem;
+  }
+  .contact-card__form input[type="text"],
+  .contact-card__form input[type="email"],
+  .contact-card__form input[type="tel"],
+  .contact-card__form textarea {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 1px solid #d0d0d0;
+    border-radius: 0;
+    background: var(--color-brand-white);
+    font-family: var(--font-body);
+    font-size: var(--text-body);
+    line-height: var(--text-body--line-height);
+    color: var(--color-brand-ink);
+  }
+  .contact-card__form textarea {
+    min-height: 5rem;
+    resize: vertical;
+  }
+  .contact-card__form input::placeholder,
+  .contact-card__form textarea::placeholder {
+    color: #aaaaaa;
+  }
+  .contact-card__form input:focus-visible,
+  .contact-card__form textarea:focus-visible {
+    outline: 2px solid var(--color-brand-gold);
+    outline-offset: 1px;
+  }
+  .contact-card__form input[type="submit"] {
+    display: block;
+    width: 100%;
+    margin-top: 0.75rem;
+    padding: 1.5rem 1rem;
+    border: 0;
+    border-radius: 0;
+    background: var(--color-brand-gold);
+    font-family: var(--font-display);
+    font-size: var(--text-body);
+    line-height: var(--text-body--line-height);
+    text-transform: uppercase;
+    color: var(--color-brand-white);
+    cursor: pointer;
+    transition: opacity 150ms ease;
+  }
+  .contact-card__form input[type="submit"]:hover { opacity: 0.9; }
+  .contact-card__form .wpcf7-spinner {
+    margin: 0.5rem auto 0;
+  }
+  @media (min-width: 1024px) {
+    .contact-options__columns {
+      flex-direction: row;
+      gap: 0;
+    }
+    .contact-card {
+      flex: 1 1 0;
+      min-width: 0;
+      gap: 2rem;
+      padding: 3rem 2.5rem;
+    }
+    .contact-card:not(:last-child) {
+      border-right: 1px solid #e5e5e5;
     }
   }
 }
