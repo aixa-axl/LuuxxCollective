@@ -151,6 +151,17 @@
       });
     });
 
+    /* Clicking the empty background (not a card, control, or link) resets to
+       the default view showing all suites. */
+    root.addEventListener('click', (event) => {
+      if (event.target.closest('.suite-grid__card, .suite-grid__pill, .suite-grid__dot, a, button')) {
+        return;
+      }
+      if (activeFilter) {
+        applyFilter('');
+      }
+    });
+
     function renderDots() {
       if (!dotsContainer) return;
       const pages = pageCount();
