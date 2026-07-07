@@ -23,6 +23,19 @@ $mosaic_classes = 'dining__mosaic';
 if ( ! $image_bottom_left ) {
     $mosaic_classes .= ' dining__mosaic--no-bottom-left';
 }
+
+// Ordered slides for the mobile-only carousel (all media in one track).
+$carousel_slides = [];
+if ($hero_media_type === 'video' && $hero_video_id) {
+    $carousel_slides[] = ['type' => 'video', 'id' => $hero_video_id];
+} elseif ($image_hero) {
+    $carousel_slides[] = ['type' => 'image', 'id' => $image_hero];
+}
+foreach ([$image_top_left, $image_top, $image_bottom_left, $image_bottom] as $carousel_image) {
+    if ($carousel_image) {
+        $carousel_slides[] = ['type' => 'image', 'id' => $carousel_image];
+    }
+}
 ?>
 
 <section<?php echo $section_id ? ' id="' . esc_attr($section_id) . '"' : ''; ?> class="dining section-pad bg-brand-cream-light">
@@ -113,6 +126,35 @@ if ( ! $image_bottom_left ) {
                         </div>
                     <?php endif; ?>
                 </div>
+            </div>
+        <?php endif; ?>
+
+        <?php if (count($carousel_slides) > 1) : ?>
+            <div class="dining__carousel" data-dining-carousel aria-label="<?php esc_attr_e('Dining gallery', 'luux'); ?>">
+                <div class="dining__carousel-viewport">
+                    <div class="dining__carousel-track" data-dining-track>
+                        <?php foreach ($carousel_slides as $slide) : ?>
+                            <div class="dining__carousel-slide">
+                                <?php if ($slide['type'] === 'video') :
+                                    $slide_video_url  = wp_get_attachment_url($slide['id']);
+                                    $slide_video_mime = get_post_mime_type($slide['id']);
+                                    ?>
+                                    <video class="dining__media" autoplay muted loop playsinline>
+                                        <?php if ($slide_video_url) : ?>
+                                            <source src="<?php echo esc_url($slide_video_url); ?>"<?php echo $slide_video_mime ? ' type="' . esc_attr($slide_video_mime) . '"' : ''; ?>>
+                                        <?php endif; ?>
+                                    </video>
+                                <?php else : ?>
+                                    <?php echo wp_get_attachment_image($slide['id'], 'large', false, [
+                                        'class'   => 'dining__media',
+                                        'loading' => 'lazy',
+                                    ]); ?>
+                                <?php endif; ?>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+                <div class="dining__carousel-dots" data-dining-dots role="tablist" aria-label="<?php esc_attr_e('Gallery pagination', 'luux'); ?>"></div>
             </div>
         <?php endif; ?>
     </div>

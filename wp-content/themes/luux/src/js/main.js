@@ -337,6 +337,90 @@
     updateCarousel();
   });
 
+  /* Dining gallery — mobile only, auto-scroll through all images */
+  document.querySelectorAll('[data-dining-carousel]').forEach((root) => {
+    const track = root.querySelector('[data-dining-track]');
+    const slides = root.querySelectorAll('.dining__carousel-slide');
+    const dotsContainer = root.querySelector('[data-dining-dots]');
+    if (!track || slides.length < 2) return;
+
+    const mobileQuery = window.matchMedia('(max-width: 1023px)');
+    const reducedMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+    let index = 0;
+    let timer = null;
+    const intervalMs = 4000;
+
+    function setActiveDot() {
+      if (!dotsContainer) return;
+      dotsContainer.querySelectorAll('.dining__carousel-dot').forEach((dot, i) => {
+        const active = i === index;
+        dot.classList.toggle('is-active', active);
+        dot.setAttribute('aria-selected', active ? 'true' : 'false');
+      });
+    }
+
+    function renderDots() {
+      if (!dotsContainer) return;
+      dotsContainer.innerHTML = '';
+      slides.forEach((_, i) => {
+        const dot = document.createElement('button');
+        dot.type = 'button';
+        dot.className = 'dining__carousel-dot' + (i === index ? ' is-active' : '');
+        dot.setAttribute('role', 'tab');
+        dot.setAttribute('aria-label', `Go to image ${i + 1}`);
+        dot.setAttribute('aria-selected', i === index ? 'true' : 'false');
+        dot.addEventListener('click', () => {
+          goTo(i);
+          start();
+        });
+        dotsContainer.appendChild(dot);
+      });
+    }
+
+    function goTo(next) {
+      index = (next + slides.length) % slides.length;
+      track.style.transform = `translateX(-${index * 100}%)`;
+      setActiveDot();
+    }
+
+    function stop() {
+      if (timer) {
+        clearInterval(timer);
+        timer = null;
+      }
+    }
+
+    function start() {
+      stop();
+      if (!mobileQuery.matches || reducedMotionQuery.matches) return;
+      timer = window.setInterval(() => goTo(index + 1), intervalMs);
+    }
+
+    function reset() {
+      stop();
+      if (mobileQuery.matches) {
+        goTo(index);
+        start();
+      } else {
+        track.style.transform = '';
+        index = 0;
+        setActiveDot();
+      }
+    }
+
+    root.addEventListener('mouseenter', stop);
+    root.addEventListener('mouseleave', start);
+    root.addEventListener('focusin', stop);
+    root.addEventListener('focusout', start);
+    root.addEventListener('touchstart', stop, { passive: true });
+    root.addEventListener('touchend', start, { passive: true });
+
+    mobileQuery.addEventListener('change', reset);
+
+    renderDots();
+    reset();
+  });
+
   /* FAQ accordion */
   document.querySelectorAll('[data-faq]').forEach((root) => {
     root.querySelectorAll('.faq__trigger').forEach((trigger) => {
