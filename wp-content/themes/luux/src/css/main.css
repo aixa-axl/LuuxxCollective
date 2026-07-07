@@ -1270,7 +1270,13 @@
   }
   .faq__icon {
     flex-shrink: 0;
-    font-size: 1.25rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.5rem;
+    height: 1.5rem;
+    font-size: 1.5rem;
+    line-height: 1;
     color: var(--color-brand-gold);
     transition: transform 150ms ease;
   }
