@@ -22,7 +22,7 @@ $destinations = get_sub_field('destinations');
         <?php endif; ?>
 
         <?php if ($destinations) : ?>
-            <div class="flex flex-col gap-4 lg:grid lg:grid-cols-3 lg:gap-8 xl:grid-cols-5">
+            <div class="flex flex-col gap-4 md:grid md:grid-cols-2 md:gap-8 lg:grid-cols-3 xl:grid-cols-5">
                 <?php foreach ($destinations as $destination) :
                     $link = $destination['link'] ?? null;
                     $tag  = ! empty($link['url']) ? 'a' : 'article';
@@ -31,7 +31,7 @@ $destinations = get_sub_field('destinations');
                         : '';
                     ?>
                     <<?php echo $tag; ?>
-                        class="group flex items-center gap-4 rounded border border-brand-cream-light p-3 lg:flex-col lg:items-center lg:gap-4 lg:border-0 lg:p-0"
+                        class="group flex items-center gap-4 rounded border border-brand-cream-light p-3 md:flex-col md:items-center md:gap-4 md:border-0 md:p-0"
                         <?php echo $attrs; ?>>
                         <?php if (! empty($destination['image'])) : ?>
                             <div class="destination-card__image relative shrink-0 overflow-hidden rounded-sm">
@@ -42,9 +42,9 @@ $destinations = get_sub_field('destinations');
                             </div>
                         <?php endif; ?>
                         <?php if (! empty($destination['title'])) : ?>
-                            <p class="flex-1 font-body text-body-lg text-brand-primary lg:flex-none lg:text-center"><?php echo esc_html($destination['title']); ?></p>
+                            <p class="flex-1 font-body text-body-lg text-brand-primary md:flex-none md:text-center"><?php echo esc_html($destination['title']); ?></p>
                         <?php endif; ?>
-                        <svg class="size-5 shrink-0 text-brand-gold lg:hidden" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                        <svg class="size-5 shrink-0 text-brand-gold md:hidden" viewBox="0 0 20 20" fill="none" aria-hidden="true">
                             <path d="M7.5 5l5 5-5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
                         </svg>
                     </<?php echo $tag; ?>>
