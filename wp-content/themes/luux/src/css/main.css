@@ -678,7 +678,7 @@
   .hotel-showcase__inclusions {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
+    gap: 0.875rem;
     list-style: none;
     margin: 0;
     padding: 0;

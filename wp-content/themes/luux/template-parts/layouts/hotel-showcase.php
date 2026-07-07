@@ -87,7 +87,7 @@ $panel_id = 'hotel-showcase-' . get_row_index();
                                 </ul>
                             <?php endif; ?>
                             <?php if (! empty($hotel['cta']['url'])) : ?>
-                                <a class="link-underline text-brand-dark"
+                                <a class="link-underline self-start text-brand-dark"
                                    href="<?php echo esc_url($hotel['cta']['url']); ?>"
                                    <?php echo ! empty($hotel['cta']['target']) ? 'target="_blank" rel="noopener"' : ''; ?>>
                                     <?php echo esc_html($hotel['cta']['title']); ?>
