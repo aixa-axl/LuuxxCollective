@@ -39,7 +39,7 @@ $has_media = $has_video || $image_id;
     <div class="container-site relative z-10 flex h-full flex-col justify-end pb-12 pt-24 lg:justify-center lg:pb-0 lg:pt-0">
         <div class="flex max-w-xl flex-col gap-6 text-brand-white lg:max-w-[37.5rem] lg:gap-10">
             <?php if ($eyebrow) : ?>
-                <p class="font-ui text-body uppercase"><?php echo esc_html($eyebrow); ?></p>
+                <p class="font-ui font-semibold text-body uppercase"><?php echo esc_html($eyebrow); ?></p>
             <?php endif; ?>
             <?php if ($heading) : ?>
                 <h1 class="font-display text-[3rem] leading-none lg:text-h1 lg:leading-[0.88]"><?php echo esc_html($heading); ?></h1>
