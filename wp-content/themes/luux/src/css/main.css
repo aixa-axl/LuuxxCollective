@@ -1199,6 +1199,19 @@
   .property-gallery__cell--col3-bottom {
     aspect-ratio: 405 / 300;
   }
+  @media (min-width: 768px) and (max-width: 1023px) {
+    .property-gallery__grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1.5rem;
+    }
+    .property-gallery__col {
+      display: contents;
+    }
+    .property-gallery__cell {
+      aspect-ratio: 4 / 5;
+    }
+  }
   @media (min-width: 1024px) {
     .property-gallery__grid {
       flex-direction: row;
