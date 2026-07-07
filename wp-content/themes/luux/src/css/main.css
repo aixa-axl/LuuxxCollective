@@ -653,11 +653,36 @@
     outline: 2px solid var(--color-brand-dark);
     outline-offset: 4px;
   }
-  .hotel-showcase__panel {
-    display: none;
+  .hotel-showcase__viewport {
+    overflow: hidden;
   }
-  .hotel-showcase__panel.is-active {
-    display: block;
+  .hotel-showcase__track {
+    display: flex;
+    transition: transform 500ms ease;
+    will-change: transform;
+  }
+  .hotel-showcase__slide {
+    flex: 0 0 100%;
+    width: 100%;
+    min-width: 0;
+  }
+  .hotel-showcase__dots {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+  }
+  .hotel-showcase__dot {
+    width: 0.5rem;
+    height: 0.5rem;
+    padding: 0;
+    border: 0;
+    border-radius: 9999px;
+    background: rgb(0 0 0 / 0.2);
+    cursor: pointer;
+    transition: background 150ms ease;
+  }
+  .hotel-showcase__dot.is-active {
+    background: var(--color-brand-dark);
   }
   .hotel-showcase__card {
     display: flex;

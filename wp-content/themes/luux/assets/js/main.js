@@ -37,6 +37,60 @@
     });
   });
 
+  /* Hotel showcase — tabbed carousel (manual, no autoplay) */
+  document.querySelectorAll('[data-hotel-showcase]').forEach((root) => {
+    const track = root.querySelector('[data-hotel-track]');
+    const slides = root.querySelectorAll('.hotel-showcase__slide');
+    const tabs = root.querySelectorAll('[data-hotel-tab]');
+    const dotsContainer = root.querySelector('[data-hotel-dots]');
+    if (!track || slides.length < 2) return;
+
+    let index = 0;
+
+    function renderDots() {
+      if (!dotsContainer) return;
+      dotsContainer.innerHTML = '';
+      slides.forEach((_, i) => {
+        const dot = document.createElement('button');
+        dot.type = 'button';
+        dot.tabIndex = -1;
+        dot.className = 'hotel-showcase__dot' + (i === index ? ' is-active' : '');
+        dot.setAttribute('aria-label', `Go to hotel ${i + 1}`);
+        dot.addEventListener('click', () => goTo(i));
+        dotsContainer.appendChild(dot);
+      });
+    }
+
+    function goTo(next) {
+      index = (next + slides.length) % slides.length;
+      track.style.transform = `translateX(-${index * 100}%)`;
+      tabs.forEach((tab, i) => {
+        tab.setAttribute('aria-selected', i === index ? 'true' : 'false');
+      });
+      slides.forEach((slide, i) => {
+        if (i === index) {
+          slide.removeAttribute('aria-hidden');
+        } else {
+          slide.setAttribute('aria-hidden', 'true');
+        }
+      });
+      if (dotsContainer) {
+        dotsContainer.querySelectorAll('.hotel-showcase__dot').forEach((dot, i) => {
+          dot.classList.toggle('is-active', i === index);
+        });
+      }
+    }
+
+    tabs.forEach((tab) => {
+      tab.addEventListener('click', () => {
+        goTo(Number(tab.getAttribute('data-hotel-tab')));
+      });
+    });
+
+    renderDots();
+    goTo(0);
+  });
+
   /* Suite grid — filter + carousel */
   document.querySelectorAll('[data-suite-grid]').forEach((root) => {
     const triggers = root.querySelectorAll('[data-suite-filter-trigger]');

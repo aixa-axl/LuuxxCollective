@@ -16,7 +16,7 @@ if (! $hotels) {
 $panel_id = 'hotel-showcase-' . get_row_index();
 ?>
 
-<section<?php echo $section_id ? ' id="' . esc_attr($section_id) . '"' : ''; ?> class="hotel-showcase section-pad bg-brand-cream-light" data-tab-panel="<?php echo esc_attr($panel_id); ?>">
+<section<?php echo $section_id ? ' id="' . esc_attr($section_id) . '"' : ''; ?> class="hotel-showcase section-pad bg-brand-cream-light" data-hotel-showcase>
     <div class="container-site flex flex-col gap-10 lg:gap-12">
         <?php if ($heading || $intro || $footnote) : ?>
             <div class="mx-auto flex max-w-3xl flex-col gap-6 text-center lg:gap-12">
@@ -43,21 +43,21 @@ $panel_id = 'hotel-showcase-' . get_row_index();
                             id="<?php echo esc_attr($panel_id . '-tab-' . $i); ?>"
                             aria-selected="<?php echo $i === 0 ? 'true' : 'false'; ?>"
                             aria-controls="<?php echo esc_attr($panel_id . '-panel-' . $i); ?>"
-                            data-tab-trigger="<?php echo esc_attr((string) $i); ?>">
+                            data-hotel-tab="<?php echo esc_attr((string) $i); ?>">
                         <?php echo esc_html($hotel['name']); ?>
                     </button>
                 <?php endforeach; ?>
             </div>
         <?php endif; ?>
 
-        <div class="hotel-showcase__panels">
+        <div class="hotel-showcase__viewport">
+            <div class="hotel-showcase__track" data-hotel-track>
             <?php foreach ($hotels as $i => $hotel) : ?>
-                <article class="hotel-showcase__panel<?php echo $i === 0 ? ' is-active' : ''; ?>"
+                <article class="hotel-showcase__slide"
                          role="tabpanel"
                          id="<?php echo esc_attr($panel_id . '-panel-' . $i); ?>"
                          aria-labelledby="<?php echo esc_attr($panel_id . '-tab-' . $i); ?>"
-                         data-tab-content="<?php echo esc_attr((string) $i); ?>"
-                         <?php echo $i === 0 ? '' : 'hidden'; ?>>
+                         <?php echo $i === 0 ? '' : 'aria-hidden="true"'; ?>>
                     <div class="hotel-showcase__card">
                         <?php if (! empty($hotel['image'])) : ?>
                             <div class="hotel-showcase__media">
@@ -97,6 +97,11 @@ $panel_id = 'hotel-showcase-' . get_row_index();
                     </div>
                 </article>
             <?php endforeach; ?>
+            </div>
         </div>
+
+        <?php if (count($hotels) > 1) : ?>
+            <div class="hotel-showcase__dots" data-hotel-dots aria-hidden="true"></div>
+        <?php endif; ?>
     </div>
 </section>
