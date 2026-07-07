@@ -46,9 +46,7 @@ if (! $suites) {
                     </div>
                 </div>
             <?php endif; ?>
-            </div>
-
-            
+            </div> 
         </div>
 
         <div class="suite-grid__carousel"
