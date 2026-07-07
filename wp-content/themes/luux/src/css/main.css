@@ -756,6 +756,19 @@
   .video-tours__text > * + * {
     margin-top: 1rem;
   }
+  @media (min-width: 768px) and (max-width: 1199px) {
+    .video-tours__media:first-child {
+      align-self: flex-start;
+    }
+    .video-tours__media:last-child {
+      align-self: flex-end;
+    }
+    .video-tours__copy {
+      max-width: none;
+      width: 100%;
+      align-self: stretch;
+    }
+  }
   @media (min-width: 1200px) {
     .video-tours {
       padding-block: 10rem;
