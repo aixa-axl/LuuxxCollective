@@ -232,7 +232,7 @@
     line-height: var(--text-body-lg--line-height);
     color: var(--color-brand-dark);
   }
-  @media (min-width: 1024px) {
+  @media (min-width: 768px) {
     .travel-carousel__viewport {
       overflow: hidden;
     }

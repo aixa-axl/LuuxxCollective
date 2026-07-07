@@ -546,7 +546,7 @@
   const carousels = document.querySelectorAll('[data-travel-carousel]');
   if (!carousels.length) return;
 
-  const desktopQuery = window.matchMedia('(min-width: 1024px)');
+  const desktopQuery = window.matchMedia('(min-width: 768px)');
   const reducedMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
 
   carousels.forEach((root) => {
