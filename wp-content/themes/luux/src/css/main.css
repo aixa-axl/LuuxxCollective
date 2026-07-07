@@ -1292,11 +1292,27 @@
 
   /* Paper Trail — Contact Form 7 markup */
   .contact-card__form {
-    margin-top: auto;
     width: 100%;
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+  }
+  .contact-card__form .wpcf7,
+  .contact-card__form .wpcf7-form {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    width: 100%;
+  }
+  .contact-card__form .wpcf7-form {
+    position: relative;
   }
   .contact-card__form .wpcf7-form > p {
     margin: 0 0 0.75rem;
+  }
+  .contact-card__form .wpcf7-form > p:last-of-type {
+    margin-top: auto;
+    margin-bottom: 0;
   }
   .contact-card__form input[type="text"],
   .contact-card__form input[type="email"],
@@ -1328,7 +1344,7 @@
   .contact-card__form input[type="submit"] {
     display: block;
     width: 100%;
-    margin-top: 0.75rem;
+    margin: 0;
     padding: 1.5rem 1rem;
     border: 0;
     border-radius: 0;
@@ -1343,7 +1359,23 @@
   }
   .contact-card__form input[type="submit"]:hover { opacity: 0.9; }
   .contact-card__form .wpcf7-spinner {
-    margin: 0.5rem auto 0;
+    position: absolute;
+    right: 0;
+    bottom: -1.75rem;
+    margin: 0;
+  }
+  /* Keep the submit flush to the column bottom; only reserve space when a
+     validation / mail response actually appears. */
+  .contact-card__form .wpcf7-response-output {
+    margin: 0;
+  }
+  .contact-card__form .wpcf7-response-output.wpcf7-validation-errors,
+  .contact-card__form .wpcf7-response-output.wpcf7-mail-sent-ok,
+  .contact-card__form .wpcf7-response-output.wpcf7-mail-sent-ng,
+  .contact-card__form .wpcf7-response-output.wpcf7-spam-blocked,
+  .contact-card__form .wpcf7-response-output.wpcf7-acceptance-missing {
+    margin-top: 0.75rem;
+    padding: 0.75rem 1rem;
   }
   @media (min-width: 1024px) {
     .contact-options__columns {
