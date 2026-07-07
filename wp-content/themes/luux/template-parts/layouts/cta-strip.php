@@ -24,7 +24,7 @@ $secondary_link = get_sub_field('secondary_link');
                     </a>
                 <?php endif; ?>
                 <?php if (! empty($secondary_link['url'])) : ?>
-                    <a class="link-underline-block font-display text-body text-brand-cream lg:py-3"
+                    <a class="link-underline-block font-ui text-body text-brand-cream lg:py-3"
                        href="<?php echo esc_url($secondary_link['url']); ?>"
                        <?php echo ! empty($secondary_link['target']) ? 'target="_blank" rel="noopener"' : ''; ?>>
                         <?php echo esc_html($secondary_link['title']); ?>

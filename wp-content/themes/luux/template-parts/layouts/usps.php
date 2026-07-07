@@ -16,7 +16,7 @@ $bg_class         = $light_background ? 'bg-brand-white' : 'bg-brand-cream-light
         <?php if ($label || $heading) : ?>
             <div class="section-heading max-w-sm shrink-0 lg:gap-6">
                 <?php if ($label) : ?>
-                    <p class="font-display text-body uppercase text-brand-gold"><?php echo esc_html($label); ?></p>
+                    <p class="font-ui text-body uppercase text-brand-gold"><?php echo esc_html($label); ?></p>
                 <?php endif; ?>
                 <?php if ($heading) : ?>
                     <h2 class="font-display text-h3 leading-[1.1] text-brand-dark lg:text-h2 lg:leading-none"><?php echo esc_html($heading); ?></h2>

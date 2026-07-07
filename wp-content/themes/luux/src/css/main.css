@@ -23,8 +23,12 @@
   --color-brand-primary-soft: #acb4d3;      /* muted text on navy CTA */
   --color-whatsapp: #61ce70;                /* WhatsApp brand green — contact CTA */
 
-  /* Type families — Nohemi (button, secondary header) → Novar */
+  /* Type families
+     - display: Novar (Figma h2/h3 — headings)
+     - ui: Google Sans Flex (Figma "button" + "Secondary Header" — was Nohemi)
+     - body: Google Sans Flex (Figma body/large/small/caption) */
   --font-display: "Novar", Georgia, serif;
+  --font-ui: "Google Sans Flex", system-ui, sans-serif;
   --font-body: "Google Sans Flex", system-ui, sans-serif;
 
   /* Type scale — Figma text styles */
@@ -294,7 +298,7 @@
 
   .link-underline {
     display: inline-block;
-    font-family: var(--font-display);
+    font-family: var(--font-ui);
     font-size: var(--text-body);
     line-height: var(--text-body--line-height);
     border-bottom: 1px solid currentColor;
@@ -311,7 +315,7 @@
     display: flex;
     width: 100%;
     justify-content: center;
-    font-family: var(--font-display);
+    font-family: var(--font-ui);
     font-size: var(--text-body);
     line-height: var(--text-body--line-height);
     padding-block: 1rem;
@@ -338,7 +342,7 @@
 
   .btn {
     display: inline-block;
-    font-family: var(--font-display);
+    font-family: var(--font-ui);
     font-size: var(--text-body);
     line-height: var(--text-body--line-height);
     padding: 0.75rem 1.5rem;
@@ -553,7 +557,7 @@
     color: var(--color-brand-primary);
     border-radius: 2px;
     padding: 0.5rem 1rem;
-    font-family: var(--font-display);
+    font-family: var(--font-ui);
     font-size: var(--text-body);
     line-height: var(--text-body--line-height);
     white-space: nowrap;
@@ -1445,7 +1449,7 @@
     align-items: center;
     justify-content: center;
     padding: 1.5rem 1rem;
-    font-family: var(--font-display);
+    font-family: var(--font-ui);
     font-size: var(--text-body);
     line-height: var(--text-body--line-height);
     text-transform: uppercase;
@@ -1521,7 +1525,7 @@
     border: 0;
     border-radius: 0;
     background: var(--color-brand-gold);
-    font-family: var(--font-display);
+    font-family: var(--font-ui);
     font-size: var(--text-body);
     line-height: var(--text-body--line-height);
     text-transform: uppercase;

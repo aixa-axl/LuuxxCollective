@@ -13,7 +13,7 @@ $destinations = get_sub_field('destinations');
         <?php if ($label || $heading) : ?>
             <div class="section-heading text-left lg:items-center lg:text-center">
                 <?php if ($label) : ?>
-                    <p class="font-display text-body uppercase text-brand-gold"><?php echo esc_html($label); ?></p>
+                    <p class="font-ui text-body uppercase text-brand-gold"><?php echo esc_html($label); ?></p>
                 <?php endif; ?>
                 <?php if ($heading) : ?>
                     <h2 class="font-display text-h3 leading-[1.1] text-brand-primary lg:text-h2 lg:leading-none"><?php echo esc_html($heading); ?></h2>
