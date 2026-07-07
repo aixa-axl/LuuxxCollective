@@ -722,7 +722,7 @@
     gap: 0.5rem;
     align-items: flex-start;
   }
-  @media (min-width: 1024px) {
+  @media (min-width: 1200px) {
     .hotel-showcase__card {
       flex-direction: row;
       min-height: 38.75rem;
@@ -774,8 +774,9 @@
       gap: 2.5rem;
     }
     .video-tours__media {
-      flex: 0 0 25rem;
-      max-width: none;
+      flex: 1 1 20rem;
+      min-width: 0;
+      max-width: 25rem;
       height: 33.333rem;
       aspect-ratio: auto;
     }
@@ -1042,7 +1043,7 @@
   .dining__carousel {
     display: none;
   }
-  @media (max-width: 1023px) {
+  @media (max-width: 1199px) {
     .dining__layout {
       display: flex;
       flex-direction: column;
@@ -1104,7 +1105,7 @@
       background: var(--color-brand-gold);
     }
   }
-  @media (min-width: 1024px) {
+  @media (min-width: 1200px) {
     .dining__layout {
       display: grid;
       align-items: start;
