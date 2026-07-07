@@ -278,8 +278,14 @@
     width: 5rem;       /* 80px mobile list thumbnail */
     height: 5rem;
     @media (min-width: 768px) {
+      width: 100%;       /* tablet: fill the grid cell */
+      height: auto;
+      aspect-ratio: 1 / 1;
+    }
+    @media (min-width: 1024px) {
       width: 14.375rem;  /* 230px — Figma destinations 76:4996 */
       height: 14.375rem;
+      aspect-ratio: auto;
     }
   }
 

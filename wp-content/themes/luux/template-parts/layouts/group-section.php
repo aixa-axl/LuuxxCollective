@@ -22,11 +22,11 @@ $logos   = get_sub_field('logos');
         <?php endif; ?>
 
         <?php if ($logos) : ?>
-            <div class="grid grid-cols-2 gap-4 lg:grid-cols-3 xl:flex xl:flex-wrap xl:gap-8">
+            <div class="grid grid-cols-2 gap-4 md:flex md:flex-wrap md:items-center md:gap-8">
                 <?php foreach ($logos as $logo) :
                     if (empty($logo['image'])) continue;
                     ?>
-                    <div class="flex h-14 w-full items-center justify-center xl:w-40">
+                    <div class="flex h-14 w-full items-center justify-center md:w-40 md:justify-start">
                         <?php echo wp_get_attachment_image($logo['image'], 'medium', false, [
                             'class'   => 'max-h-full max-w-full object-contain',
                             'loading' => 'lazy',
