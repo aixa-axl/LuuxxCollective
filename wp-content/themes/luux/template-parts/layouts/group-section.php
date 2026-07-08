@@ -8,7 +8,7 @@ $text    = get_sub_field('text');
 $logos   = get_sub_field('logos');
 ?>
 
-<section class="bg-brand-dark p-10 lg:section-pad">
+<section class="bg-brand-dark py-10 lg:section-pad">
     <div class="container-site flex flex-col gap-8 xl:flex-row xl:items-center xl:gap-20">
         <?php if ($heading || $text) : ?>
             <div class="flex flex-1 flex-col gap-4 text-brand-white">
