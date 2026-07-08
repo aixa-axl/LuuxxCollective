@@ -1657,7 +1657,7 @@
     gap: 0.75rem;
     padding: 0.875rem 1.25rem;
     border-radius: 9999px;
-    background: var(--color-whatsapp);
+    background: #25D366;
     color: var(--color-brand-white);
     text-decoration: none;
     font-family: var(--font-ui);
