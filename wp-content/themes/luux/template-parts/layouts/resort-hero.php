@@ -16,7 +16,7 @@ $has_video = ($media_type === 'video' && $video_id);
 $has_media = $has_video || $image_id;
 ?>
 
-<section<?php echo $section_id ? ' id="' . esc_attr($section_id) . '"' : ''; ?> class="resort-hero relative min-h-[640px] overflow-hidden lg:min-h-[780px]">
+<section<?php echo $section_id ? ' id="' . esc_attr($section_id) . '"' : ''; ?> class="resort-hero relative h-[640px] overflow-hidden lg:h-[780px]">
     <?php if ($has_video) :
         $video_url  = wp_get_attachment_url($video_id);
         $video_mime = get_post_mime_type($video_id);
