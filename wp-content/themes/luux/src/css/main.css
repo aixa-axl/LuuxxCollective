@@ -1008,6 +1008,11 @@
     .suite-grid__card--offset-large {
       padding-top: 5rem;
     }
+    /* When a filter is active we want a fully aligned grid (no stagger). */
+    .suite-grid--filtered .suite-grid__card--offset-medium,
+    .suite-grid--filtered .suite-grid__card--offset-large {
+      padding-top: 0;
+    }
     .suite-grid__overflow:not([hidden]) {
       grid-template-columns: repeat(3, minmax(0, 1fr));
     }
