@@ -38,7 +38,7 @@ $has_media = $has_video || $image_id;
         </div>
     <?php endif; ?>
 
-    <div class="container-site relative z-10 flex h-full flex-col justify-end pb-10 pt-20 lg:justify-center lg:pb-0 lg:pt-0">
+    <div class="container-site relative z-10 flex h-full flex-col justify-end pb-10 pt-20 lg:translate-y-2 lg:justify-center lg:pb-0 lg:pt-0">
         <div class="flex max-w-2xl flex-col gap-6 text-brand-white lg:max-w-[37.5rem] lg:gap-10">
             <?php if ($eyebrow) : ?>
                 <p class="font-ui font-medium text-body uppercase"><?php echo esc_html($eyebrow); ?></p>
