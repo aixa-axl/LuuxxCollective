@@ -14,6 +14,7 @@ $group_text   = function_exists('get_field') ? get_field('footer_group_text', 'o
 $socials      = function_exists('get_field') ? get_field('social_links', 'option') : [];
 $legal_links  = function_exists('get_field') ? get_field('legal_links', 'option') : [];
 $footer_bg    = function_exists('luux_uses_blue_footer') && luux_uses_blue_footer() ? 'bg-brand-primary' : 'bg-brand-navy';
+$whatsapp_url = 'https://api.whatsapp.com/send/?phone=443333059912&text&type=phone_number&app_absent=0';
 ?>
 
 </main>
@@ -135,6 +136,19 @@ $footer_bg    = function_exists('luux_uses_blue_footer') && luux_uses_blue_foote
             <?php endif; ?>
         </div>
     </div>
+
+    <a class="whatsapp-float"
+       href="<?php echo esc_url($whatsapp_url); ?>"
+       target="_blank"
+       rel="noopener noreferrer"
+       aria-label="<?php esc_attr_e('Chat on WhatsApp', 'luux'); ?>">
+        <span class="whatsapp-float__icon" aria-hidden="true">
+            <svg viewBox="0 0 32 32" width="20" height="20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path fill="currentColor" d="M16.04 2C8.29 2 2 8.29 2 16.04c0 2.7.74 5.33 2.14 7.63L2 30l6.55-2.16A13.98 13.98 0 0 0 16.04 30C23.79 30 30.08 23.71 30.08 15.96 30.08 8.21 23.79 2 16.04 2Zm7.97 18.72c-.2.56-1.16 1.1-1.6 1.19-.43.09-.97.14-1.54-.06-.34-.11-.78-.26-1.33-.52-2.07-1.08-3.41-2.94-3.63-3.25-.22-.31-.84-1.12-.84-2.14 0-1.02.52-1.5.7-1.7.18-.2.43-.26.57-.26h.43c.14 0 .33-.05.52.39.2.43.67 1.74.73 1.87.06.14.1.3.01.48-.09.18-.14.3-.27.48-.13.18-.27.26-.38.4-.11.14-.24.29-.1.53.14.24.63.98 1.36 1.58.94.78 1.69 1 1.93 1.12.24.11.4.09.55-.07.16-.17.63-.75.8-1.01.18-.26.35-.22.58-.13.23.09 1.44.68 1.69.81.25.14.42.2.47.3.05.1.05.57-.15 1.13Z"/>
+            </svg>
+        </span>
+        <span class="whatsapp-float__text">Chat on WhatsApp</span>
+    </a>
 </footer>
 
 <?php wp_footer(); ?>
