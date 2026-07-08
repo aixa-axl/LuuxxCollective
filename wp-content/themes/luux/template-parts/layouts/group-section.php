@@ -9,7 +9,7 @@ $logos   = get_sub_field('logos');
 ?>
 
 <section class="bg-brand-dark py-10 lg:section-pad">
-    <div class="container-site flex flex-col gap-8 xl:flex-row xl:items-center xl:gap-20">
+    <div class="container-site flex flex-col gap-8 lg:flex-row lg:items-center lg:gap-20">
         <?php if ($heading || $text) : ?>
             <div class="flex flex-1 flex-col gap-4 text-brand-white">
                 <?php if ($heading) : ?>
@@ -22,7 +22,7 @@ $logos   = get_sub_field('logos');
         <?php endif; ?>
 
         <?php if ($logos) : ?>
-            <div class="grid grid-cols-2 gap-4 w-full md:flex md:flex-wrap md:w-full md:items-center md:gap-8 md:justify-start">
+            <div class="grid grid-cols-2 gap-4 w-full md:flex md:flex-wrap md:items-center md:gap-8 md:justify-start lg:w-auto lg:justify-center">
                 <?php foreach ($logos as $logo) :
                     if (empty($logo['image'])) continue;
                     ?>
