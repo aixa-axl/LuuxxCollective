@@ -579,6 +579,7 @@
   /* Resort hero — Sani / Ikos 76:3210 */
   .resort-hero--bleed {
     margin-top: calc(-1 * var(--wp-admin--admin-bar--height, 0px));
+    padding-top: var(--wp-admin--admin-bar--height, 0px);
   }
   .resort-hero__media {
     position: absolute;
