@@ -16,7 +16,7 @@ $has_video = ($media_type === 'video' && $video_id);
 $has_media = $has_video || $image_id;
 ?>
 
-<section<?php echo $section_id ? ' id="' . esc_attr($section_id) . '"' : ''; ?> class="resort-hero relative h-[640px] overflow-hidden lg:h-[780px]">
+<section<?php echo $section_id ? ' id="' . esc_attr($section_id) . '"' : ''; ?> class="resort-hero relative min-h-[640px] overflow-hidden lg:min-h-[780px]">
     <?php if ($has_video) :
         $video_url  = wp_get_attachment_url($video_id);
         $video_mime = get_post_mime_type($video_id);
@@ -36,8 +36,8 @@ $has_media = $has_video || $image_id;
         <div class="resort-hero__scrim absolute inset-0" aria-hidden="true"></div>
     <?php endif; ?>
 
-    <div class="container-site relative z-10 flex h-full flex-col justify-end pb-12 pt-24 lg:justify-center lg:pb-0 lg:pt-0">
-        <div class="flex max-w-xl flex-col gap-6 text-brand-white lg:max-w-[37.5rem] lg:gap-10">
+    <div class="container-site relative z-10 flex h-full flex-col justify-end pb-10 pt-20 lg:justify-center lg:pb-0 lg:pt-0">
+        <div class="flex max-w-2xl flex-col gap-6 text-brand-white lg:max-w-[37.5rem] lg:gap-10">
             <?php if ($eyebrow) : ?>
                 <p class="font-ui font-medium text-body uppercase"><?php echo esc_html($eyebrow); ?></p>
             <?php endif; ?>
