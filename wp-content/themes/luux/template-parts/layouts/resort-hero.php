@@ -45,7 +45,7 @@ $has_media = $has_video || $image_id;
                 <h1 class="font-display text-[3rem] leading-none lg:text-h1 lg:leading-[0.88]"><?php echo esc_html($heading); ?></h1>
             <?php endif; ?>
             <?php if ($text) : ?>
-                <p class="font-body text-body-lg"><?php echo esc_html($text); ?></p>
+                <div class="font-body text-body-lg"><?php echo wp_kses_post($text); ?></div>
             <?php endif; ?>
             <?php if (! empty($cta['url'])) : ?>
                 <a class="link-underline self-start text-brand-white"

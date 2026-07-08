@@ -585,8 +585,7 @@
               "key": "field_luux_resort_hero_text",
               "label": "Text",
               "name": "text",
-              "type": "textarea",
-              "rows": 4
+              "type": "wysiwyg"
             },
             {
               "key": "field_luux_resort_hero_media_type",
