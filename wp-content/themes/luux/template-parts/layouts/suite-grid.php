@@ -59,11 +59,8 @@ if (! $suites) {
                         $cat_slug = ! empty($suite['category']) ? sanitize_title($suite['category']) : '';
                         // Default view should stagger cards: medium, large, then normal (none),
                         // repeated. Filtered view removes the stagger via `.suite-grid--filtered`.
-                        $offset = $suite['vertical_offset'] ?? 'none';
-                        if (! in_array($offset, ['medium', 'large'], true)) {
-                            $cycle = $index % 3;
-                            $offset = $cycle === 0 ? 'medium' : ($cycle === 1 ? 'large' : 'none');
-                        }
+                        $cycle = $index % 3;
+                        $offset = $cycle === 0 ? 'medium' : ($cycle === 1 ? 'large' : 'none');
                         ?>
                         <article class="suite-grid__card suite-grid__card--offset-<?php echo esc_attr($offset); ?>"
                                  data-suite-category="<?php echo esc_attr($cat_slug); ?>"
