@@ -603,6 +603,13 @@
       rgb(12 21 53 / 0.15) 41%
     );
   }
+  @media (min-width: 1024px) {
+    .resort-hero__content {
+      justify-content: center;
+      padding-top: 7rem;
+      padding-bottom: 4rem;
+    }
+  }
   @media (max-width: 1023px) {
     body:has(> .site-header--hero) .resort-hero--bleed {
       margin-top: calc(-1 * (4rem + var(--wp-admin--admin-bar--height, 0px)));
