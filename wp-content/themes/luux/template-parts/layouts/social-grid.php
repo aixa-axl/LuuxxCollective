@@ -5,14 +5,10 @@
  * Live feed from Instagram (Site Options → Instagram).
  */
 
-$heading     = get_sub_field('heading');
+$heading     = __('Join us on social', 'luux');
 $post_count  = (int) get_sub_field('post_count');
 $posts       = luux_get_instagram_posts($post_count > 0 ? $post_count : null);
 $profile_url = luux_instagram_profile_url();
-
-if (! $heading) {
-    $heading = __('Join us on social', 'luux');
-}
 ?>
 
 <section class="social-grid section-pad" data-social-grid>
