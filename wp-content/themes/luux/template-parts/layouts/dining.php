@@ -86,6 +86,8 @@ foreach ([$image_top_left, $image_top, $image_bottom_left, $image_bottom] as $ca
                     <?php echo wp_get_attachment_image($image_hero, 'large', false, [
                         'class'   => 'dining__hero-image',
                         'loading' => 'lazy',
+                        'width'   => '624',
+                        'height'  => '914',
                     ]); ?>
                 <?php endif; ?>
             </div>

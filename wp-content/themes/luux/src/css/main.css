@@ -1175,8 +1175,8 @@
     }
     .dining__hero {
       grid-area: hero;
-      width: 100%;
-      min-height: 57.125rem;
+      width: 39rem;
+      height: 57.125rem;
       aspect-ratio: auto;
     }
     .dining__mosaic {
