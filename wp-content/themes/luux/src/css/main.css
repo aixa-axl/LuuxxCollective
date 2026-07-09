@@ -1646,23 +1646,77 @@
     }
   }
 
-  /* Group section — inline heading logo */
+  /* Group section — centered stack with inline heading logo */
+  .group-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2rem;
+    text-align: center;
+    color: var(--color-brand-white);
+  }
+
+  @media (min-width: 1024px) {
+    .group-section {
+      gap: 2.5rem;
+    }
+  }
+
+  .group-section__copy {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    max-width: 42.5rem;
+  }
+
   .group-section__heading {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 0.35rem 0.5rem;
+    justify-content: center;
+    gap: 0;
   }
 
   .group-section__heading-logo {
     display: inline-flex;
     align-items: center;
     height: 1.15em;
+    margin-inline: 0.125rem;
   }
 
   .group-section__heading-logo-image {
     height: 100%;
     width: auto;
+    object-fit: contain;
+  }
+
+  .group-section__logos {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 2rem 2.5rem;
+    width: 100%;
+  }
+
+  @media (min-width: 1024px) {
+    .group-section__logos {
+      gap: 2.5rem 3.5rem;
+    }
+  }
+
+  .group-section__logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 3.5rem;
+    width: 10rem;
+  }
+
+  .group-section__logo-image {
+    max-height: 100%;
+    max-width: 100%;
     object-fit: contain;
   }
 

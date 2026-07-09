@@ -3,20 +3,20 @@
  * Layout: group-section
  */
 
-$heading      = get_sub_field('heading');
-$heading_lead = get_sub_field('heading_lead');
-$heading_logo = get_sub_field('heading_logo');
+$heading       = get_sub_field('heading');
+$heading_lead  = get_sub_field('heading_lead');
+$heading_logo  = get_sub_field('heading_logo');
 $heading_trail = get_sub_field('heading_trail');
-$text         = get_sub_field('text');
-$logos        = get_sub_field('logos');
+$text          = get_sub_field('text');
+$logos         = get_sub_field('logos');
 
 $has_heading = $heading_logo || $heading;
 ?>
 
 <section class="bg-brand-dark py-10 lg:section-pad">
-    <div class="container-site flex flex-col gap-8 lg:flex-row lg:items-center lg:gap-20">
+    <div class="container-site group-section">
         <?php if ($has_heading || $text) : ?>
-            <div class="flex flex-1 flex-col gap-4 text-brand-white">
+            <div class="group-section__copy">
                 <?php if ($heading_logo) : ?>
                     <h2 class="group-section__heading font-display text-h3">
                         <?php if ($heading_lead) : ?>
@@ -43,13 +43,13 @@ $has_heading = $heading_logo || $heading;
         <?php endif; ?>
 
         <?php if ($logos) : ?>
-            <div class="grid grid-cols-2 gap-4 w-full md:flex md:flex-wrap md:items-center md:gap-8 md:justify-start lg:w-auto lg:justify-center">
+            <div class="group-section__logos">
                 <?php foreach ($logos as $logo) :
                     if (empty($logo['image'])) continue;
                     ?>
-                    <div class="flex h-14 w-full items-center justify-center md:w-40 md:justify-start">
+                    <div class="group-section__logo">
                         <?php echo wp_get_attachment_image($logo['image'], 'medium', false, [
-                            'class'   => 'max-h-full max-w-full object-contain',
+                            'class'   => 'group-section__logo-image',
                             'loading' => 'lazy',
                         ]); ?>
                     </div>
