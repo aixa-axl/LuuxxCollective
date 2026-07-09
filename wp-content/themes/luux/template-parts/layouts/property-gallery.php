@@ -22,12 +22,11 @@ $slots = [
 ];
 
 foreach ($images as $item) {
-    $image_id = ! empty($item['gallery_image']) ? $item['gallery_image'] : ($item['image'] ?? 0);
-    if (! $image_id || empty($item['size'])) {
+    if (empty($item['image']) || empty($item['size'])) {
         continue;
     }
     if (array_key_exists($item['size'], $slots)) {
-        $slots[$item['size']] = (int) $image_id;
+        $slots[$item['size']] = (int) $item['image'];
     }
 }
 

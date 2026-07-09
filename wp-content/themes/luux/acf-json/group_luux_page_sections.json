@@ -760,7 +760,7 @@
                 {
                   "key": "field_luux_hotel_showcase_hotel_image",
                   "label": "Image",
-                  "name": "hotel_image",
+                  "name": "image",
                   "type": "image",
                   "return_format": "id",
                   "preview_size": "medium"
@@ -1202,7 +1202,7 @@
                 {
                   "key": "field_luux_property_gallery_image",
                   "label": "Image",
-                  "name": "gallery_image",
+                  "name": "image",
                   "type": "image",
                   "return_format": "id",
                   "preview_size": "medium"
@@ -1652,5 +1652,5 @@
   "style": "seamless",
   "active": true,
   "show_in_rest": 0,
-  "modified": 1784020000
+  "modified": 1784030000
 }
