@@ -1646,6 +1646,122 @@
     }
   }
 
+  /* Social grid — Instagram feed */
+  .social-grid__inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2.5rem;
+    text-align: center;
+  }
+
+  .social-grid__heading {
+    width: 100%;
+  }
+
+  .social-grid__grid {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 1rem;
+    width: 100%;
+  }
+
+  @media (min-width: 1024px) {
+    .social-grid__grid {
+      gap: 1.5rem;
+    }
+  }
+
+  .social-grid__item {
+    display: block;
+    width: min(100%, 19.6875rem);
+    height: 25rem;
+    padding: 0;
+    border: 0;
+    overflow: hidden;
+    cursor: pointer;
+    background: var(--color-brand-cream-light);
+  }
+
+  .social-grid__image {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .social-grid-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 70;
+    display: grid;
+    place-items: center;
+    padding: 1.25rem;
+  }
+
+  .social-grid-modal[hidden] {
+    display: none;
+  }
+
+  .social-grid-modal__backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgb(12 21 53 / 0.72);
+  }
+
+  .social-grid-modal__dialog {
+    position: relative;
+    z-index: 1;
+    width: min(100%, 21.875rem);
+    max-height: calc(100vh - 2.5rem);
+    overflow: auto;
+    background: var(--color-brand-white);
+    border-radius: 0.25rem;
+    box-shadow: 0 24px 48px rgb(0 0 0 / 0.25);
+  }
+
+  .social-grid-modal__close {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    padding: 0;
+    border: 0;
+    border-radius: 9999px;
+    background: var(--color-brand-white);
+    color: var(--color-brand-primary);
+    font-size: 1.5rem;
+    line-height: 1;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgb(0 0 0 / 0.15);
+  }
+
+  .social-grid-modal__close:hover,
+  .social-grid-modal__close:focus-visible {
+    opacity: 0.85;
+  }
+
+  .social-grid-modal__embed {
+    min-height: 28rem;
+  }
+
+  .social-grid-modal__embed iframe {
+    display: block;
+    width: 100%;
+    min-height: 28rem;
+    border: 0;
+  }
+
+  body.social-grid-modal-open {
+    overflow: hidden;
+  }
+
   /* Group section — centered stack with inline heading logo */
   .group-section {
     display: flex;

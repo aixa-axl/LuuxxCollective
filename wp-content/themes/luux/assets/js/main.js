@@ -542,6 +542,77 @@
     reset();
   });
 
+  /* Social grid — Instagram embed modal */
+  function getInstagramEmbedUrl(permalink) {
+    const match = String(permalink).match(/instagram\.com\/(p|reel)\/([^/?#]+)/i);
+    if (!match) return null;
+    return `https://www.instagram.com/${match[1]}/${match[2]}/embed`;
+  }
+
+  document.querySelectorAll('[data-social-grid]').forEach((root) => {
+    const modal = root.querySelector('[data-social-grid-modal]');
+    const embedHost = root.querySelector('[data-social-grid-embed]');
+    const openers = root.querySelectorAll('[data-social-grid-open]');
+    if (!modal || !embedHost || !openers.length) return;
+
+    let lastFocus = null;
+
+    function closeModal() {
+      modal.hidden = true;
+      embedHost.innerHTML = '';
+      document.body.classList.remove('social-grid-modal-open');
+      if (lastFocus) {
+        lastFocus.focus();
+        lastFocus = null;
+      }
+    }
+
+    function openModal(permalink) {
+      const embedUrl = getInstagramEmbedUrl(permalink);
+      if (!embedUrl) {
+        window.open(permalink, '_blank', 'noopener,noreferrer');
+        return;
+      }
+
+      lastFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+      embedHost.innerHTML = '';
+
+      const iframe = document.createElement('iframe');
+      iframe.src = embedUrl;
+      iframe.title = 'Instagram post';
+      iframe.loading = 'lazy';
+      iframe.setAttribute('allowtransparency', 'true');
+      iframe.setAttribute('allowfullscreen', 'true');
+      embedHost.appendChild(iframe);
+
+      modal.hidden = false;
+      document.body.classList.add('social-grid-modal-open');
+      modal.querySelector('.social-grid-modal__close')?.focus();
+    }
+
+    openers.forEach((button) => {
+      button.addEventListener('click', () => {
+        openModal(button.getAttribute('data-permalink') || '');
+      });
+    });
+
+    root.querySelectorAll('[data-social-grid-close]').forEach((el) => {
+      el.addEventListener('click', closeModal);
+    });
+
+    modal.addEventListener('click', (event) => {
+      if (event.target === modal.querySelector('.social-grid-modal__backdrop')) {
+        closeModal();
+      }
+    });
+
+    document.addEventListener('keydown', (event) => {
+      if (!modal.hidden && event.key === 'Escape') {
+        closeModal();
+      }
+    });
+  });
+
   /* Travel style carousel */
   const carousels = document.querySelectorAll('[data-travel-carousel]');
   if (!carousels.length) return;

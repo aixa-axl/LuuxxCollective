@@ -475,7 +475,8 @@
               "key": "field_luux_social_grid_heading",
               "label": "Heading",
               "name": "heading",
-              "type": "text"
+              "type": "text",
+              "default_value": "Join us on social"
             },
             {
               "key": "field_luux_social_grid_post_count",
@@ -1650,5 +1651,5 @@
   "style": "seamless",
   "active": true,
   "show_in_rest": 0,
-  "modified": 1784004000
+  "modified": 1784010000
 }
