@@ -93,15 +93,35 @@ $whatsapp_url = 'https://api.whatsapp.com/send/?phone=443333059912&text&type=pho
 
             <div class="hidden lg:block">
                 <p class="mb-6 font-display text-body uppercase"><?php esc_html_e('Get in touch', 'luux'); ?></p>
-                <div class="flex flex-col gap-4 font-body text-body">
-                    <?php if ($contact_text) : ?>
-                        <p class="opacity-80"><?php echo esc_html($contact_text); ?></p>
-                    <?php endif; ?>
-                    <?php if ($email) : ?>
-                        <a class="hover:opacity-80" href="mailto:<?php echo esc_attr($email); ?>"><?php echo esc_html($email); ?></a>
-                    <?php endif; ?>
-                    <?php if ($phone) : ?>
-                        <a class="hover:opacity-80" href="tel:<?php echo esc_attr(preg_replace('/\s+/', '', $phone)); ?>"><?php echo esc_html($phone); ?></a>
+                <div class="flex flex-col gap-8 font-body text-body">
+                    <div class="flex flex-col gap-4">
+                        <?php if ($contact_text) : ?>
+                            <p class="opacity-80"><?php echo esc_html($contact_text); ?></p>
+                        <?php endif; ?>
+                        <?php if ($email) : ?>
+                            <a class="hover:opacity-80" href="mailto:<?php echo esc_attr($email); ?>"><?php echo esc_html($email); ?></a>
+                        <?php endif; ?>
+                        <?php if ($phone) : ?>
+                            <a class="hover:opacity-80" href="tel:<?php echo esc_attr(preg_replace('/\s+/', '', $phone)); ?>"><?php echo esc_html($phone); ?></a>
+                        <?php endif; ?>
+                    </div>
+
+                    <?php if ($footer_logo_one || $footer_logo_two) : ?>
+                        <div class="footer-trust-logos">
+                            <?php if ($footer_logo_one) : ?>
+                                <?php echo wp_get_attachment_image($footer_logo_one, 'medium', false, [
+                                    'class'   => 'footer-trust-logos__image',
+                                    'loading' => 'lazy',
+                                ]); ?>
+                            <?php endif; ?>
+
+                            <?php if ($footer_logo_two) : ?>
+                                <?php echo wp_get_attachment_image($footer_logo_two, 'medium', false, [
+                                    'class'   => 'footer-trust-logos__image',
+                                    'loading' => 'lazy',
+                                ]); ?>
+                            <?php endif; ?>
+                        </div>
                     <?php endif; ?>
                 </div>
             </div>
@@ -135,24 +155,6 @@ $whatsapp_url = 'https://api.whatsapp.com/send/?phone=443333059912&text&type=pho
                         </li>
                     <?php endforeach; ?>
                 </ul>
-            <?php endif; ?>
-
-            <?php if ($footer_logo_one || $footer_logo_two) : ?>
-                <div class="flex items-center gap-4 lg:ml-auto lg:justify-end">
-                    <?php if ($footer_logo_one) : ?>
-                        <?php echo wp_get_attachment_image($footer_logo_one, 'medium', false, [
-                            'class'   => 'h-10 w-auto object-contain opacity-80',
-                            'loading' => 'lazy',
-                        ]); ?>
-                    <?php endif; ?>
-
-                    <?php if ($footer_logo_two) : ?>
-                        <?php echo wp_get_attachment_image($footer_logo_two, 'medium', false, [
-                            'class'   => 'h-10 w-auto object-contain opacity-80',
-                            'loading' => 'lazy',
-                        ]); ?>
-                    <?php endif; ?>
-                </div>
             <?php endif; ?>
         </div>
     </div>

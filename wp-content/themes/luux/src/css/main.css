@@ -1646,6 +1646,20 @@
     }
   }
 
+  /* Footer trust logos — ATOL / TTA badges below Get in touch */
+  .footer-trust-logos {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .footer-trust-logos__image {
+    height: 2.5rem;
+    width: auto;
+    object-fit: contain;
+    opacity: 0.8;
+  }
+
   /* Floating WhatsApp — global CTA */
   .whatsapp-float {
     position: fixed;
