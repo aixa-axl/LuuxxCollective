@@ -103,7 +103,7 @@ foreach ([$image_top_left, $image_top, $image_bottom_left, $image_bottom] as $ca
                                 'loading' => 'lazy',
                             ]); ?>
                         </div>
-                    <?php endif; ?>
+                    <?php endif; ?> 
 
                     <?php if ($image_bottom_left) : ?>
                         <div class="dining__image dining__image--bottom-left">
