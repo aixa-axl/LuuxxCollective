@@ -483,6 +483,7 @@
               "label": "Post count",
               "name": "post_count",
               "type": "number",
+              "default_value": 12,
               "min": 0,
               "max": 25,
               "step": 1,

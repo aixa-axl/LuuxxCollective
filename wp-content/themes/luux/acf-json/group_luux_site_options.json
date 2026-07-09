@@ -193,7 +193,7 @@
       "label": "Posts to show",
       "name": "instagram_post_count",
       "type": "number",
-      "default_value": 8,
+      "default_value": 12,
       "min": 1,
       "max": 25,
       "step": 1,

@@ -96,6 +96,7 @@ function luux_instagram_token_needs_refresh(): bool {
  */
 function luux_flush_instagram_cache(): void {
     delete_transient('luux_instagram_feed');
+    delete_transient('luux_instagram_feed_v2');
 }
 
 /**
@@ -199,53 +200,64 @@ function luux_refresh_instagram_token(bool $force = false): array {
  * @return array{posts: array<int, array<string, string>>, error_code: int}
  */
 function luux_fetch_instagram_media(string $token, string $user_id, int $limit): array {
-    $url = add_query_arg([
+    $limit     = max(1, min(25, $limit));
+    $posts     = [];
+    $error_code = 0;
+    $url       = add_query_arg([
         'fields'       => 'id,caption,media_type,media_url,thumbnail_url,permalink,timestamp',
-        'limit'        => $limit,
+        'limit'        => min(25, $limit),
         'access_token' => $token,
     ], 'https://graph.instagram.com/' . rawurlencode($user_id) . '/media');
 
-    $response = wp_remote_get($url, [
-        'timeout' => 15,
-        'headers' => ['Accept' => 'application/json'],
-    ]);
+    while ($url !== null && count($posts) < $limit) {
+        $response = wp_remote_get($url, [
+            'timeout' => 15,
+            'headers' => ['Accept' => 'application/json'],
+        ]);
 
-    if (is_wp_error($response)) {
-        return ['posts' => [], 'error_code' => 0];
-    }
-
-    $code = (int) wp_remote_retrieve_response_code($response);
-    $body = json_decode((string) wp_remote_retrieve_body($response), true);
-
-    if ($code !== 200 || empty($body['data']) || ! is_array($body['data'])) {
-        return ['posts' => [], 'error_code' => $code];
-    }
-
-    $posts = [];
-
-    foreach ($body['data'] as $item) {
-        if (empty($item['id']) || empty($item['permalink'])) {
-            continue;
+        if (is_wp_error($response)) {
+            return ['posts' => $posts, 'error_code' => $error_code];
         }
 
-        $media_type = (string) ($item['media_type'] ?? 'IMAGE');
-        $image_url  = (string) ($item['media_url'] ?? '');
+        $error_code = (int) wp_remote_retrieve_response_code($response);
+        $body       = json_decode((string) wp_remote_retrieve_body($response), true);
 
-        if ($media_type === 'VIDEO' && ! empty($item['thumbnail_url'])) {
-            $image_url = (string) $item['thumbnail_url'];
+        if ($error_code !== 200 || empty($body['data']) || ! is_array($body['data'])) {
+            return ['posts' => $posts, 'error_code' => $error_code];
         }
 
-        if ($image_url === '') {
-            continue;
+        foreach ($body['data'] as $item) {
+            if (count($posts) >= $limit) {
+                break;
+            }
+
+            if (empty($item['id']) || empty($item['permalink'])) {
+                continue;
+            }
+
+            $media_type = (string) ($item['media_type'] ?? 'IMAGE');
+            $image_url  = (string) ($item['media_url'] ?? '');
+
+            if ($media_type === 'VIDEO' && ! empty($item['thumbnail_url'])) {
+                $image_url = (string) $item['thumbnail_url'];
+            }
+
+            if ($image_url === '') {
+                continue;
+            }
+
+            $posts[] = [
+                'id'         => (string) $item['id'],
+                'permalink'  => (string) $item['permalink'],
+                'image_url'  => $image_url,
+                'caption'    => (string) ($item['caption'] ?? ''),
+                'media_type' => $media_type,
+            ];
         }
 
-        $posts[] = [
-            'id'         => (string) $item['id'],
-            'permalink'  => (string) $item['permalink'],
-            'image_url'  => $image_url,
-            'caption'    => (string) ($item['caption'] ?? ''),
-            'media_type' => $media_type,
-        ];
+        $url = ! empty($body['paging']['next']) && count($posts) < $limit
+            ? (string) $body['paging']['next']
+            : null;
     }
 
     return ['posts' => $posts, 'error_code' => 0];
@@ -271,9 +283,9 @@ function luux_get_instagram_posts(?int $limit = null): array {
     if ($limit === null) {
         $limit = (int) get_field('instagram_post_count', 'option');
     }
-    $limit = max(1, min(25, $limit ?: 8));
+    $limit = max(1, min(25, $limit ?: 12));
 
-    $cache_key = 'luux_instagram_feed';
+    $cache_key = 'luux_instagram_feed_v2';
     $cached    = get_transient($cache_key);
     if (is_array($cached)) {
         return array_slice($cached, 0, $limit);
