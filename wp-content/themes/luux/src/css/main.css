@@ -1646,6 +1646,26 @@
     }
   }
 
+  /* Group section — inline heading logo */
+  .group-section__heading {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.35rem 0.5rem;
+  }
+
+  .group-section__heading-logo {
+    display: inline-flex;
+    align-items: center;
+    height: 1.15em;
+  }
+
+  .group-section__heading-logo-image {
+    height: 100%;
+    width: auto;
+    object-fit: contain;
+  }
+
   /* Footer bottom bar — group left, legal center, trust logos right */
   .footer-bar {
     display: flex;

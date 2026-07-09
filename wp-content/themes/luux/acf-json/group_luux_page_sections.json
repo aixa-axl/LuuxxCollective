@@ -412,7 +412,31 @@
               "key": "field_luux_group_section_heading",
               "label": "Heading",
               "name": "heading",
-              "type": "text"
+              "type": "text",
+              "instructions": "Fallback plain-text heading. Ignored when a heading logo is set below."
+            },
+            {
+              "key": "field_luux_group_section_heading_lead",
+              "label": "Heading (before logo)",
+              "name": "heading_lead",
+              "type": "text",
+              "default_value": "Part of the "
+            },
+            {
+              "key": "field_luux_group_section_heading_logo",
+              "label": "Heading Logo",
+              "name": "heading_logo",
+              "type": "image",
+              "return_format": "id",
+              "preview_size": "medium",
+              "instructions": "Inline wordmark within the heading (e.g. Travel Seen)."
+            },
+            {
+              "key": "field_luux_group_section_heading_trail",
+              "label": "Heading (after logo)",
+              "name": "heading_trail",
+              "type": "text",
+              "default_value": " Group"
             },
             {
               "key": "field_luux_group_section_text",
@@ -1626,5 +1650,5 @@
   "style": "seamless",
   "active": true,
   "show_in_rest": 0,
-  "modified": 1783303600
+  "modified": 1784004000
 }
