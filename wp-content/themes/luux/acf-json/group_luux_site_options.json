@@ -78,6 +78,16 @@
       "preview_size": "medium"
     },
     {
+      "key": "field_luux_options_footer_disclaimer",
+      "label": "Footer Disclaimer",
+      "name": "footer_disclaimer",
+      "type": "wysiwyg",
+      "tabs": "visual",
+      "toolbar": "basic",
+      "media_upload": 0,
+      "default_value": "Some of the flights and flight-inclusive holidays on this website are financially protected by the ATOL scheme. But ATOL protection does not apply to all holiday and travel services listed on this website. This website will provide you with information on the protection that applies in the case of each holiday and travel service offered before you make your booking. If you do not receive an ATOL Certificate then the booking will not be ATOL protected. If you do receive an ATOL Certificate but all the parts of your trip are not listed on it, those parts will not be ATOL protected. Please see our booking conditions for information, or for more information about financial protection and the ATOL Certificate go to: <a href=\"https://www.caa.co.uk\" target=\"_blank\" rel=\"noopener\">www.caa.co.uk</a>."
+    },
+    {
       "key": "field_luux_options_tab_contact",
       "label": "Contact",
       "name": "",
@@ -270,5 +280,5 @@
   "style": "default",
   "active": true,
   "show_in_rest": 0,
-  "modified": 1784001200
+  "modified": 1784002800
 }

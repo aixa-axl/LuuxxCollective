@@ -14,6 +14,7 @@ $contact_text = function_exists('get_field') ? get_field('contact_intro', 'optio
 $group_text   = function_exists('get_field') ? get_field('footer_group_text', 'option') : '';
 $footer_logo_one = function_exists('get_field') ? get_field('footer_logo_one', 'option') : null;
 $footer_logo_two = function_exists('get_field') ? get_field('footer_logo_two', 'option') : null;
+$footer_disclaimer = function_exists('get_field') ? get_field('footer_disclaimer', 'option') : '';
 $socials      = function_exists('get_field') ? get_field('social_links', 'option') : [];
 $legal_links  = function_exists('get_field') ? get_field('legal_links', 'option') : [];
 $footer_bg    = function_exists('luux_uses_blue_footer') && luux_uses_blue_footer() ? 'bg-brand-primary' : 'bg-brand-navy';
@@ -160,6 +161,16 @@ $whatsapp_url = 'https://api.whatsapp.com/send/?phone=443333059912&text&type=pho
             <?php endif; ?>
         </div>
     </div>
+
+    <?php if ($footer_disclaimer) : ?>
+        <div class="border-t border-brand-white/10">
+            <div class="container-site footer-disclaimer">
+                <div class="footer-disclaimer__text font-body text-brand-white">
+                    <?php echo wp_kses_post($footer_disclaimer); ?>
+                </div>
+            </div>
+        </div>
+    <?php endif; ?>
 
     <a class="whatsapp-float"
        href="<?php echo esc_url($whatsapp_url); ?>"

@@ -1689,6 +1689,26 @@
     opacity: 0.8;
   }
 
+  .footer-disclaimer {
+    padding-block: 2rem;
+  }
+
+  .footer-disclaimer__text {
+    font-size: var(--text-caption);
+    line-height: 1.4;
+    opacity: 0.4;
+  }
+
+  .footer-disclaimer__text a {
+    text-decoration: underline;
+    transition: opacity 150ms ease;
+  }
+
+  .footer-disclaimer__text a:hover,
+  .footer-disclaimer__text a:focus-visible {
+    opacity: 0.8;
+  }
+
   /* Floating WhatsApp — global CTA */
   .whatsapp-float {
     position: fixed;
