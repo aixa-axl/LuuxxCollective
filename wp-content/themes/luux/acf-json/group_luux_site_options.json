@@ -62,6 +62,22 @@
       "default_value": "Part of the Travel Seen Group"
     },
     {
+      "key": "field_luux_options_footer_logo_one",
+      "label": "Footer Logo 1",
+      "name": "footer_logo_one",
+      "type": "image",
+      "return_format": "id",
+      "preview_size": "medium"
+    },
+    {
+      "key": "field_luux_options_footer_logo_two",
+      "label": "Footer Logo 2",
+      "name": "footer_logo_two",
+      "type": "image",
+      "return_format": "id",
+      "preview_size": "medium"
+    },
+    {
       "key": "field_luux_options_tab_contact",
       "label": "Contact",
       "name": "",
@@ -246,5 +262,5 @@
   "style": "default",
   "active": true,
   "show_in_rest": 0,
-  "modified": 1783215000
+  "modified": 1783998800
 }

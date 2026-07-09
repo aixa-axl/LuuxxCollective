@@ -11,6 +11,8 @@ $email        = function_exists('get_field') ? get_field('contact_email', 'optio
 $phone        = function_exists('get_field') ? get_field('contact_phone', 'option') : '';
 $contact_text = function_exists('get_field') ? get_field('contact_intro', 'option') : '';
 $group_text   = function_exists('get_field') ? get_field('footer_group_text', 'option') : '';
+$footer_logo_one = function_exists('get_field') ? get_field('footer_logo_one', 'option') : null;
+$footer_logo_two = function_exists('get_field') ? get_field('footer_logo_two', 'option') : null;
 $socials      = function_exists('get_field') ? get_field('social_links', 'option') : [];
 $legal_links  = function_exists('get_field') ? get_field('legal_links', 'option') : [];
 $footer_bg    = function_exists('luux_uses_blue_footer') && luux_uses_blue_footer() ? 'bg-brand-primary' : 'bg-brand-navy';
@@ -133,6 +135,24 @@ $whatsapp_url = 'https://api.whatsapp.com/send/?phone=443333059912&text&type=pho
                         </li>
                     <?php endforeach; ?>
                 </ul>
+            <?php endif; ?>
+
+            <?php if ($footer_logo_one || $footer_logo_two) : ?>
+                <div class="flex items-center gap-4 lg:ml-auto lg:justify-end">
+                    <?php if ($footer_logo_one) : ?>
+                        <?php echo wp_get_attachment_image($footer_logo_one, 'medium', false, [
+                            'class'   => 'h-10 w-auto object-contain opacity-80',
+                            'loading' => 'lazy',
+                        ]); ?>
+                    <?php endif; ?>
+
+                    <?php if ($footer_logo_two) : ?>
+                        <?php echo wp_get_attachment_image($footer_logo_two, 'medium', false, [
+                            'class'   => 'h-10 w-auto object-contain opacity-80',
+                            'loading' => 'lazy',
+                        ]); ?>
+                    <?php endif; ?>
+                </div>
             <?php endif; ?>
         </div>
     </div>
