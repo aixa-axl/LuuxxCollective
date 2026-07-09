@@ -19,6 +19,8 @@ $socials      = function_exists('get_field') ? get_field('social_links', 'option
 $legal_links  = function_exists('get_field') ? get_field('legal_links', 'option') : [];
 $footer_bg    = function_exists('luux_uses_blue_footer') && luux_uses_blue_footer() ? 'bg-brand-primary' : 'bg-brand-navy';
 $whatsapp_url = 'https://api.whatsapp.com/send/?phone=443333059912&text&type=phone_number&app_absent=0';
+$whatsapp_icon_path = get_template_directory() . '/assets/images/whatsapp-icon.png';
+$whatsapp_icon_ver  = file_exists($whatsapp_icon_path) ? (string) filemtime($whatsapp_icon_path) : '1';
 ?>
 
 </main>
@@ -180,7 +182,7 @@ $whatsapp_url = 'https://api.whatsapp.com/send/?phone=443333059912&text&type=pho
         <span class="whatsapp-float__icon" aria-hidden="true">
             <img
                 class="whatsapp-float__img"
-                src="<?php echo esc_url(get_template_directory_uri() . '/assets/images/whatsapp-icon.png'); ?>"
+                src="<?php echo esc_url(get_template_directory_uri() . '/assets/images/whatsapp-icon.png?ver=' . $whatsapp_icon_ver); ?>"
                 alt=""
                 aria-hidden="true"
             />
