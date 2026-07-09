@@ -1646,7 +1646,36 @@
     }
   }
 
-  /* Footer trust logos — ATOL / TTA badges below Get in touch */
+  /* Footer bottom bar — group left, legal center, trust logos right */
+  .footer-bar {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    padding-block: 2.5rem;
+  }
+
+  @media (min-width: 1024px) {
+    .footer-bar {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .footer-bar__group {
+      justify-self: start;
+    }
+
+    .footer-bar__legal {
+      justify-self: center;
+    }
+
+    .footer-bar__logos {
+      justify-self: end;
+    }
+  }
+
+  /* Footer trust logos — ATOL / TTA badges */
   .footer-trust-logos {
     display: flex;
     align-items: center;

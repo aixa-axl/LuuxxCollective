@@ -94,38 +94,18 @@ $whatsapp_url = 'https://api.whatsapp.com/send/?phone=443333059912&text&type=pho
 
             <div class="hidden lg:block">
                 <p class="mb-6 font-display text-body uppercase"><?php esc_html_e('Get in touch', 'luux'); ?></p>
-                <div class="flex flex-col gap-8 font-body text-body">
-                    <div class="flex flex-col gap-4">
-                        <?php if ($contact_text) : ?>
-                            <p class="opacity-80"><?php echo esc_html($contact_text); ?></p>
-                        <?php endif; ?>
-                        <?php if ($email) : ?>
-                            <a class="hover:opacity-80" href="mailto:<?php echo esc_attr($email); ?>"><?php echo esc_html($email); ?></a>
-                        <?php endif; ?>
-                        <?php if ($phone) : ?>
-                            <a class="hover:opacity-80" href="tel:<?php echo esc_attr(preg_replace('/\s+/', '', $phone)); ?>"><?php echo esc_html($phone); ?></a>
-                        <?php endif; ?>
-                        <?php if ($address) : ?>
-                            <p class="opacity-80"><?php echo nl2br(esc_html($address)); ?></p>
-                        <?php endif; ?>
-                    </div>
-
-                    <?php if ($footer_logo_one || $footer_logo_two) : ?>
-                        <div class="footer-trust-logos">
-                            <?php if ($footer_logo_one) : ?>
-                                <?php echo wp_get_attachment_image($footer_logo_one, 'medium', false, [
-                                    'class'   => 'footer-trust-logos__image',
-                                    'loading' => 'lazy',
-                                ]); ?>
-                            <?php endif; ?>
-
-                            <?php if ($footer_logo_two) : ?>
-                                <?php echo wp_get_attachment_image($footer_logo_two, 'medium', false, [
-                                    'class'   => 'footer-trust-logos__image',
-                                    'loading' => 'lazy',
-                                ]); ?>
-                            <?php endif; ?>
-                        </div>
+                <div class="flex flex-col gap-4 font-body text-body">
+                    <?php if ($contact_text) : ?>
+                        <p class="opacity-80"><?php echo esc_html($contact_text); ?></p>
+                    <?php endif; ?>
+                    <?php if ($email) : ?>
+                        <a class="hover:opacity-80" href="mailto:<?php echo esc_attr($email); ?>"><?php echo esc_html($email); ?></a>
+                    <?php endif; ?>
+                    <?php if ($phone) : ?>
+                        <a class="hover:opacity-80" href="tel:<?php echo esc_attr(preg_replace('/\s+/', '', $phone)); ?>"><?php echo esc_html($phone); ?></a>
+                    <?php endif; ?>
+                    <?php if ($address) : ?>
+                        <p class="opacity-80"><?php echo nl2br(esc_html($address)); ?></p>
                     <?php endif; ?>
                 </div>
             </div>
@@ -133,17 +113,17 @@ $whatsapp_url = 'https://api.whatsapp.com/send/?phone=443333059912&text&type=pho
     </div>
 
     <div class="border-t border-brand-white/10">
-        <div class="container-site flex flex-col gap-6 py-10 lg:flex-row lg:items-center lg:justify-between lg:gap-4">
+        <div class="container-site footer-bar">
             <p class="font-body text-caption font-black opacity-40 lg:hidden">
                 &copy; <?php echo esc_html(date('Y')); ?> Luxx Collective. <?php esc_html_e('All rights reserved.', 'luux'); ?>
             </p>
 
             <?php if ($group_text) : ?>
-                <p class="hidden font-body text-body opacity-40 lg:block"><?php echo esc_html($group_text); ?></p>
+                <p class="footer-bar__group hidden font-body text-body opacity-40 lg:block"><?php echo esc_html($group_text); ?></p>
             <?php endif; ?>
 
             <?php if ($legal_links) : ?>
-                <ul class="flex flex-wrap gap-4 font-body text-body opacity-40 lg:items-center lg:gap-6">
+                <ul class="footer-bar__legal flex flex-wrap gap-4 font-body text-body opacity-40 lg:items-center lg:justify-center lg:gap-6">
                     <?php foreach ($legal_links as $i => $link) :
                         if (empty($link['link'])) continue;
                         $item = $link['link'];
@@ -159,6 +139,24 @@ $whatsapp_url = 'https://api.whatsapp.com/send/?phone=443333059912&text&type=pho
                         </li>
                     <?php endforeach; ?>
                 </ul>
+            <?php endif; ?>
+
+            <?php if ($footer_logo_one || $footer_logo_two) : ?>
+                <div class="footer-bar__logos footer-trust-logos">
+                    <?php if ($footer_logo_one) : ?>
+                        <?php echo wp_get_attachment_image($footer_logo_one, 'medium', false, [
+                            'class'   => 'footer-trust-logos__image',
+                            'loading' => 'lazy',
+                        ]); ?>
+                    <?php endif; ?>
+
+                    <?php if ($footer_logo_two) : ?>
+                        <?php echo wp_get_attachment_image($footer_logo_two, 'medium', false, [
+                            'class'   => 'footer-trust-logos__image',
+                            'loading' => 'lazy',
+                        ]); ?>
+                    <?php endif; ?>
+                </div>
             <?php endif; ?>
         </div>
     </div>
