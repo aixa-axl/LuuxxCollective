@@ -51,7 +51,7 @@ add_filter('acf/settings/load_json', function ($paths) {
     return $paths;
 });
 
-/* ── ACF Options page ───────────────────────────────────── */
+/* ── ACF Site Options (page + local field group from JSON) ─ */
 add_action('acf/init', function () {
     if (! function_exists('acf_add_options_page')) {
         return;
@@ -64,7 +64,33 @@ add_action('acf/init', function () {
         'capability' => 'edit_posts',
         'redirect'   => false,
     ]);
+
+    if (! function_exists('acf_add_local_field_group')) {
+        return;
+    }
+
+    $path = get_template_directory() . '/acf-json/group_luux_site_options.json';
+    if (! is_readable($path)) {
+        return;
+    }
+
+    $group = json_decode((string) file_get_contents($path), true);
+    if (is_array($group)) {
+        acf_add_local_field_group($group);
+    }
 }, 0);
+
+add_action('admin_notices', function () {
+    $page = isset($_GET['page']) ? sanitize_key(wp_unslash($_GET['page'])) : '';
+    if ($page !== 'luux-site-options') {
+        return;
+    }
+
+    $path = get_template_directory() . '/acf-json/group_luux_site_options.json';
+    if (! is_readable($path)) {
+        echo '<div class="notice notice-error"><p><strong>Luux:</strong> Missing <code>acf-json/group_luux_site_options.json</code> on the server. Deploy the theme or upload that file.</p></div>';
+    }
+});
 
 /* ── Flexible Content router ────────────────────────────── *
  * Loops page_sections and includes template-parts/layouts/{layout}.php.
