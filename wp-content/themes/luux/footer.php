@@ -9,6 +9,7 @@ $tagline      = function_exists('get_field') ? get_field('footer_tagline', 'opti
 $logo_id      = function_exists('get_field') ? get_field('site_logo_light', 'option') : null;
 $email        = function_exists('get_field') ? get_field('contact_email', 'option') : '';
 $phone        = function_exists('get_field') ? get_field('contact_phone', 'option') : '';
+$address      = function_exists('get_field') ? get_field('contact_address', 'option') : '';
 $contact_text = function_exists('get_field') ? get_field('contact_intro', 'option') : '';
 $group_text   = function_exists('get_field') ? get_field('footer_group_text', 'option') : '';
 $footer_logo_one = function_exists('get_field') ? get_field('footer_logo_one', 'option') : null;
@@ -103,6 +104,9 @@ $whatsapp_url = 'https://api.whatsapp.com/send/?phone=443333059912&text&type=pho
                         <?php endif; ?>
                         <?php if ($phone) : ?>
                             <a class="hover:opacity-80" href="tel:<?php echo esc_attr(preg_replace('/\s+/', '', $phone)); ?>"><?php echo esc_html($phone); ?></a>
+                        <?php endif; ?>
+                        <?php if ($address) : ?>
+                            <p class="opacity-80"><?php echo nl2br(esc_html($address)); ?></p>
                         <?php endif; ?>
                     </div>
 

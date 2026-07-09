@@ -104,6 +104,14 @@
       "type": "text"
     },
     {
+      "key": "field_luux_options_contact_address",
+      "label": "Address",
+      "name": "contact_address",
+      "type": "textarea",
+      "rows": 3,
+      "new_lines": "br"
+    },
+    {
       "key": "field_luux_options_tab_social",
       "label": "Social",
       "name": "",
@@ -262,5 +270,5 @@
   "style": "default",
   "active": true,
   "show_in_rest": 0,
-  "modified": 1783998800
+  "modified": 1784001200
 }
