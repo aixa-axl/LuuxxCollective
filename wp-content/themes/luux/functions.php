@@ -51,8 +51,8 @@ add_filter('acf/settings/load_json', function ($paths) {
     return $paths;
 });
 
-/* ── ACF Options page + Site Options field group ────────── */
-function luux_register_site_options_page(): void {
+/* ── ACF Options page ───────────────────────────────────── */
+add_action('acf/init', function () {
     if (! function_exists('acf_add_options_page')) {
         return;
     }
@@ -64,47 +64,7 @@ function luux_register_site_options_page(): void {
         'capability' => 'edit_posts',
         'redirect'   => false,
     ]);
-}
-
-function luux_get_site_options_field_group(): ?array {
-    $path = get_template_directory() . '/acf-json/group_luux_site_options.json';
-    if (! is_readable($path)) {
-        return null;
-    }
-
-    $group = json_decode((string) file_get_contents($path), true);
-
-    return is_array($group) ? $group : null;
-}
-
-function luux_register_site_options_field_group(): void {
-    if (! function_exists('acf_add_local_field_group')) {
-        return;
-    }
-
-    $group = luux_get_site_options_field_group();
-    if ($group) {
-        acf_add_local_field_group($group);
-    }
-}
-
-add_action('acf/init', function () {
-    luux_register_site_options_page();
-    luux_register_site_options_field_group();
 }, 0);
-
-add_action('acf/include_fields', 'luux_register_site_options_field_group');
-
-// Always use theme JSON for Site Options — overrides broken DB copies on production.
-add_filter('acf/load_field_group', function ($field_group) {
-    if (! is_array($field_group) || ($field_group['key'] ?? '') !== 'group_luux_site_options') {
-        return $field_group;
-    }
-
-    $from_json = luux_get_site_options_field_group();
-
-    return $from_json ?? $field_group;
-});
 
 /* ── Flexible Content router ────────────────────────────── *
  * Loops page_sections and includes template-parts/layouts/{layout}.php.
