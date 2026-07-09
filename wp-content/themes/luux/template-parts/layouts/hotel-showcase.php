@@ -59,9 +59,11 @@ $panel_id = 'hotel-showcase-' . get_row_index();
                          aria-labelledby="<?php echo esc_attr($panel_id . '-tab-' . $i); ?>"
                          <?php echo $i === 0 ? '' : 'aria-hidden="true"'; ?>>
                     <div class="hotel-showcase__card">
-                        <?php if (! empty($hotel['image'])) : ?>
+                        <?php
+                        $hotel_image = ! empty($hotel['hotel_image']) ? $hotel['hotel_image'] : ($hotel['image'] ?? 0);
+                        if ($hotel_image) : ?>
                             <div class="hotel-showcase__media">
-                                <?php echo wp_get_attachment_image($hotel['image'], 'large', false, [
+                                <?php echo wp_get_attachment_image($hotel_image, 'large', false, [
                                     'class'   => 'h-full w-full object-cover',
                                     'loading' => 'lazy',
                                 ]); ?>
