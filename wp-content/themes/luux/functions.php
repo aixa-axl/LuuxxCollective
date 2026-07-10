@@ -242,27 +242,6 @@ function luux_uses_hero_header(): bool {
     return in_array($first, ['hero', 'resort_hero', 'contact_hero'], true);
 }
 
-/**
- * Contact-style pages use the dark blue (#0C1535) footer variant.
- * True when the page contains a contact_hero or contact_options section.
- */
-function luux_uses_blue_footer(): bool {
-    if (! function_exists('get_field')) {
-        return false;
-    }
-    $sections = get_field('page_sections');
-    if (empty($sections) || ! is_array($sections)) {
-        return false;
-    }
-    foreach ($sections as $section) {
-        $layout = $section['acf_fc_layout'] ?? '';
-        if (in_array($layout, ['contact_hero', 'contact_options'], true)) {
-            return true;
-        }
-    }
-    return false;
-}
-
 function luux_render_sections(): void {
     if (!function_exists('have_rows') || !have_rows('page_sections')) {
         return;

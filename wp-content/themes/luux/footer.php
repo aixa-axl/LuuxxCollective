@@ -17,7 +17,6 @@ $footer_logo_two = function_exists('get_field') ? get_field('footer_logo_two', '
 $footer_disclaimer = function_exists('get_field') ? get_field('footer_disclaimer', 'option') : '';
 $socials      = luux_get_social_links();
 $legal_links  = luux_get_legal_links();
-$footer_bg    = function_exists('luux_uses_blue_footer') && luux_uses_blue_footer() ? 'bg-brand-primary' : 'bg-brand-navy';
 $whatsapp_url = 'https://api.whatsapp.com/send/?phone=443333059912&text&type=phone_number&app_absent=0';
 $whatsapp_icon_path = get_template_directory() . '/assets/images/whatsapp-icon.png';
 $whatsapp_icon_ver  = file_exists($whatsapp_icon_path) ? (string) filemtime($whatsapp_icon_path) : '1';
@@ -25,7 +24,7 @@ $whatsapp_icon_ver  = file_exists($whatsapp_icon_path) ? (string) filemtime($wha
 
 </main>
 
-<footer class="<?php echo esc_attr($footer_bg); ?> text-brand-white">
+<footer class="bg-brand-dark text-brand-white">
     <div class="container-site pt-16 pb-10 lg:section-pad lg:pt-20 lg:pb-10">
         <div class="flex flex-col gap-12 lg:grid lg:grid-cols-4 lg:gap-20">
             <div class="flex flex-col gap-6 lg:gap-8">
