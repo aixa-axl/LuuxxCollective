@@ -46,8 +46,14 @@ add_action('wp_enqueue_scripts', function () {
     }
 });
 
-/* ── ACF: export JSON from admin; definitions load via inc/acf-repair.php ── */
+/* ── ACF JSON + Site Options page ─────────────────────────── */
 add_filter('acf/settings/save_json', fn() => get_template_directory() . '/acf-json');
+add_filter('acf/settings/load_json', function ($paths) {
+    foreach (luux_acf_json_paths() as $dir) {
+        $paths[] = $dir;
+    }
+    return $paths;
+});
 
 function luux_site_options_slug(): string {
     return 'luux-site-options';
@@ -103,14 +109,55 @@ function luux_uses_hero_header(): bool {
 }
 
 function luux_render_sections(): void {
-    if (!function_exists('have_rows') || !have_rows('page_sections')) {
+    $post_id = get_the_ID();
+    if (! $post_id || ! function_exists('have_rows')) {
         return;
     }
-    while (have_rows('page_sections')) {
+
+    if (luux_loop_page_sections($post_id)) {
+        return;
+    }
+
+    luux_render_sections_from_meta($post_id);
+}
+
+function luux_loop_page_sections(int $post_id): bool {
+    if (! have_rows('page_sections', $post_id)) {
+        return false;
+    }
+
+    while (have_rows('page_sections', $post_id)) {
         the_row();
         $layout = str_replace('_', '-', get_row_layout());
         get_template_part('template-parts/layouts/' . $layout);
     }
+
+    return true;
+}
+
+function luux_render_sections_from_meta(int $post_id): bool {
+    if (! function_exists('acf_get_field') || ! function_exists('acf_setup_meta') || ! function_exists('acf_get_meta')) {
+        return false;
+    }
+
+    $row_count = (int) get_post_meta($post_id, 'page_sections', true);
+    if ($row_count < 1) {
+        return false;
+    }
+
+    $meta = acf_get_meta($post_id);
+    if (empty($meta)) {
+        return false;
+    }
+
+    acf_setup_meta($meta, $post_id, true);
+    $rendered = luux_loop_page_sections($post_id);
+
+    if (function_exists('acf_reset_meta')) {
+        acf_reset_meta($post_id);
+    }
+
+    return $rendered;
 }
 
 /* ── Light hardening / cleanup ──────────────────────────── */

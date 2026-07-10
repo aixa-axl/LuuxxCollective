@@ -5,7 +5,7 @@
 
 defined('ABSPATH') || exit;
 
-const LUUX_ACF_REPAIR_VERSION = 9;
+const LUUX_ACF_REPAIR_VERSION = 10;
 
 /** @return list<string> */
 function luux_acf_json_paths(): array {
@@ -158,22 +158,35 @@ function luux_acf_repair_managed_groups(): array {
 }
 
 function luux_acf_register_managed_groups_from_json(): void {
-    if (! function_exists('acf_add_local_field_group')) {
+    if (! function_exists('acf_add_local_field_group') || ! function_exists('acf_add_local_field')) {
         return;
     }
 
-    foreach (luux_acf_managed_field_groups() as $managed) {
-        $group = luux_acf_prepare_group_from_json($managed['file'], $managed['key']);
-        if (! $group) {
-            continue;
-        }
-
+    $site_options = luux_acf_prepare_group_from_json('group_luux_site_options.json', 'group_luux_site_options');
+    if ($site_options) {
         if (function_exists('acf_remove_local_field_group')) {
-            acf_remove_local_field_group($managed['key']);
+            acf_remove_local_field_group('group_luux_site_options');
         }
-
-        acf_add_local_field_group($group);
+        acf_add_local_field_group($site_options);
     }
+
+    $page_sections = luux_acf_prepare_group_from_json('group_luux_page_sections.json', 'group_luux_page_sections');
+    $fc_field      = luux_acf_get_page_sections_field();
+
+    if (! $page_sections || ! $fc_field) {
+        return;
+    }
+
+    if (function_exists('acf_remove_local_field_group')) {
+        acf_remove_local_field_group('group_luux_page_sections');
+    }
+
+    // Flexible content layouts must be registered as a standalone local field.
+    $page_sections['fields'] = [];
+    acf_add_local_field_group($page_sections);
+
+    $fc_field['parent'] = 'group_luux_page_sections';
+    acf_add_local_field($fc_field);
 }
 
 function luux_acf_page_sections_layout_count(): int {
@@ -379,7 +392,7 @@ add_action('init', function (): void {
     luux_acf_repair_managed_groups();
 }, 5);
 
-add_action('acf/include_fields', 'luux_acf_register_managed_groups_from_json', 99);
+add_action('acf/include_fields', 'luux_acf_register_managed_groups_from_json', 1);
 
 add_filter('acf/load_field', function ($field) {
     if (! is_array($field) || ($field['key'] ?? '') !== 'field_luux_page_sections') {
@@ -391,28 +404,11 @@ add_filter('acf/load_field', function ($field) {
         return $field;
     }
 
-    return array_merge($field, $from_json);
-}, 20);
+    $from_json['ID']     = $field['ID'] ?? 0;
+    $from_json['parent'] = $field['parent'] ?? 'group_luux_page_sections';
 
-add_filter('acf/load_field_group', function ($group) {
-    if (! is_array($group)) {
-        return $group;
-    }
-
-    $map = [
-        'group_luux_site_options'   => 'group_luux_site_options.json',
-        'group_luux_page_sections'  => 'group_luux_page_sections.json',
-    ];
-
-    $key = $group['key'] ?? '';
-    if (! isset($map[$key])) {
-        return $group;
-    }
-
-    $from_json = luux_acf_prepare_group_from_json($map[$key], $key);
-
-    return $from_json ?? $group;
-});
+    return $from_json;
+}, 999);
 
 add_filter('acf/location/screen', function ($screen) {
     $page = isset($_GET['page']) ? sanitize_key(wp_unslash($_GET['page'])) : '';
