@@ -101,7 +101,8 @@ function luux_acf_repair_managed_groups(): array {
 
     foreach (luux_acf_managed_field_groups() as $managed) {
         if (! luux_acf_load_group_from_json($managed['file'])) {
-            $result['errors'][] = 'Missing acf-json/' . $managed['file'];
+            $path = get_template_directory() . '/acf-json/' . $managed['file'];
+            $result['errors'][] = 'Missing ' . $path . ' — upload wp-content/themes/luux/acf-json/ to the server or re-run the GitHub deploy.';
         }
     }
 
