@@ -18,7 +18,7 @@
     },
     "update_button": "Update",
     "updated_message": "Options Updated",
-    "capability": "edit_posts",
+    "capability": "manage_options",
     "data_storage": "options",
     "post_id": "",
     "autoload": 0,

@@ -15,7 +15,9 @@
       "name": "site_logo",
       "type": "image",
       "return_format": "id",
-      "preview_size": "medium"
+      "preview_size": "medium",
+      "library": "all",
+      "uploader": "wp"
     },
     {
       "key": "field_luux_options_site_logo_dark",
@@ -24,6 +26,8 @@
       "type": "image",
       "return_format": "id",
       "preview_size": "medium",
+      "library": "all",
+      "uploader": "wp",
       "instructions": "Dark wordmark for the white mobile header and inner pages."
     },
     {
@@ -32,7 +36,9 @@
       "name": "site_logo_light",
       "type": "image",
       "return_format": "id",
-      "preview_size": "medium"
+      "preview_size": "medium",
+      "library": "all",
+      "uploader": "wp"
     },
     {
       "key": "field_luux_options_enquire_link",
@@ -67,7 +73,9 @@
       "name": "footer_logo_one",
       "type": "image",
       "return_format": "id",
-      "preview_size": "medium"
+      "preview_size": "medium",
+      "library": "all",
+      "uploader": "wp"
     },
     {
       "key": "field_luux_options_footer_logo_two",
@@ -75,7 +83,9 @@
       "name": "footer_logo_two",
       "type": "image",
       "return_format": "id",
-      "preview_size": "medium"
+      "preview_size": "medium",
+      "library": "all",
+      "uploader": "wp"
     },
     {
       "key": "field_luux_options_footer_disclaimer",
@@ -133,7 +143,7 @@
       "label": "Social Links",
       "name": "social_links",
       "type": "repeater",
-      "layout": "table",
+      "layout": "row",
       "button_label": "Add Social Link",
       "sub_fields": [
         {
@@ -146,7 +156,7 @@
           "key": "field_luux_options_social_url",
           "label": "URL",
           "name": "url",
-          "type": "url"
+          "type": "text"
         },
         {
           "key": "field_luux_options_social_icon",
@@ -154,7 +164,9 @@
           "name": "icon",
           "type": "image",
           "return_format": "id",
-          "preview_size": "thumbnail"
+          "preview_size": "thumbnail",
+          "library": "all",
+          "uploader": "wp"
         }
       ]
     },
@@ -280,5 +292,5 @@
   "style": "default",
   "active": true,
   "show_in_rest": 0,
-  "modified": 1784032000
+  "modified": 1784033000
 }

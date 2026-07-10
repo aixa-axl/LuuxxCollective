@@ -69,9 +69,9 @@ function luux_site_options_location(): array {
 }
 
 /**
- * Canonical Site Options field group from theme JSON (complete field definitions).
+ * Raw Site Options field group JSON (nested sub_fields intact).
  */
-function luux_get_site_options_field_group(): ?array {
+function luux_get_site_options_field_group_raw(): ?array {
     static $group = null;
 
     if ($group !== null) {
@@ -90,15 +90,77 @@ function luux_get_site_options_field_group(): ?array {
         return null;
     }
 
-    if (function_exists('acf_prepare_field_group_for_import')) {
-        $decoded = acf_prepare_field_group_for_import($decoded);
-    }
-
     $decoded['location'] = luux_site_options_location();
     $decoded['active']   = true;
 
     $group = $decoded;
     return $group;
+}
+
+/**
+ * Field group prepared for ACF import/registration.
+ */
+function luux_get_site_options_field_group(): ?array {
+    $raw = luux_get_site_options_field_group_raw();
+    if (! $raw) {
+        return null;
+    }
+
+    if (! function_exists('acf_prepare_field_group_for_import')) {
+        return $raw;
+    }
+
+    return acf_prepare_field_group_for_import($raw);
+}
+
+function luux_is_site_options_field_group(array $group): bool {
+    return ($group['key'] ?? '') === 'group_luux_site_options'
+        || ($group['title'] ?? '') === 'Site Options';
+}
+
+/**
+ * Import the canonical field group into the database.
+ */
+function luux_import_site_options_field_group(array $raw): bool {
+    if (function_exists('acf_import_field_group')) {
+        acf_import_field_group($raw);
+        return true;
+    }
+
+    if (function_exists('acf_get_field_group_post_type')) {
+        $post_type = acf_get_field_group_post_type();
+        if ($post_type && method_exists($post_type, 'import_post')) {
+            $post_type->import_post($raw);
+            return true;
+        }
+    }
+
+    return false;
+}
+
+/**
+ * One-time repair: import the complete field group into the DB (fixes partial syncs).
+ */
+function luux_maybe_import_site_options_field_group(): void {
+    if (! is_admin()) {
+        return;
+    }
+
+    $version = '5';
+    if (get_option('luux_site_options_field_group_version') === $version) {
+        return;
+    }
+
+    $raw = luux_get_site_options_field_group_raw();
+    if (! $raw) {
+        return;
+    }
+
+    if (! luux_import_site_options_field_group($raw)) {
+        return;
+    }
+
+    update_option('luux_site_options_field_group_version', $version, false);
 }
 
 add_action('acf/init', function () {
@@ -110,10 +172,12 @@ add_action('acf/init', function () {
         'page_title' => __('Site Options', 'luux'),
         'menu_title' => __('Site Options', 'luux'),
         'menu_slug'  => luux_site_options_slug(),
-        'capability' => 'edit_posts',
+        'capability' => 'manage_options',
         'redirect'   => false,
     ]);
 }, 0);
+
+add_action('acf/init', 'luux_maybe_import_site_options_field_group', 20);
 
 // Register the complete field group from JSON so local fields win over a partial DB sync.
 add_action('acf/include_fields', function () {
@@ -121,8 +185,8 @@ add_action('acf/include_fields', function () {
         return;
     }
 
-    $json = luux_get_site_options_field_group();
-    if (! $json) {
+    $raw = luux_get_site_options_field_group_raw();
+    if (! $raw) {
         return;
     }
 
@@ -130,36 +194,48 @@ add_action('acf/include_fields', function () {
         acf_remove_local_field_group('group_luux_site_options');
     }
 
-    acf_add_local_field_group($json);
+    acf_add_local_field_group($raw);
 }, 99);
 
 // DB sync on production can leave wrong location rules or incomplete child fields.
 add_filter('acf/load_field_group', function ($group) {
-    if (! is_array($group) || ($group['key'] ?? '') !== 'group_luux_site_options') {
+    if (! is_array($group) || ! luux_is_site_options_field_group($group)) {
         return $group;
     }
 
-    $json = luux_get_site_options_field_group();
-    return $json ?? $group;
+    $raw = luux_get_site_options_field_group_raw();
+    return $raw ?? $group;
 });
 
 add_filter('acf/load_fields', function ($fields, $parent) {
-    if (! is_array($parent) || ($parent['key'] ?? '') !== 'group_luux_site_options') {
+    if (! is_array($parent) || ! luux_is_site_options_field_group($parent)) {
         return $fields;
     }
 
-    $json = luux_get_site_options_field_group();
-    if (! $json || empty($json['fields']) || ! is_array($json['fields'])) {
+    $raw = luux_get_site_options_field_group_raw();
+    if (! $raw || empty($raw['fields']) || ! is_array($raw['fields'])) {
         return $fields;
     }
 
-    return $json['fields'];
-}, 20, 2);
+    return $raw['fields'];
+}, 999, 2);
 
 // Corrupt repeater data in wp_options can white-screen the Social tab.
-add_filter('acf/load_value/name=social_links', function ($value) {
+add_filter('acf/load_value/name=social_links', function ($value, $post_id) {
+    if ($post_id !== 'options' && $post_id !== 'option') {
+        return $value;
+    }
+
     return is_array($value) ? $value : [];
-});
+}, 10, 2);
+
+add_filter('acf/load_value/name=legal_links', function ($value, $post_id) {
+    if ($post_id !== 'options' && $post_id !== 'option') {
+        return $value;
+    }
+
+    return is_array($value) ? $value : [];
+}, 10, 2);
 
 add_filter('acf/location/rule_match/options_page', function ($match, $rule, $screen, $field_group) {
     if (($field_group['key'] ?? '') !== 'group_luux_site_options') {
@@ -205,6 +281,13 @@ add_action('admin_notices', function () {
 
     $groups = acf_get_field_groups(['options_page' => luux_site_options_slug()]);
     if (! empty($groups)) {
+        if (current_user_can('manage_options') && function_exists('acf_get_fields')) {
+            $fields = acf_get_fields('group_luux_site_options');
+            $count  = is_array($fields) ? count($fields) : 0;
+            if ($count > 0 && $count < 25) {
+                echo '<div class="notice notice-warning"><p><strong>Luux:</strong> Site Options is loading an incomplete field group (' . esc_html((string) $count) . ' fields, expected ~28). Deploy the latest theme, then load any wp-admin page once to auto-repair, or trash the Site Options field group and sync from JSON.</p></div>';
+            }
+        }
         return;
     }
 
