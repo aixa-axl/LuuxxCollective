@@ -1,13 +1,25 @@
 <?php
 /**
- * Page Sections — meta relinking and render helpers.
- * Isolated from Site Options bootstrap so options stay untouched.
+ * Page Sections — field group repair, meta relinking, and render helpers.
+ * Does not touch Site Options.
  */
 
 defined('ABSPATH') || exit;
 
 function luux_acf_is_page_section_meta_key(string $key): bool {
     return (bool) preg_match('/^_?page_sections/', $key);
+}
+
+function luux_acf_page_sections_layout_count(?array $field = null): int {
+    if ($field === null && function_exists('acf_get_field')) {
+        $field = acf_get_field('field_luux_page_sections');
+    }
+
+    if (! is_array($field) || empty($field['layouts']) || ! is_array($field['layouts'])) {
+        return 0;
+    }
+
+    return count($field['layouts']);
 }
 
 /** @return array<string, array<int, array<string, mixed>>> */
@@ -226,3 +238,88 @@ function luux_acf_relink_page_section_meta_keys(): void {
         luux_acf_relink_page_section_meta_for_post((int) $page_id);
     }
 }
+
+function luux_acf_import_page_sections_group(): bool {
+    if (! function_exists('acf_import_field_group')) {
+        return false;
+    }
+
+    $group = luux_acf_prepare_group_from_json('group_luux_page_sections.json', 'group_luux_page_sections');
+    if (! $group) {
+        return false;
+    }
+
+    acf_import_field_group($group);
+
+    return true;
+}
+
+function luux_acf_ensure_page_sections_group(): void {
+    if (luux_acf_page_sections_layout_count() >= 20) {
+        return;
+    }
+
+    luux_acf_import_page_sections_group();
+}
+
+/** @return array<string, mixed>|null */
+function luux_acf_merged_page_meta(int $post_id): ?array {
+    $section_meta = luux_acf_get_page_section_meta($post_id);
+
+    if ($section_meta === [] || luux_page_section_count_from_meta($section_meta) < 1) {
+        return null;
+    }
+
+    $all = [];
+    $raw = get_metadata('post', $post_id);
+
+    if (is_array($raw)) {
+        foreach ($raw as $key => $values) {
+            $all[$key] = $values[0];
+        }
+    }
+
+    return array_merge($all, $section_meta);
+}
+
+add_action('acf/init', 'luux_acf_ensure_page_sections_group', 20);
+
+add_filter('acf/load_field', function ($field) {
+    if (! is_array($field) || ($field['key'] ?? '') !== 'field_luux_page_sections') {
+        return $field;
+    }
+
+    if (luux_acf_page_sections_layout_count($field) >= 20) {
+        return $field;
+    }
+
+    $from_json = luux_acf_get_page_sections_field();
+    if (! $from_json) {
+        return $field;
+    }
+
+    $from_json['ID']     = $field['ID'] ?? 0;
+    $from_json['parent'] = $field['parent'] ?? 'group_luux_page_sections';
+
+    return $from_json;
+}, 999);
+
+add_filter('acf/pre_load_meta', function ($null, $post_id) {
+    if (is_admin()) {
+        return $null;
+    }
+
+    if (! is_numeric($post_id) || get_post_type((int) $post_id) !== 'page') {
+        return $null;
+    }
+
+    return luux_acf_merged_page_meta((int) $post_id);
+}, 10, 2);
+
+add_action('acf/save_post', function ($post_id): void {
+    if (! is_numeric($post_id) || get_post_type((int) $post_id) !== 'page') {
+        return;
+    }
+
+    luux_acf_relink_page_section_meta_for_post((int) $post_id);
+}, 20);

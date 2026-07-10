@@ -1,12 +1,12 @@
 <?php
 /**
- * ACF bootstrap — register field groups from theme JSON and relink stored values.
- * Non-destructive: never deletes ACF definition posts from the database.
+ * ACF bootstrap — Site Options field group + shared JSON helpers.
+ * Page Sections logic lives in inc/page-sections.php (kept separate on purpose).
  */
 
 defined('ABSPATH') || exit;
 
-const LUUX_ACF_BOOTSTRAP_VERSION = 4;
+const LUUX_ACF_BOOTSTRAP_VERSION = 5;
 
 function luux_site_options_slug(): string {
     return 'luux-site-options';
@@ -100,40 +100,21 @@ function luux_acf_walk_fields(array $fields, callable $callback): void {
     }
 }
 
-function luux_acf_register_local_groups(): void {
+function luux_acf_register_site_options_group(): void {
     if (! function_exists('acf_add_local_field_group')) {
         return;
     }
 
     $site_options = luux_acf_prepare_group_from_json('group_luux_site_options.json', 'group_luux_site_options');
-    if ($site_options) {
-        if (function_exists('acf_remove_local_field_group')) {
-            acf_remove_local_field_group('group_luux_site_options');
-        }
-        acf_add_local_field_group($site_options);
-    }
-
-    if (! function_exists('acf_add_local_field')) {
-        return;
-    }
-
-    $page_sections = luux_acf_prepare_group_from_json('group_luux_page_sections.json', 'group_luux_page_sections');
-    $fc_field      = luux_acf_get_page_sections_field();
-
-    if (! $page_sections || ! $fc_field) {
+    if (! $site_options) {
         return;
     }
 
     if (function_exists('acf_remove_local_field_group')) {
-        acf_remove_local_field_group('group_luux_page_sections');
+        acf_remove_local_field_group('group_luux_site_options');
     }
 
-    // Page Sections: register the FC field separately so all layouts load in admin.
-    $page_sections['fields'] = [];
-    acf_add_local_field_group($page_sections);
-
-    $fc_field['parent'] = 'group_luux_page_sections';
-    acf_add_local_field($fc_field);
+    acf_add_local_field_group($site_options);
 }
 
 function luux_acf_relink_option_field_keys(): void {
@@ -175,23 +156,15 @@ function luux_acf_run_bootstrap(): void {
         luux_acf_relink_option_field_keys();
     }
 
-    if ($current < 2) {
+    if ($current < LUUX_ACF_BOOTSTRAP_VERSION) {
         luux_acf_relink_page_section_fields();
-        luux_acf_relink_page_section_meta_keys();
-    }
-
-    if ($current < 3) {
-        luux_acf_relink_page_section_meta_keys();
-    }
-
-    if ($current < 4) {
         luux_acf_relink_page_section_meta_keys();
     }
 
     update_option('luux_acf_bootstrap_version', LUUX_ACF_BOOTSTRAP_VERSION, false);
 }
 
-add_action('acf/include_fields', 'luux_acf_register_local_groups', 1);
+add_action('acf/include_fields', 'luux_acf_register_site_options_group', 1);
 
 add_action('acf/init', function (): void {
     if ((int) get_option('luux_acf_bootstrap_version', 0) >= LUUX_ACF_BOOTSTRAP_VERSION) {
@@ -200,22 +173,6 @@ add_action('acf/init', function (): void {
 
     luux_acf_run_bootstrap();
 }, 5);
-
-add_filter('acf/load_field', function ($field) {
-    if (! is_array($field) || ($field['key'] ?? '') !== 'field_luux_page_sections') {
-        return $field;
-    }
-
-    $from_json = luux_acf_get_page_sections_field();
-    if (! $from_json) {
-        return $field;
-    }
-
-    $from_json['ID']     = $field['ID'] ?? 0;
-    $from_json['parent'] = $field['parent'] ?? 'group_luux_page_sections';
-
-    return $from_json;
-}, 999);
 
 add_filter('acf/location/screen', function ($screen) {
     $page = isset($_GET['page']) ? sanitize_key(wp_unslash($_GET['page'])) : '';
@@ -241,11 +198,6 @@ add_filter('acf/location/rule_match/options_page', function ($match, $rule, $scr
 add_action('acf/save_post', function ($post_id): void {
     if ($post_id === 'options' || $post_id === 'option') {
         luux_acf_relink_option_field_keys();
-        return;
-    }
-
-    if (is_numeric($post_id) && get_post_type((int) $post_id) === 'page') {
-        luux_acf_relink_page_section_meta_for_post((int) $post_id);
     }
 }, 20);
 

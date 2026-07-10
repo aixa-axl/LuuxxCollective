@@ -104,11 +104,13 @@ function luux_render_sections(): void {
         return;
     }
 
-    if (function_exists('have_rows') && luux_loop_page_sections($post_id)) {
+    if (luux_render_sections_from_meta($post_id)) {
         return;
     }
 
-    luux_render_sections_from_meta($post_id);
+    if (function_exists('have_rows') && luux_loop_page_sections($post_id)) {
+        return;
+    }
 }
 
 function luux_loop_page_sections(int $post_id): bool {
@@ -130,12 +132,12 @@ function luux_render_sections_from_meta(int $post_id): bool {
         return false;
     }
 
-    if (! function_exists('luux_acf_get_page_section_meta')) {
+    if (! function_exists('luux_acf_merged_page_meta')) {
         return false;
     }
 
-    $meta = luux_acf_get_page_section_meta($post_id);
-    if ($meta === [] || luux_page_section_count_from_meta($meta) < 1) {
+    $meta = luux_acf_merged_page_meta($post_id);
+    if ($meta === null) {
         return false;
     }
 
