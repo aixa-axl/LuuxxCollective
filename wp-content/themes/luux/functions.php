@@ -56,34 +56,16 @@ function luux_site_options_slug(): string {
     return 'luux-site-options';
 }
 
-function luux_is_site_options_field_group(array $group): bool {
-    return ($group['key'] ?? '') === 'group_luux_site_options'
-        || ($group['title'] ?? '') === 'Site Options';
+/** @return list<string> */
+function luux_site_options_field_group_keys(): array {
+    return [
+        'group_luux_site_options',
+        'group_luux_site_options_social',
+    ];
 }
 
-/**
- * Canonical field definitions from theme JSON (never run through prepare/import here).
- */
-function luux_get_site_options_field_group_raw(): ?array {
-    static $group = null;
-
-    if ($group !== null) {
-        return $group === false ? null : $group;
-    }
-
-    $path = get_template_directory() . '/acf-json/group_luux_site_options.json';
-    if (! is_readable($path)) {
-        $group = false;
-        return null;
-    }
-
-    $decoded = json_decode((string) file_get_contents($path), true);
-    if (! is_array($decoded)) {
-        $group = false;
-        return null;
-    }
-
-    $decoded['location'] = [
+function luux_site_options_location(): array {
+    return [
         [
             [
                 'param'    => 'options_page',
@@ -92,11 +74,50 @@ function luux_get_site_options_field_group_raw(): ?array {
             ],
         ],
     ];
-    $decoded['active'] = true;
-    $decoded['key']    = 'group_luux_site_options';
+}
 
-    $group = $decoded;
-    return $group;
+function luux_load_acf_json_field_group(string $filename, string $key): ?array {
+    $path = get_template_directory() . '/acf-json/' . $filename;
+    if (! is_readable($path)) {
+        return null;
+    }
+
+    $decoded = json_decode((string) file_get_contents($path), true);
+    if (! is_array($decoded)) {
+        return null;
+    }
+
+    $decoded['key']      = $key;
+    $decoded['active']   = true;
+    $decoded['location'] = luux_site_options_location();
+
+    return $decoded;
+}
+
+function luux_register_site_options_field_groups(): void {
+    if (! function_exists('acf_add_local_field_group')) {
+        return;
+    }
+
+    $groups = [
+        ['group_luux_site_options.json', 'group_luux_site_options'],
+        ['group_luux_site_options_social.json', 'group_luux_site_options_social'],
+    ];
+
+    foreach ($groups as [$filename, $key]) {
+        if (function_exists('acf_remove_local_field_group')) {
+            acf_remove_local_field_group($key);
+        }
+
+        $group = luux_load_acf_json_field_group($filename, $key);
+        if ($group) {
+            acf_add_local_field_group($group);
+        }
+    }
+}
+
+function luux_is_site_options_field_group(array $group): bool {
+    return in_array($group['key'] ?? '', luux_site_options_field_group_keys(), true);
 }
 
 add_action('acf/init', function () {
@@ -113,91 +134,15 @@ add_action('acf/init', function () {
     ]);
 }, 0);
 
-// Theme-owned field group — works even when nothing is synced to the database.
-add_action('acf/include_fields', function () {
-    if (! function_exists('acf_add_local_field_group')) {
-        return;
-    }
+add_action('acf/include_fields', 'luux_register_site_options_field_groups', 99);
 
-    $raw = luux_get_site_options_field_group_raw();
-    if (! $raw) {
-        return;
-    }
-
-    if (function_exists('acf_remove_local_field_group')) {
-        acf_remove_local_field_group('group_luux_site_options');
-    }
-
-    acf_add_local_field_group($raw);
-}, 99);
-
-add_filter('acf/load_field_group', function ($group) {
-    if (! is_array($group) || ($group['key'] ?? '') !== 'group_luux_site_options') {
-        return $group;
-    }
-
-    $raw = luux_get_site_options_field_group_raw();
-    return $raw ?? $group;
-});
-
-add_filter('acf/load_fields', function ($fields, $parent) {
-    if (! is_array($parent) || ($parent['key'] ?? '') !== 'group_luux_site_options') {
-        return $fields;
-    }
-
-    $raw = luux_get_site_options_field_group_raw();
-    if (! $raw || empty($raw['fields']) || ! is_array($raw['fields'])) {
-        return $fields;
-    }
-
-    return $raw['fields'];
-}, 999, 2);
-
-// Ensure Site Options always attaches to our options page (even with no DB field group).
 add_filter('acf/location/rule_match/options_page', function ($match, $rule, $screen, $field_group) {
-    if (($field_group['key'] ?? '') !== 'group_luux_site_options') {
+    if (! in_array($field_group['key'] ?? '', luux_site_options_field_group_keys(), true)) {
         return $match;
     }
 
     return ($screen['options_page'] ?? '') === luux_site_options_slug();
 }, 10, 4);
-
-add_filter('acf/load_field_groups', function ($field_groups, $args = []) {
-    if (! is_array($field_groups)) {
-        $field_groups = [];
-    }
-
-    $site_options = [];
-    $others       = [];
-
-    foreach ($field_groups as $group) {
-        if (is_array($group) && luux_is_site_options_field_group($group)) {
-            $site_options[] = $group;
-            continue;
-        }
-        $others[] = $group;
-    }
-
-    $canonical = null;
-    foreach ($site_options as $group) {
-        if (($group['key'] ?? '') === 'group_luux_site_options') {
-            $canonical = $group;
-            break;
-        }
-    }
-
-    if (! $canonical) {
-        $canonical = luux_get_site_options_field_group_raw();
-    }
-
-    if ($canonical) {
-        $others[] = $canonical;
-    } elseif ($site_options !== []) {
-        $others[] = $site_options[0];
-    }
-
-    return $others;
-}, 20, 2);
 
 add_filter('acf/load_value/name=social_links', function ($value, $post_id) {
     if ($post_id !== 'options' && $post_id !== 'option') {
@@ -215,6 +160,26 @@ add_filter('acf/load_value/name=legal_links', function ($value, $post_id) {
     return is_array($value) ? $value : [];
 }, 10, 2);
 
+// Drop corrupt repeater data that can white-screen the Social tab.
+add_action('acf/init', function () {
+    if (! is_admin()) {
+        return;
+    }
+
+    foreach (['social_links', 'legal_links'] as $name) {
+        $raw = get_option('options_' . $name);
+        if ($raw === false) {
+            continue;
+        }
+
+        $value = maybe_unserialize($raw);
+        if (! is_array($value)) {
+            delete_option('options_' . $name);
+            delete_option('_options_' . $name);
+        }
+    }
+}, 5);
+
 add_action('admin_enqueue_scripts', function (string $hook): void {
     if ($hook !== 'toplevel_page_' . luux_site_options_slug()) {
         return;
@@ -229,46 +194,19 @@ add_action('admin_notices', function () {
     }
 
     $page = isset($_GET['page']) ? sanitize_key(wp_unslash($_GET['page'])) : '';
-    $on_site_options = $page === luux_site_options_slug();
-
-    $on_field_groups = function_exists('get_current_screen')
-        && get_current_screen()
-        && get_current_screen()->id === 'edit-acf-field-group';
-
-    if (! $on_site_options && ! $on_field_groups) {
+    if ($page !== luux_site_options_slug()) {
         return;
     }
 
     if (! function_exists('acf_add_options_page')) {
-        if ($on_site_options) {
-            echo '<div class="notice notice-error"><p><strong>Luux:</strong> ACF Pro is required for Site Options.</p></div>';
-        }
+        echo '<div class="notice notice-error"><p><strong>Luux:</strong> ACF Pro is required for Site Options.</p></div>';
         return;
     }
 
-    if (! is_readable(get_template_directory() . '/acf-json/group_luux_site_options.json')) {
-        if ($on_site_options) {
-            echo '<div class="notice notice-error"><p><strong>Luux:</strong> Missing <code>acf-json/group_luux_site_options.json</code> on the server. Deploy the theme.</p></div>';
-        }
-        return;
-    }
-
-    if ($on_site_options && function_exists('acf_get_field_groups')) {
-        $groups = acf_get_field_groups(['options_page' => luux_site_options_slug()]);
-        if (empty($groups)) {
-            echo '<div class="notice notice-warning"><p><strong>Luux:</strong> Site Options fields are not linked yet. Deploy the latest theme and reload this page — the theme registers fields from JSON automatically. <strong>Do not trash</strong> the Site Options field group.</p></div>';
-        }
-    }
-
-    if ($on_field_groups && function_exists('acf_get_field_groups') && current_user_can('manage_options')) {
-        $duplicates = 0;
-        foreach (acf_get_field_groups() as $group) {
-            if (luux_is_site_options_field_group($group) && ! empty($group['active'])) {
-                $duplicates++;
-            }
-        }
-        if ($duplicates > 1) {
-            echo '<div class="notice notice-error"><p><strong>Luux:</strong> Multiple <em>Site Options</em> field groups are active. Trash the <strong>duplicate</strong> only — leave <code>group_luux_site_options</code> or sync once from JSON. Never trash both.</p></div>';
+    foreach (['group_luux_site_options.json', 'group_luux_site_options_social.json'] as $file) {
+        if (! is_readable(get_template_directory() . '/acf-json/' . $file)) {
+            echo '<div class="notice notice-error"><p><strong>Luux:</strong> Missing <code>acf-json/' . esc_html($file) . '</code> on the server. Deploy the theme.</p></div>';
+            return;
         }
     }
 });
