@@ -23,6 +23,13 @@ jobs:
           npm ci
           npm run build
 
+      - name: Verify ACF field group files exist
+        run: |
+          test -f wp-content/themes/luux/acf-json/group_luux_site_options.json
+          test -f wp-content/themes/luux/acf-json/group_luux_page_sections.json
+          test -f wp-content/themes/luux/inc/acf-field-groups/group_luux_site_options.json
+          test -f wp-content/themes/luux/inc/acf-field-groups/group_luux_page_sections.json
+
       - name: Deploy theme to WP Engine
         uses: wpengine/github-action-wpe-site-deploy@v3
         with:

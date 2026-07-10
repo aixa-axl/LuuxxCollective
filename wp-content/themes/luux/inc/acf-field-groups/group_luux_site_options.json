@@ -1,0 +1,348 @@
+{
+  "key": "group_luux_site_options",
+  "title": "Site Options",
+  "fields": [
+    {
+      "key": "field_luux_options_tab_brand",
+      "label": "Brand",
+      "name": "",
+      "type": "tab",
+      "placement": "top"
+    },
+    {
+      "key": "field_luux_options_site_logo",
+      "label": "Logo (dark backgrounds)",
+      "name": "site_logo",
+      "type": "image",
+      "return_format": "id",
+      "preview_size": "medium",
+      "library": "all",
+      "uploader": "wp"
+    },
+    {
+      "key": "field_luux_options_site_logo_dark",
+      "label": "Logo (light backgrounds)",
+      "name": "site_logo_dark",
+      "type": "image",
+      "return_format": "id",
+      "preview_size": "medium",
+      "library": "all",
+      "uploader": "wp",
+      "instructions": "Dark wordmark for the white mobile header and inner pages."
+    },
+    {
+      "key": "field_luux_options_site_logo_light",
+      "label": "Logo (footer / light text)",
+      "name": "site_logo_light",
+      "type": "image",
+      "return_format": "id",
+      "preview_size": "medium",
+      "library": "all",
+      "uploader": "wp"
+    },
+    {
+      "key": "field_luux_options_enquire_link",
+      "label": "Enquire Link",
+      "name": "enquire_link",
+      "type": "link",
+      "return_format": "array"
+    },
+    {
+      "key": "field_luux_options_tab_footer",
+      "label": "Footer",
+      "name": "",
+      "type": "tab",
+      "placement": "top"
+    },
+    {
+      "key": "field_luux_options_footer_tagline",
+      "label": "Footer Tagline",
+      "name": "footer_tagline",
+      "type": "text"
+    },
+    {
+      "key": "field_luux_options_footer_group_text",
+      "label": "Group Attribution",
+      "name": "footer_group_text",
+      "type": "text",
+      "default_value": "Part of the Travel Seen Group"
+    },
+    {
+      "key": "field_luux_options_footer_logo_one",
+      "label": "Footer Logo 1",
+      "name": "footer_logo_one",
+      "type": "image",
+      "return_format": "id",
+      "preview_size": "medium",
+      "library": "all",
+      "uploader": "wp"
+    },
+    {
+      "key": "field_luux_options_footer_logo_two",
+      "label": "Footer Logo 2",
+      "name": "footer_logo_two",
+      "type": "image",
+      "return_format": "id",
+      "preview_size": "medium",
+      "library": "all",
+      "uploader": "wp"
+    },
+    {
+      "key": "field_luux_options_footer_disclaimer",
+      "label": "Footer Disclaimer",
+      "name": "footer_disclaimer",
+      "type": "wysiwyg",
+      "tabs": "visual",
+      "toolbar": "basic",
+      "media_upload": 0,
+      "default_value": "Some of the flights and flight-inclusive holidays on this website are financially protected by the ATOL scheme. But ATOL protection does not apply to all holiday and travel services listed on this website. This website will provide you with information on the protection that applies in the case of each holiday and travel service offered before you make your booking. If you do not receive an ATOL Certificate then the booking will not be ATOL protected. If you do receive an ATOL Certificate but all the parts of your trip are not listed on it, those parts will not be ATOL protected. Please see our booking conditions for information, or for more information about financial protection and the ATOL Certificate go to: <a href=\"https://www.caa.co.uk\" target=\"_blank\" rel=\"noopener\">www.caa.co.uk</a>."
+    },
+    {
+      "key": "field_luux_options_tab_contact",
+      "label": "Contact",
+      "name": "",
+      "type": "tab",
+      "placement": "top"
+    },
+    {
+      "key": "field_luux_options_contact_intro",
+      "label": "Contact Intro",
+      "name": "contact_intro",
+      "type": "textarea",
+      "rows": 3
+    },
+    {
+      "key": "field_luux_options_contact_email",
+      "label": "Email",
+      "name": "contact_email",
+      "type": "email"
+    },
+    {
+      "key": "field_luux_options_contact_phone",
+      "label": "Phone",
+      "name": "contact_phone",
+      "type": "text"
+    },
+    {
+      "key": "field_luux_options_contact_address",
+      "label": "Address",
+      "name": "contact_address",
+      "type": "textarea",
+      "rows": 3,
+      "new_lines": "br"
+    },
+    {
+      "key": "field_luux_options_tab_social",
+      "label": "Social",
+      "name": "",
+      "type": "tab",
+      "placement": "top"
+    },
+    {
+      "key": "field_luux_options_social_1_label",
+      "label": "Social link 1 — label",
+      "name": "social_1_label",
+      "type": "text"
+    },
+    {
+      "key": "field_luux_options_social_1_url",
+      "label": "Social link 1 — URL",
+      "name": "social_1_url",
+      "type": "text"
+    },
+    {
+      "key": "field_luux_options_social_1_icon",
+      "label": "Social link 1 — icon",
+      "name": "social_1_icon",
+      "type": "image",
+      "return_format": "id",
+      "preview_size": "thumbnail",
+      "library": "all",
+      "uploader": "wp"
+    },
+    {
+      "key": "field_luux_options_social_2_label",
+      "label": "Social link 2 — label",
+      "name": "social_2_label",
+      "type": "text"
+    },
+    {
+      "key": "field_luux_options_social_2_url",
+      "label": "Social link 2 — URL",
+      "name": "social_2_url",
+      "type": "text"
+    },
+    {
+      "key": "field_luux_options_social_2_icon",
+      "label": "Social link 2 — icon",
+      "name": "social_2_icon",
+      "type": "image",
+      "return_format": "id",
+      "preview_size": "thumbnail",
+      "library": "all",
+      "uploader": "wp"
+    },
+    {
+      "key": "field_luux_options_social_3_label",
+      "label": "Social link 3 — label",
+      "name": "social_3_label",
+      "type": "text"
+    },
+    {
+      "key": "field_luux_options_social_3_url",
+      "label": "Social link 3 — URL",
+      "name": "social_3_url",
+      "type": "text"
+    },
+    {
+      "key": "field_luux_options_social_3_icon",
+      "label": "Social link 3 — icon",
+      "name": "social_3_icon",
+      "type": "image",
+      "return_format": "id",
+      "preview_size": "thumbnail",
+      "library": "all",
+      "uploader": "wp"
+    },
+    {
+      "key": "field_luux_options_social_4_label",
+      "label": "Social link 4 — label",
+      "name": "social_4_label",
+      "type": "text"
+    },
+    {
+      "key": "field_luux_options_social_4_url",
+      "label": "Social link 4 — URL",
+      "name": "social_4_url",
+      "type": "text"
+    },
+    {
+      "key": "field_luux_options_social_4_icon",
+      "label": "Social link 4 — icon",
+      "name": "social_4_icon",
+      "type": "image",
+      "return_format": "id",
+      "preview_size": "thumbnail",
+      "library": "all",
+      "uploader": "wp"
+    },
+    {
+      "key": "field_luux_options_tab_instagram",
+      "label": "Instagram",
+      "name": "",
+      "type": "tab",
+      "placement": "top"
+    },
+    {
+      "key": "field_luux_options_instagram_username",
+      "label": "Username",
+      "name": "instagram_username",
+      "type": "text",
+      "default_value": "luxxcollective.travel"
+    },
+    {
+      "key": "field_luux_options_instagram_user_id",
+      "label": "Instagram User ID",
+      "name": "instagram_user_id",
+      "type": "text"
+    },
+    {
+      "key": "field_luux_options_instagram_access_token",
+      "label": "Access Token",
+      "name": "instagram_access_token",
+      "type": "textarea",
+      "rows": 3
+    },
+    {
+      "key": "field_luux_options_instagram_post_count",
+      "label": "Posts to show",
+      "name": "instagram_post_count",
+      "type": "number",
+      "default_value": 12,
+      "min": 1,
+      "max": 25,
+      "step": 1
+    },
+    {
+      "key": "field_luux_options_instagram_cache_hours",
+      "label": "Cache duration (hours)",
+      "name": "instagram_cache_hours",
+      "type": "number",
+      "default_value": 1,
+      "min": 1,
+      "max": 24,
+      "step": 1
+    },
+    {
+      "key": "field_luux_options_instagram_token_expires_at",
+      "label": "Token expires at",
+      "name": "instagram_token_expires_at",
+      "type": "number",
+      "instructions": "Auto-managed Unix timestamp."
+    },
+    {
+      "key": "field_luux_options_instagram_last_refresh",
+      "label": "Last refresh",
+      "name": "instagram_last_refresh",
+      "type": "number",
+      "instructions": "Auto-managed Unix timestamp."
+    },
+    {
+      "key": "field_luux_options_instagram_refresh_error",
+      "label": "Last refresh error",
+      "name": "instagram_refresh_error",
+      "type": "textarea",
+      "rows": 2
+    },
+    {
+      "key": "field_luux_options_tab_legal",
+      "label": "Legal",
+      "name": "",
+      "type": "tab",
+      "placement": "top"
+    },
+    {
+      "key": "field_luux_options_legal_link_1",
+      "label": "Legal link 1",
+      "name": "legal_link_1",
+      "type": "link",
+      "return_format": "array"
+    },
+    {
+      "key": "field_luux_options_legal_link_2",
+      "label": "Legal link 2",
+      "name": "legal_link_2",
+      "type": "link",
+      "return_format": "array"
+    },
+    {
+      "key": "field_luux_options_legal_link_3",
+      "label": "Legal link 3",
+      "name": "legal_link_3",
+      "type": "link",
+      "return_format": "array"
+    },
+    {
+      "key": "field_luux_options_legal_link_4",
+      "label": "Legal link 4",
+      "name": "legal_link_4",
+      "type": "link",
+      "return_format": "array"
+    }
+  ],
+  "location": [
+    [
+      {
+        "param": "options_page",
+        "operator": "==",
+        "value": "luux-site-options"
+      }
+    ]
+  ],
+  "menu_order": 0,
+  "position": "normal",
+  "style": "default",
+  "active": true,
+  "show_in_rest": 0,
+  "modified": 1784112000
+}

@@ -5,7 +5,15 @@
 
 defined('ABSPATH') || exit;
 
-const LUUX_ACF_REPAIR_VERSION = 6;
+const LUUX_ACF_REPAIR_VERSION = 7;
+
+/** @return list<string> */
+function luux_acf_json_paths(): array {
+    return [
+        get_template_directory() . '/acf-json',
+        get_template_directory() . '/inc/acf-field-groups',
+    ];
+}
 
 /** @return list<array{file: string, key: string, title: string}> */
 function luux_acf_managed_field_groups(): array {
@@ -24,12 +32,29 @@ function luux_acf_managed_field_groups(): array {
 }
 
 function luux_acf_json_dir(): string {
+    foreach (luux_acf_json_paths() as $dir) {
+        if (is_dir($dir)) {
+            return $dir;
+        }
+    }
+
     return get_template_directory() . '/acf-json';
 }
 
+function luux_acf_resolve_json_path(string $filename): ?string {
+    foreach (luux_acf_json_paths() as $dir) {
+        $path = $dir . '/' . $filename;
+        if (is_readable($path)) {
+            return $path;
+        }
+    }
+
+    return null;
+}
+
 function luux_acf_load_group_from_json(string $filename): ?array {
-    $path = luux_acf_json_dir() . '/' . $filename;
-    if (! is_readable($path)) {
+    $path = luux_acf_resolve_json_path($filename);
+    if (! $path) {
         return null;
     }
 
@@ -99,7 +124,7 @@ function luux_acf_repair_managed_groups(): array {
     foreach (luux_acf_managed_field_groups() as $managed) {
         $group = luux_acf_load_group_from_json($managed['file']);
         if (! $group) {
-            $result['errors'][] = 'Missing ' . luux_acf_json_dir() . '/' . $managed['file'];
+            $result['errors'][] = 'Missing ' . $managed['file'] . ' in acf-json/ and inc/acf-field-groups/. Deploy the theme.';
             continue;
         }
 
@@ -138,8 +163,8 @@ function luux_acf_diagnostics(): array {
     ];
 
     foreach (luux_acf_managed_field_groups() as $managed) {
-        $path = luux_acf_json_dir() . '/' . $managed['file'];
-        $diag['json_files'][$managed['file']] = is_readable($path);
+        $path = luux_acf_resolve_json_path($managed['file']);
+        $diag['json_files'][$managed['file']] = $path ? $path : false;
     }
 
     if (function_exists('acf_get_field_groups')) {
@@ -208,8 +233,12 @@ function luux_acf_render_repair_page(): void {
     echo '<tr><th>ACF Pro active</th><td>' . ($diag['acf_pro'] ? 'Yes' : '<strong style="color:#b32d2e">No</strong>') . '</td></tr>';
     echo '<tr><th>JSON directory</th><td><code>' . esc_html($diag['json_dir']) . '</code></td></tr>';
 
-    foreach ($diag['json_files'] as $file => $ok) {
-        echo '<tr><th>' . esc_html($file) . '</th><td>' . ($ok ? 'Found' : '<strong style="color:#b32d2e">Missing</strong>') . '</td></tr>';
+    foreach ($diag['json_files'] as $file => $path) {
+        if ($path) {
+            echo '<tr><th>' . esc_html($file) . '</th><td>Found at <code>' . esc_html((string) $path) . '</code></td></tr>';
+        } else {
+            echo '<tr><th>' . esc_html($file) . '</th><td><strong style="color:#b32d2e">Missing</strong></td></tr>';
+        }
     }
 
     echo '<tr><th>Site Options groups (total)</th><td>' . esc_html((string) $diag['options_groups']) . ' (want 1)</td></tr>';

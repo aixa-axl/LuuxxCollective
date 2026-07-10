@@ -1,0 +1,1656 @@
+{
+  "key": "group_luux_page_sections",
+  "title": "Page Sections",
+  "fields": [
+    {
+      "key": "field_luux_page_sections",
+      "label": "Page Sections",
+      "name": "page_sections",
+      "type": "flexible_content",
+      "button_label": "Add Section",
+      "layouts": {
+        "layout_luux_hero": {
+          "key": "layout_luux_hero",
+          "name": "hero",
+          "label": "Hero",
+          "display": "block",
+          "sub_fields": [
+            {
+              "key": "field_luux_hero_heading",
+              "label": "Heading",
+              "name": "heading",
+              "type": "text"
+            },
+            {
+              "key": "field_luux_hero_subheading",
+              "label": "Subheading",
+              "name": "subheading",
+              "type": "text"
+            },
+            {
+              "key": "field_luux_hero_media_type",
+              "label": "Background Media Type",
+              "name": "media_type",
+              "type": "button_group",
+              "choices": {
+                "image": "Image",
+                "video": "Video"
+              },
+              "default_value": "image",
+              "return_format": "value"
+            },
+            {
+              "key": "field_luux_hero_background_image",
+              "label": "Background Image",
+              "name": "background_image",
+              "type": "image",
+              "return_format": "id",
+              "preview_size": "medium",
+              "conditional_logic": [
+                [
+                  {
+                    "field": "field_luux_hero_media_type",
+                    "operator": "==",
+                    "value": "image"
+                  }
+                ]
+              ]
+            },
+            {
+              "key": "field_luux_hero_background_video",
+              "label": "Background Video",
+              "name": "background_video",
+              "type": "file",
+              "return_format": "id",
+              "mime_types": "mp4,webm,mov",
+              "instructions": "Upload an MP4, WebM, or MOV file. Plays muted and loops automatically.",
+              "conditional_logic": [
+                [
+                  {
+                    "field": "field_luux_hero_media_type",
+                    "operator": "==",
+                    "value": "video"
+                  }
+                ]
+              ]
+            },
+            {
+              "key": "field_luux_hero_ctas",
+              "label": "CTAs",
+              "name": "ctas",
+              "type": "repeater",
+              "layout": "table",
+              "button_label": "Add CTA",
+              "sub_fields": [
+                {
+                  "key": "field_luux_hero_cta_link",
+                  "label": "Link",
+                  "name": "link",
+                  "type": "link",
+                  "return_format": "array"
+                }
+              ]
+            }
+          ]
+        },
+        "layout_luux_featured_offers": {
+          "key": "layout_luux_featured_offers",
+          "name": "featured_offers",
+          "label": "Featured Offers",
+          "display": "block",
+          "sub_fields": [
+            {
+              "key": "field_luux_featured_offers_section_label",
+              "label": "Section Label",
+              "name": "section_label",
+              "type": "text"
+            },
+            {
+              "key": "field_luux_featured_offers_heading",
+              "label": "Heading",
+              "name": "heading",
+              "type": "text"
+            },
+            {
+              "key": "field_luux_featured_offers_intro",
+              "label": "Intro",
+              "name": "intro",
+              "type": "textarea",
+              "rows": 3
+            },
+            {
+              "key": "field_luux_featured_offers_offers",
+              "label": "Offers",
+              "name": "offers",
+              "type": "repeater",
+              "layout": "block",
+              "button_label": "Add Offer",
+              "sub_fields": [
+                {
+                  "key": "field_luux_featured_offers_image",
+                  "label": "Image",
+                  "name": "image",
+                  "type": "image",
+                  "return_format": "id",
+                  "preview_size": "medium"
+                },
+                {
+                  "key": "field_luux_featured_offers_title",
+                  "label": "Title",
+                  "name": "title",
+                  "type": "text"
+                },
+                {
+                  "key": "field_luux_featured_offers_description",
+                  "label": "Description",
+                  "name": "description",
+                  "type": "textarea",
+                  "rows": 3
+                },
+                {
+                  "key": "field_luux_featured_offers_price",
+                  "label": "Price",
+                  "name": "price",
+                  "type": "text"
+                },
+                {
+                  "key": "field_luux_featured_offers_link",
+                  "label": "Link",
+                  "name": "link",
+                  "type": "link",
+                  "return_format": "array"
+                }
+              ]
+            }
+          ]
+        },
+        "layout_luux_cta_strip": {
+          "key": "layout_luux_cta_strip",
+          "name": "cta_strip",
+          "label": "CTA Strip",
+          "display": "block",
+          "sub_fields": [
+            {
+              "key": "field_luux_cta_strip_text",
+              "label": "Text",
+              "name": "text",
+              "type": "text"
+            },
+            {
+              "key": "field_luux_cta_strip_primary_link",
+              "label": "Primary Link",
+              "name": "primary_link",
+              "type": "link",
+              "return_format": "array"
+            },
+            {
+              "key": "field_luux_cta_strip_secondary_link",
+              "label": "Secondary Link",
+              "name": "secondary_link",
+              "type": "link",
+              "return_format": "array"
+            }
+          ]
+        },
+        "layout_luux_travel_style": {
+          "key": "layout_luux_travel_style",
+          "name": "travel_style",
+          "label": "Travel Style",
+          "display": "block",
+          "sub_fields": [
+            {
+              "key": "field_luux_travel_style_section_label",
+              "label": "Section Label",
+              "name": "section_label",
+              "type": "text"
+            },
+            {
+              "key": "field_luux_travel_style_heading",
+              "label": "Heading",
+              "name": "heading",
+              "type": "text"
+            },
+            {
+              "key": "field_luux_travel_style_categories",
+              "label": "Categories",
+              "name": "categories",
+              "type": "repeater",
+              "layout": "table",
+              "button_label": "Add Category",
+              "sub_fields": [
+                {
+                  "key": "field_luux_travel_style_image",
+                  "label": "Image",
+                  "name": "image",
+                  "type": "image",
+                  "return_format": "id",
+                  "preview_size": "medium"
+                },
+                {
+                  "key": "field_luux_travel_style_title",
+                  "label": "Title",
+                  "name": "title",
+                  "type": "text"
+                }
+              ]
+            },
+            {
+              "key": "field_luux_travel_style_footer_heading",
+              "label": "Footer Heading",
+              "name": "footer_heading",
+              "type": "text"
+            },
+            {
+              "key": "field_luux_travel_style_cta",
+              "label": "CTA",
+              "name": "cta",
+              "type": "link",
+              "return_format": "array"
+            }
+          ]
+        },
+        "layout_luux_destinations": {
+          "key": "layout_luux_destinations",
+          "name": "destinations",
+          "label": "Destinations",
+          "display": "block",
+          "sub_fields": [
+            {
+              "key": "field_luux_destinations_section_label",
+              "label": "Section Label",
+              "name": "section_label",
+              "type": "text"
+            },
+            {
+              "key": "field_luux_destinations_heading",
+              "label": "Heading",
+              "name": "heading",
+              "type": "text"
+            },
+            {
+              "key": "field_luux_destinations_destinations",
+              "label": "Destinations",
+              "name": "destinations",
+              "type": "repeater",
+              "layout": "table",
+              "button_label": "Add Destination",
+              "sub_fields": [
+                {
+                  "key": "field_luux_destinations_image",
+                  "label": "Image",
+                  "name": "image",
+                  "type": "image",
+                  "return_format": "id",
+                  "preview_size": "medium"
+                },
+                {
+                  "key": "field_luux_destinations_title",
+                  "label": "Title",
+                  "name": "title",
+                  "type": "text"
+                },
+                {
+                  "key": "field_luux_destinations_link",
+                  "label": "Link",
+                  "name": "link",
+                  "type": "link",
+                  "return_format": "array"
+                }
+              ]
+            }
+          ]
+        },
+        "layout_luux_contact_strip": {
+          "key": "layout_luux_contact_strip",
+          "name": "contact_strip",
+          "label": "Contact Strip",
+          "display": "block",
+          "sub_fields": [
+            {
+              "key": "field_luux_contact_strip_caption",
+              "label": "Caption",
+              "name": "caption",
+              "type": "text"
+            },
+            {
+              "key": "field_luux_contact_strip_text",
+              "label": "Text",
+              "name": "text",
+              "type": "textarea",
+              "rows": 2
+            },
+            {
+              "key": "field_luux_contact_strip_primary_link",
+              "label": "Primary Button",
+              "name": "primary_link",
+              "type": "link",
+              "return_format": "array",
+              "instructions": "For a phone button, set URL to tel:+442071234567 (no spaces, no http). Link text e.g. Call Us Now."
+            },
+            {
+              "key": "field_luux_contact_strip_secondary_link",
+              "label": "Secondary Button",
+              "name": "secondary_link",
+              "type": "link",
+              "return_format": "array"
+            }
+          ]
+        },
+        "layout_luux_usps": {
+          "key": "layout_luux_usps",
+          "name": "usps",
+          "label": "USPs",
+          "display": "block",
+          "sub_fields": [
+            {
+              "key": "field_luux_usps_section_label",
+              "label": "Section Label",
+              "name": "section_label",
+              "type": "text"
+            },
+            {
+              "key": "field_luux_usps_heading",
+              "label": "Heading",
+              "name": "heading",
+              "type": "text"
+            },
+            {
+              "key": "field_luux_usps_light_background",
+              "label": "White Background",
+              "name": "light_background",
+              "type": "true_false",
+              "ui": 1,
+              "instructions": "Use on resort pages (Sani/Ikos). Default is cream tint."
+            },
+            {
+              "key": "field_luux_usps_section_id",
+              "label": "Section ID",
+              "name": "section_id",
+              "type": "text",
+              "instructions": "Optional anchor ID for sticky nav links (e.g. experiences)."
+            },
+            {
+              "key": "field_luux_usps_items",
+              "label": "Items",
+              "name": "items",
+              "type": "repeater",
+              "layout": "block",
+              "button_label": "Add Item",
+              "sub_fields": [
+                {
+                  "key": "field_luux_usps_icon",
+                  "label": "Icon",
+                  "name": "icon",
+                  "type": "image",
+                  "return_format": "id",
+                  "preview_size": "thumbnail"
+                },
+                {
+                  "key": "field_luux_usps_title",
+                  "label": "Title",
+                  "name": "title",
+                  "type": "text"
+                },
+                {
+                  "key": "field_luux_usps_description",
+                  "label": "Description",
+                  "name": "description",
+                  "type": "textarea",
+                  "rows": 3
+                }
+              ]
+            }
+          ]
+        },
+        "layout_luux_group_section": {
+          "key": "layout_luux_group_section",
+          "name": "group_section",
+          "label": "Group Section",
+          "display": "block",
+          "sub_fields": [
+            {
+              "key": "field_luux_group_section_heading",
+              "label": "Heading",
+              "name": "heading",
+              "type": "text",
+              "instructions": "Fallback plain-text heading. Ignored when a heading logo is set below."
+            },
+            {
+              "key": "field_luux_group_section_heading_lead",
+              "label": "Heading (before logo)",
+              "name": "heading_lead",
+              "type": "text",
+              "default_value": "Part of the "
+            },
+            {
+              "key": "field_luux_group_section_heading_logo",
+              "label": "Heading Logo",
+              "name": "heading_logo",
+              "type": "image",
+              "return_format": "id",
+              "preview_size": "medium",
+              "instructions": "Inline wordmark within the heading (e.g. Travel Seen)."
+            },
+            {
+              "key": "field_luux_group_section_heading_trail",
+              "label": "Heading (after logo)",
+              "name": "heading_trail",
+              "type": "text",
+              "default_value": " Group"
+            },
+            {
+              "key": "field_luux_group_section_text",
+              "label": "Text",
+              "name": "text",
+              "type": "textarea",
+              "rows": 3
+            },
+            {
+              "key": "field_luux_group_section_logos",
+              "label": "Logos",
+              "name": "logos",
+              "type": "repeater",
+              "layout": "table",
+              "button_label": "Add Logo",
+              "sub_fields": [
+                {
+                  "key": "field_luux_group_section_logo_image",
+                  "label": "Image",
+                  "name": "image",
+                  "type": "image",
+                  "return_format": "id",
+                  "preview_size": "medium"
+                }
+              ]
+            }
+          ]
+        },
+        "layout_luux_social_grid": {
+          "key": "layout_luux_social_grid",
+          "name": "social_grid",
+          "label": "Social Grid",
+          "display": "block",
+          "sub_fields": [
+            {
+              "key": "field_luux_social_grid_heading",
+              "label": "Heading",
+              "name": "heading",
+              "type": "text",
+              "default_value": "Join us on social"
+            },
+            {
+              "key": "field_luux_social_grid_post_count",
+              "label": "Post count",
+              "name": "post_count",
+              "type": "number",
+              "default_value": 12,
+              "min": 0,
+              "max": 25,
+              "step": 1,
+              "instructions": "Optional. Leave empty to use the default from Site Options → Instagram."
+            }
+          ]
+        },
+        "layout_luux_reviews": {
+          "key": "layout_luux_reviews",
+          "name": "reviews",
+          "label": "Reviews",
+          "display": "block",
+          "sub_fields": [
+            {
+              "key": "field_luux_reviews_heading",
+              "label": "Heading",
+              "name": "heading",
+              "type": "text"
+            },
+            {
+              "key": "field_luux_reviews_view_all_link",
+              "label": "View All Link",
+              "name": "view_all_link",
+              "type": "link",
+              "return_format": "array"
+            },
+            {
+              "key": "field_luux_reviews_testimonials",
+              "label": "Testimonials",
+              "name": "testimonials",
+              "type": "repeater",
+              "layout": "block",
+              "button_label": "Add Testimonial",
+              "sub_fields": [
+                {
+                  "key": "field_luux_reviews_rating",
+                  "label": "Rating",
+                  "name": "rating",
+                  "type": "number",
+                  "min": 1,
+                  "max": 5,
+                  "step": 1
+                },
+                {
+                  "key": "field_luux_reviews_quote",
+                  "label": "Quote",
+                  "name": "quote",
+                  "type": "textarea",
+                  "rows": 4
+                },
+                {
+                  "key": "field_luux_reviews_name",
+                  "label": "Name",
+                  "name": "name",
+                  "type": "text"
+                },
+                {
+                  "key": "field_luux_reviews_date",
+                  "label": "Date",
+                  "name": "date",
+                  "type": "text"
+                }
+              ]
+            }
+          ]
+        },
+        "layout_luux_sticky_nav": {
+          "key": "layout_luux_sticky_nav",
+          "name": "sticky_nav",
+          "label": "Sticky Nav",
+          "display": "block",
+          "sub_fields": [
+            {
+              "key": "field_luux_sticky_nav_links",
+              "label": "Nav Links",
+              "name": "nav_links",
+              "type": "repeater",
+              "layout": "table",
+              "button_label": "Add Link",
+              "sub_fields": [
+                {
+                  "key": "field_luux_sticky_nav_link",
+                  "label": "Link",
+                  "name": "link",
+                  "type": "link",
+                  "return_format": "array"
+                }
+              ]
+            },
+            {
+              "key": "field_luux_sticky_nav_enquire",
+              "label": "Enquire Link",
+              "name": "enquire_link",
+              "type": "link",
+              "return_format": "array"
+            },
+            {
+              "key": "field_luux_sticky_nav_specialist",
+              "label": "Specialist Link",
+              "name": "specialist_link",
+              "type": "link",
+              "return_format": "array"
+            }
+          ]
+        },
+        "layout_luux_resort_hero": {
+          "key": "layout_luux_resort_hero",
+          "name": "resort_hero",
+          "label": "Resort Hero",
+          "display": "block",
+          "sub_fields": [
+            {
+              "key": "field_luux_resort_hero_eyebrow",
+              "label": "Eyebrow",
+              "name": "eyebrow",
+              "type": "text"
+            },
+            {
+              "key": "field_luux_resort_hero_heading",
+              "label": "Heading",
+              "name": "heading",
+              "type": "text"
+            },
+            {
+              "key": "field_luux_resort_hero_text",
+              "label": "Text",
+              "name": "text",
+              "type": "wysiwyg"
+            },
+            {
+              "key": "field_luux_resort_hero_media_type",
+              "label": "Background Media Type",
+              "name": "media_type",
+              "type": "button_group",
+              "choices": {
+                "image": "Image",
+                "video": "Video"
+              },
+              "default_value": "image",
+              "return_format": "value"
+            },
+            {
+              "key": "field_luux_resort_hero_background_image",
+              "label": "Background Image",
+              "name": "background_image",
+              "type": "image",
+              "return_format": "id",
+              "preview_size": "medium",
+              "conditional_logic": [
+                [
+                  {
+                    "field": "field_luux_resort_hero_media_type",
+                    "operator": "==",
+                    "value": "image"
+                  }
+                ]
+              ]
+            },
+            {
+              "key": "field_luux_resort_hero_background_video",
+              "label": "Background Video",
+              "name": "background_video",
+              "type": "file",
+              "return_format": "id",
+              "mime_types": "mp4,webm,mov",
+              "instructions": "Upload an MP4, WebM, or MOV file. Plays muted and loops automatically.",
+              "conditional_logic": [
+                [
+                  {
+                    "field": "field_luux_resort_hero_media_type",
+                    "operator": "==",
+                    "value": "video"
+                  }
+                ]
+              ]
+            },
+            {
+              "key": "field_luux_resort_hero_cta",
+              "label": "CTA",
+              "name": "cta",
+              "type": "link",
+              "return_format": "array"
+            },
+            {
+              "key": "field_luux_resort_hero_section_id",
+              "label": "Section ID",
+              "name": "section_id",
+              "type": "text"
+            }
+          ]
+        },
+        "layout_luux_trust_strip": {
+          "key": "layout_luux_trust_strip",
+          "name": "trust_strip",
+          "label": "Trust Strip",
+          "display": "block",
+          "sub_fields": [
+            {
+              "key": "field_luux_trust_strip_rating",
+              "label": "Rating",
+              "name": "rating",
+              "type": "text"
+            },
+            {
+              "key": "field_luux_trust_strip_press",
+              "label": "Press Logos",
+              "name": "press_logos",
+              "type": "repeater",
+              "layout": "table",
+              "button_label": "Add Logo",
+              "sub_fields": [
+                {
+                  "key": "field_luux_trust_strip_press_name",
+                  "label": "Name",
+                  "name": "name",
+                  "type": "text"
+                }
+              ]
+            },
+            {
+              "key": "field_luux_trust_strip_award",
+              "label": "Award",
+              "name": "award",
+              "type": "text"
+            }
+          ]
+        },
+        "layout_luux_hotel_showcase": {
+          "key": "layout_luux_hotel_showcase",
+          "name": "hotel_showcase",
+          "label": "Hotel Showcase",
+          "display": "block",
+          "sub_fields": [
+            {
+              "key": "field_luux_hotel_showcase_heading",
+              "label": "Heading",
+              "name": "heading",
+              "type": "text"
+            },
+            {
+              "key": "field_luux_hotel_showcase_intro",
+              "label": "Intro",
+              "name": "intro",
+              "type": "textarea",
+              "rows": 4
+            },
+            {
+              "key": "field_luux_hotel_showcase_footnote",
+              "label": "Footnote",
+              "name": "footnote",
+              "type": "text"
+            },
+            {
+              "key": "field_luux_hotel_showcase_section_id",
+              "label": "Section ID",
+              "name": "section_id",
+              "type": "text",
+              "instructions": "e.g. rooms"
+            },
+            {
+              "key": "field_luux_hotel_showcase_hotels",
+              "label": "Hotels",
+              "name": "hotels",
+              "type": "repeater",
+              "layout": "block",
+              "button_label": "Add Hotel",
+              "sub_fields": [
+                {
+                  "key": "field_luux_hotel_showcase_hotel_name",
+                  "label": "Name",
+                  "name": "name",
+                  "type": "text"
+                },
+                {
+                  "key": "field_luux_hotel_showcase_hotel_image",
+                  "label": "Image",
+                  "name": "image",
+                  "type": "image",
+                  "return_format": "id",
+                  "preview_size": "medium"
+                },
+                {
+                  "key": "field_luux_hotel_showcase_hotel_description",
+                  "label": "Description",
+                  "name": "description",
+                  "type": "textarea",
+                  "rows": 3
+                },
+                {
+                  "key": "field_luux_hotel_showcase_hotel_inclusions",
+                  "label": "Inclusions",
+                  "name": "inclusions",
+                  "type": "repeater",
+                  "layout": "table",
+                  "button_label": "Add Inclusion",
+                  "sub_fields": [
+                    {
+                      "key": "field_luux_hotel_showcase_inclusion_text",
+                      "label": "Text",
+                      "name": "text",
+                      "type": "text"
+                    }
+                  ]
+                },
+                {
+                  "key": "field_luux_hotel_showcase_hotel_cta",
+                  "label": "CTA",
+                  "name": "cta",
+                  "type": "link",
+                  "return_format": "array"
+                }
+              ]
+            }
+          ]
+        },
+        "layout_luux_video_tours": {
+          "key": "layout_luux_video_tours",
+          "name": "video_tours",
+          "label": "Video Tours",
+          "display": "block",
+          "sub_fields": [
+            {
+              "key": "field_luux_video_tours_heading",
+              "label": "Heading",
+              "name": "heading",
+              "type": "text"
+            },
+            {
+              "key": "field_luux_video_tours_text",
+              "label": "Text",
+              "name": "text",
+              "type": "wysiwyg",
+              "tabs": "visual",
+              "toolbar": "basic",
+              "media_upload": 0
+            },
+            {
+              "key": "field_luux_video_tours_media_type_left",
+              "label": "Left Media Type",
+              "name": "media_type_left",
+              "type": "button_group",
+              "choices": {
+                "image": "Image",
+                "video": "Video"
+              },
+              "default_value": "image",
+              "return_format": "value"
+            },
+            {
+              "key": "field_luux_video_tours_image_left",
+              "label": "Image Left",
+              "name": "image_left",
+              "type": "image",
+              "return_format": "id",
+              "preview_size": "medium",
+              "conditional_logic": [
+                [
+                  {
+                    "field": "field_luux_video_tours_media_type_left",
+                    "operator": "==",
+                    "value": "image"
+                  }
+                ]
+              ]
+            },
+            {
+              "key": "field_luux_video_tours_video_left",
+              "label": "Video Left",
+              "name": "video_left",
+              "type": "file",
+              "return_format": "id",
+              "mime_types": "mp4,webm,mov",
+              "instructions": "Upload an MP4, WebM, or MOV file. Plays muted and loops automatically.",
+              "conditional_logic": [
+                [
+                  {
+                    "field": "field_luux_video_tours_media_type_left",
+                    "operator": "==",
+                    "value": "video"
+                  }
+                ]
+              ]
+            },
+            {
+              "key": "field_luux_video_tours_media_type_right",
+              "label": "Right Media Type",
+              "name": "media_type_right",
+              "type": "button_group",
+              "choices": {
+                "image": "Image",
+                "video": "Video"
+              },
+              "default_value": "image",
+              "return_format": "value"
+            },
+            {
+              "key": "field_luux_video_tours_image_right",
+              "label": "Image Right",
+              "name": "image_right",
+              "type": "image",
+              "return_format": "id",
+              "preview_size": "medium",
+              "conditional_logic": [
+                [
+                  {
+                    "field": "field_luux_video_tours_media_type_right",
+                    "operator": "==",
+                    "value": "image"
+                  }
+                ]
+              ]
+            },
+            {
+              "key": "field_luux_video_tours_video_right",
+              "label": "Video Right",
+              "name": "video_right",
+              "type": "file",
+              "return_format": "id",
+              "mime_types": "mp4,webm,mov",
+              "instructions": "Upload an MP4, WebM, or MOV file. Plays muted and loops automatically.",
+              "conditional_logic": [
+                [
+                  {
+                    "field": "field_luux_video_tours_media_type_right",
+                    "operator": "==",
+                    "value": "video"
+                  }
+                ]
+              ]
+            },
+            {
+              "key": "field_luux_video_tours_section_id",
+              "label": "Section ID",
+              "name": "section_id",
+              "type": "text"
+            }
+          ]
+        },
+        "layout_luux_suite_grid": {
+          "key": "layout_luux_suite_grid",
+          "name": "suite_grid",
+          "label": "Suite Grid",
+          "display": "block",
+          "sub_fields": [
+            {
+              "key": "field_luux_suite_grid_section_label",
+              "label": "Section Label",
+              "name": "section_label",
+              "type": "text"
+            },
+            {
+              "key": "field_luux_suite_grid_heading",
+              "label": "Heading",
+              "name": "heading",
+              "type": "text"
+            },
+            {
+              "key": "field_luux_suite_grid_filter_label",
+              "label": "Filter Label",
+              "name": "filter_label",
+              "type": "text"
+            },
+            {
+              "key": "field_luux_suite_grid_section_id",
+              "label": "Section ID",
+              "name": "section_id",
+              "type": "text"
+            },
+            {
+              "key": "field_luux_suite_grid_categories",
+              "label": "Filter Categories",
+              "name": "categories",
+              "type": "repeater",
+              "layout": "table",
+              "button_label": "Add Category",
+              "sub_fields": [
+                {
+                  "key": "field_luux_suite_grid_category_name",
+                  "label": "Name",
+                  "name": "name",
+                  "type": "text"
+                }
+              ]
+            },
+            {
+              "key": "field_luux_suite_grid_suites",
+              "label": "Suites",
+              "name": "suites",
+              "type": "repeater",
+              "layout": "block",
+              "button_label": "Add Suite",
+              "sub_fields": [
+                {
+                  "key": "field_luux_suite_grid_suite_category",
+                  "label": "Category",
+                  "name": "category",
+                  "type": "text",
+                  "instructions": "Must match a filter category name."
+                },
+                {
+                  "key": "field_luux_suite_grid_suite_image",
+                  "label": "Image",
+                  "name": "image",
+                  "type": "image",
+                  "return_format": "id",
+                  "preview_size": "medium"
+                },
+                {
+                  "key": "field_luux_suite_grid_suite_hotel_label",
+                  "label": "Hotel Label",
+                  "name": "hotel_label",
+                  "type": "text"
+                },
+                {
+                  "key": "field_luux_suite_grid_suite_title",
+                  "label": "Title",
+                  "name": "title",
+                  "type": "text"
+                },
+                {
+                  "key": "field_luux_suite_grid_suite_description",
+                  "label": "Description",
+                  "name": "description",
+                  "type": "textarea",
+                  "rows": 3
+                },
+                {
+                  "key": "field_luux_suite_grid_suite_link",
+                  "label": "Link",
+                  "name": "link",
+                  "type": "link",
+                  "return_format": "array"
+                },
+                {
+                  "key": "field_luux_suite_grid_suite_offset",
+                  "label": "Vertical Offset",
+                  "name": "vertical_offset",
+                  "type": "select",
+                  "choices": {
+                    "none": "None",
+                    "medium": "Medium",
+                    "large": "Large"
+                  },
+                  "default_value": "none",
+                  "return_format": "value"
+                }
+              ]
+            }
+          ]
+        },
+        "layout_luux_dining": {
+          "key": "layout_luux_dining",
+          "name": "dining",
+          "label": "Dining",
+          "display": "block",
+          "sub_fields": [
+            {
+              "key": "field_luux_dining_section_label",
+              "label": "Section Label",
+              "name": "section_label",
+              "type": "text"
+            },
+            {
+              "key": "field_luux_dining_heading",
+              "label": "Heading",
+              "name": "heading",
+              "type": "text"
+            },
+            {
+              "key": "field_luux_dining_text",
+              "label": "Text",
+              "name": "text",
+              "type": "textarea",
+              "rows": 4
+            },
+            {
+              "key": "field_luux_dining_highlights",
+              "label": "Highlights",
+              "name": "highlights",
+              "type": "repeater",
+              "layout": "table",
+              "button_label": "Add Highlight",
+              "sub_fields": [
+                {
+                  "key": "field_luux_dining_highlight_text",
+                  "label": "Text",
+                  "name": "text",
+                  "type": "text"
+                }
+              ]
+            },
+            {
+              "key": "field_luux_dining_image_top_left",
+              "label": "Top Left Image",
+              "name": "image_top_left",
+              "type": "image",
+              "return_format": "id",
+              "preview_size": "medium"
+            },
+            {
+              "key": "field_luux_dining_image_bottom_left",
+              "label": "Bottom Left Image",
+              "name": "image_bottom_left",
+              "type": "image",
+              "return_format": "id",
+              "preview_size": "medium",
+              "instructions": "Optional. Leave empty to hide this slot."
+            },
+            {
+              "key": "field_luux_dining_image_top",
+              "label": "Top Right Image",
+              "name": "image_top",
+              "type": "image",
+              "return_format": "id",
+              "preview_size": "medium"
+            },
+            {
+              "key": "field_luux_dining_image_bottom",
+              "label": "Bottom Right Image",
+              "name": "image_bottom",
+              "type": "image",
+              "return_format": "id",
+              "preview_size": "medium"
+            },
+            {
+              "key": "field_luux_dining_hero_media_type",
+              "label": "Hero Media Type",
+              "name": "hero_media_type",
+              "type": "button_group",
+              "choices": {
+                "image": "Image",
+                "video": "Video"
+              },
+              "default_value": "image",
+              "return_format": "value"
+            },
+            {
+              "key": "field_luux_dining_image_hero",
+              "label": "Hero Image",
+              "name": "image_hero",
+              "type": "image",
+              "return_format": "id",
+              "preview_size": "medium",
+              "conditional_logic": [
+                [
+                  {
+                    "field": "field_luux_dining_hero_media_type",
+                    "operator": "==",
+                    "value": "image"
+                  }
+                ]
+              ]
+            },
+            {
+              "key": "field_luux_dining_hero_video",
+              "label": "Hero Video",
+              "name": "hero_video",
+              "type": "file",
+              "return_format": "id",
+              "mime_types": "mp4,webm,mov",
+              "instructions": "Upload an MP4, WebM, or MOV file.",
+              "conditional_logic": [
+                [
+                  {
+                    "field": "field_luux_dining_hero_media_type",
+                    "operator": "==",
+                    "value": "video"
+                  }
+                ]
+              ]
+            },
+            {
+              "key": "field_luux_dining_section_id",
+              "label": "Section ID",
+              "name": "section_id",
+              "type": "text",
+              "instructions": "e.g. dining"
+            }
+          ]
+        },
+        "layout_luux_property_gallery": {
+          "key": "layout_luux_property_gallery",
+          "name": "property_gallery",
+          "label": "Property Gallery",
+          "display": "block",
+          "sub_fields": [
+            {
+              "key": "field_luux_property_gallery_heading",
+              "label": "Heading",
+              "name": "heading",
+              "type": "text"
+            },
+            {
+              "key": "field_luux_property_gallery_text",
+              "label": "Text",
+              "name": "text",
+              "type": "textarea",
+              "rows": 3
+            },
+            {
+              "key": "field_luux_property_gallery_section_id",
+              "label": "Section ID",
+              "name": "section_id",
+              "type": "text",
+              "instructions": "e.g. gallery"
+            },
+            {
+              "key": "field_luux_property_gallery_images",
+              "label": "Images",
+              "name": "images",
+              "type": "repeater",
+              "layout": "block",
+              "button_label": "Add Image",
+              "instructions": "Add 6 images. Set each Cell Size to place it in the masonry grid (Column 1–3, Top/Bottom). Order in the list does not matter.",
+              "sub_fields": [
+                {
+                  "key": "field_luux_property_gallery_image",
+                  "label": "Image",
+                  "name": "image",
+                  "type": "image",
+                  "return_format": "id",
+                  "preview_size": "medium"
+                },
+                {
+                  "key": "field_luux_property_gallery_size",
+                  "label": "Cell Size",
+                  "name": "size",
+                  "type": "select",
+                  "choices": {
+                    "col1-top": "Column 1 — Top",
+                    "col1-bottom": "Column 1 — Bottom",
+                    "col2-top": "Column 2 — Top (offset)",
+                    "col2-bottom": "Column 2 — Bottom",
+                    "col3-top": "Column 3 — Top",
+                    "col3-bottom": "Column 3 — Bottom"
+                  },
+                  "default_value": "col1-top",
+                  "return_format": "value"
+                }
+              ]
+            }
+          ]
+        },
+        "layout_luux_property_reviews": {
+          "key": "layout_luux_property_reviews",
+          "name": "property_reviews",
+          "label": "Property Reviews",
+          "display": "block",
+          "sub_fields": [
+            {
+              "key": "field_luux_property_reviews_heading",
+              "label": "Heading",
+              "name": "heading",
+              "type": "text"
+            },
+            {
+              "key": "field_luux_property_reviews_view_all",
+              "label": "View All Link",
+              "name": "view_all_link",
+              "type": "link",
+              "return_format": "array"
+            },
+            {
+              "key": "field_luux_property_reviews_section_id",
+              "label": "Section ID",
+              "name": "section_id",
+              "type": "text",
+              "instructions": "e.g. reviews"
+            },
+            {
+              "key": "field_luux_property_reviews_testimonials",
+              "label": "Testimonials",
+              "name": "testimonials",
+              "type": "repeater",
+              "layout": "block",
+              "button_label": "Add Testimonial",
+              "sub_fields": [
+                {
+                  "key": "field_luux_property_reviews_rating",
+                  "label": "Rating",
+                  "name": "rating",
+                  "type": "number",
+                  "min": 1,
+                  "max": 5,
+                  "step": 1
+                },
+                {
+                  "key": "field_luux_property_reviews_quote",
+                  "label": "Quote",
+                  "name": "quote",
+                  "type": "textarea",
+                  "rows": 4
+                },
+                {
+                  "key": "field_luux_property_reviews_name",
+                  "label": "Name",
+                  "name": "name",
+                  "type": "text"
+                },
+                {
+                  "key": "field_luux_property_reviews_date",
+                  "label": "Date",
+                  "name": "date",
+                  "type": "text"
+                }
+              ]
+            }
+          ]
+        },
+        "layout_luux_faq": {
+          "key": "layout_luux_faq",
+          "name": "faq",
+          "label": "FAQ",
+          "display": "block",
+          "sub_fields": [
+            {
+              "key": "field_luux_faq_heading",
+              "label": "Heading",
+              "name": "heading",
+              "type": "text"
+            },
+            {
+              "key": "field_luux_faq_section_id",
+              "label": "Section ID",
+              "name": "section_id",
+              "type": "text"
+            },
+            {
+              "key": "field_luux_faq_items",
+              "label": "Items",
+              "name": "items",
+              "type": "repeater",
+              "layout": "block",
+              "button_label": "Add Question",
+              "sub_fields": [
+                {
+                  "key": "field_luux_faq_question",
+                  "label": "Question",
+                  "name": "question",
+                  "type": "text"
+                },
+                {
+                  "key": "field_luux_faq_answer",
+                  "label": "Answer",
+                  "name": "answer",
+                  "type": "wysiwyg",
+                  "tabs": "visual",
+                  "toolbar": "basic",
+                  "media_upload": 0
+                }
+              ]
+            }
+          ]
+        },
+        "layout_luux_planning_cta": {
+          "key": "layout_luux_planning_cta",
+          "name": "planning_cta",
+          "label": "Planning CTA",
+          "display": "block",
+          "sub_fields": [
+            {
+              "key": "field_luux_planning_cta_heading",
+              "label": "Heading",
+              "name": "heading",
+              "type": "text"
+            },
+            {
+              "key": "field_luux_planning_cta_text",
+              "label": "Text",
+              "name": "text",
+              "type": "text"
+            },
+            {
+              "key": "field_luux_planning_cta_primary",
+              "label": "Primary CTA",
+              "name": "primary_cta",
+              "type": "link",
+              "return_format": "array"
+            },
+            {
+              "key": "field_luux_planning_cta_links",
+              "label": "Secondary Links",
+              "name": "secondary_links",
+              "type": "repeater",
+              "layout": "table",
+              "button_label": "Add Link",
+              "sub_fields": [
+                {
+                  "key": "field_luux_planning_cta_link",
+                  "label": "Link",
+                  "name": "link",
+                  "type": "link",
+                  "return_format": "array"
+                }
+              ]
+            },
+            {
+              "key": "field_luux_planning_cta_section_id",
+              "label": "Section ID",
+              "name": "section_id",
+              "type": "text"
+            }
+          ]
+        },
+        "layout_luux_contact_hero": {
+          "key": "layout_luux_contact_hero",
+          "name": "contact_hero",
+          "label": "Contact Hero",
+          "display": "block",
+          "sub_fields": [
+            {
+              "key": "field_luux_contact_hero_heading",
+              "label": "Heading",
+              "name": "heading",
+              "type": "text"
+            },
+            {
+              "key": "field_luux_contact_hero_media_type",
+              "label": "Background Media Type",
+              "name": "media_type",
+              "type": "button_group",
+              "choices": {
+                "image": "Image",
+                "video": "Video"
+              },
+              "default_value": "image",
+              "return_format": "value"
+            },
+            {
+              "key": "field_luux_contact_hero_background_image",
+              "label": "Background Image",
+              "name": "background_image",
+              "type": "image",
+              "return_format": "id",
+              "preview_size": "medium",
+              "conditional_logic": [
+                [
+                  {
+                    "field": "field_luux_contact_hero_media_type",
+                    "operator": "==",
+                    "value": "image"
+                  }
+                ]
+              ]
+            },
+            {
+              "key": "field_luux_contact_hero_background_video",
+              "label": "Background Video",
+              "name": "background_video",
+              "type": "file",
+              "return_format": "id",
+              "mime_types": "mp4,webm,mov",
+              "instructions": "Upload an MP4, WebM, or MOV file. Plays muted and loops automatically.",
+              "conditional_logic": [
+                [
+                  {
+                    "field": "field_luux_contact_hero_media_type",
+                    "operator": "==",
+                    "value": "video"
+                  }
+                ]
+              ]
+            },
+            {
+              "key": "field_luux_contact_hero_section_id",
+              "label": "Section ID",
+              "name": "section_id",
+              "type": "text"
+            }
+          ]
+        },
+        "layout_luux_contact_options": {
+          "key": "layout_luux_contact_options",
+          "name": "contact_options",
+          "label": "Contact Options",
+          "display": "block",
+          "sub_fields": [
+            {
+              "key": "field_luux_contact_options_heading",
+              "label": "Heading",
+              "name": "heading",
+              "type": "text"
+            },
+            {
+              "key": "field_luux_contact_options_subheading",
+              "label": "Subheading",
+              "name": "subheading",
+              "type": "textarea",
+              "rows": 2
+            },
+            {
+              "key": "field_luux_contact_options_wa_tab",
+              "label": "WhatsApp Column",
+              "name": "",
+              "type": "tab",
+              "placement": "top"
+            },
+            {
+              "key": "field_luux_contact_options_whatsapp_title",
+              "label": "Title",
+              "name": "whatsapp_title",
+              "type": "text",
+              "default_value": "WhatsApp Us"
+            },
+            {
+              "key": "field_luux_contact_options_whatsapp_text",
+              "label": "Text",
+              "name": "whatsapp_text",
+              "type": "textarea",
+              "rows": 4
+            },
+            {
+              "key": "field_luux_contact_options_whatsapp_link",
+              "label": "Button Link",
+              "name": "whatsapp_link",
+              "type": "link",
+              "return_format": "array",
+              "instructions": "Use a https://wa.me/ link. Button label comes from the link title (e.g. Open WhatsApp)."
+            },
+            {
+              "key": "field_luux_contact_options_call_tab",
+              "label": "Call Column",
+              "name": "",
+              "type": "tab",
+              "placement": "top"
+            },
+            {
+              "key": "field_luux_contact_options_call_title",
+              "label": "Title",
+              "name": "call_title",
+              "type": "text",
+              "default_value": "Call us today"
+            },
+            {
+              "key": "field_luux_contact_options_call_text",
+              "label": "Text",
+              "name": "call_text",
+              "type": "textarea",
+              "rows": 4
+            },
+            {
+              "key": "field_luux_contact_options_call_phone",
+              "label": "Phone Number",
+              "name": "call_phone",
+              "type": "text",
+              "instructions": "e.g. +44 (0)20 7123 4567"
+            },
+            {
+              "key": "field_luux_contact_options_call_button_label",
+              "label": "Button Label",
+              "name": "call_button_label",
+              "type": "text",
+              "default_value": "Call Now"
+            },
+            {
+              "key": "field_luux_contact_options_form_tab",
+              "label": "Paper Trail Column",
+              "name": "",
+              "type": "tab",
+              "placement": "top"
+            },
+            {
+              "key": "field_luux_contact_options_form_title",
+              "label": "Title",
+              "name": "form_title",
+              "type": "text",
+              "default_value": "Paper Trail"
+            },
+            {
+              "key": "field_luux_contact_options_form_text",
+              "label": "Text",
+              "name": "form_text",
+              "type": "textarea",
+              "rows": 3
+            },
+            {
+              "key": "field_luux_contact_options_form_id",
+              "label": "Contact Form 7 ID",
+              "name": "form_id",
+              "type": "text",
+              "instructions": "Requires the Contact Form 7 plugin. Enter the form ID (Contact → Forms shows it in the shortcode, e.g. id=\"123\")."
+            },
+            {
+              "key": "field_luux_contact_options_section_id",
+              "label": "Section ID",
+              "name": "section_id",
+              "type": "text"
+            }
+          ]
+        },
+        "layout_luux_general_enquiries": {
+          "key": "layout_luux_general_enquiries",
+          "name": "general_enquiries",
+          "label": "General Enquiries",
+          "display": "block",
+          "sub_fields": [
+            {
+              "key": "field_luux_general_enquiries_heading",
+              "label": "Heading",
+              "name": "heading",
+              "type": "text",
+              "default_value": "General enquiries"
+            },
+            {
+              "key": "field_luux_general_enquiries_text",
+              "label": "Text",
+              "name": "text",
+              "type": "textarea",
+              "rows": 3
+            },
+            {
+              "key": "field_luux_general_enquiries_email",
+              "label": "Email Address",
+              "name": "email",
+              "type": "email"
+            },
+            {
+              "key": "field_luux_general_enquiries_section_id",
+              "label": "Section ID",
+              "name": "section_id",
+              "type": "text"
+            }
+          ]
+        },
+        "layout_luux_careers_teaser": {
+          "key": "layout_luux_careers_teaser",
+          "name": "careers_teaser",
+          "label": "Careers Teaser",
+          "display": "block",
+          "sub_fields": [
+            {
+              "key": "field_luux_careers_teaser_heading",
+              "label": "Heading",
+              "name": "heading",
+              "type": "text"
+            },
+            {
+              "key": "field_luux_careers_teaser_text",
+              "label": "Text",
+              "name": "text",
+              "type": "textarea",
+              "rows": 3
+            },
+            {
+              "key": "field_luux_careers_teaser_cta",
+              "label": "CTA",
+              "name": "cta",
+              "type": "link",
+              "return_format": "array"
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "location": [
+    [
+      {
+        "param": "post_type",
+        "operator": "==",
+        "value": "page"
+      }
+    ]
+  ],
+  "position": "normal",
+  "style": "seamless",
+  "active": true,
+  "show_in_rest": 0,
+  "modified": 1784112000
+}

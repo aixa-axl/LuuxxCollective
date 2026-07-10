@@ -49,7 +49,9 @@ add_action('wp_enqueue_scripts', function () {
 /* ── ACF JSON sync + Site Options page ──────────────────── */
 add_filter('acf/settings/save_json', fn() => get_template_directory() . '/acf-json');
 add_filter('acf/settings/load_json', function ($paths) {
-    $paths[] = get_template_directory() . '/acf-json';
+    foreach (luux_acf_json_paths() as $dir) {
+        $paths[] = $dir;
+    }
     return $paths;
 });
 
