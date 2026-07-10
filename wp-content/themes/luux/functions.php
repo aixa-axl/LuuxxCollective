@@ -7,6 +7,7 @@
 defined('ABSPATH') || exit;
 
 require get_template_directory() . '/inc/instagram.php';
+require get_template_directory() . '/inc/site-options.php';
 
 /* ── Theme supports & menus ─────────────────────────────── */
 add_action('after_setup_theme', function () {
@@ -58,10 +59,7 @@ function luux_site_options_slug(): string {
 
 /** @return list<string> */
 function luux_site_options_field_group_keys(): array {
-    return [
-        'group_luux_site_options',
-        'group_luux_site_options_social',
-    ];
+    return ['group_luux_site_options'];
 }
 
 function luux_site_options_location(): array {
@@ -101,7 +99,6 @@ function luux_register_site_options_field_groups(): void {
 
     $groups = [
         ['group_luux_site_options.json', 'group_luux_site_options'],
-        ['group_luux_site_options_social.json', 'group_luux_site_options_social'],
     ];
 
     foreach ($groups as [$filename, $key]) {
@@ -136,6 +133,29 @@ add_action('acf/init', function () {
 
 add_action('acf/include_fields', 'luux_register_site_options_field_groups', 99);
 
+add_filter('acf/load_field_group', function ($group) {
+    if (! is_array($group) || ($group['key'] ?? '') !== 'group_luux_site_options') {
+        return $group;
+    }
+
+    $from_theme = luux_load_acf_json_field_group('group_luux_site_options.json', 'group_luux_site_options');
+    return $from_theme ?? $group;
+});
+
+// Prefer theme field list over stale DB sub-fields from the old repeater setup.
+add_filter('acf/load_fields', function ($fields, $parent) {
+    if (! is_array($parent) || ($parent['key'] ?? '') !== 'group_luux_site_options') {
+        return $fields;
+    }
+
+    $from_theme = luux_load_acf_json_field_group('group_luux_site_options.json', 'group_luux_site_options');
+    if (! $from_theme || empty($from_theme['fields']) || ! is_array($from_theme['fields'])) {
+        return $fields;
+    }
+
+    return $from_theme['fields'];
+}, 999, 2);
+
 add_filter('acf/location/rule_match/options_page', function ($match, $rule, $screen, $field_group) {
     if (! in_array($field_group['key'] ?? '', luux_site_options_field_group_keys(), true)) {
         return $match;
@@ -144,23 +164,7 @@ add_filter('acf/location/rule_match/options_page', function ($match, $rule, $scr
     return ($screen['options_page'] ?? '') === luux_site_options_slug();
 }, 10, 4);
 
-add_filter('acf/load_value/name=social_links', function ($value, $post_id) {
-    if ($post_id !== 'options' && $post_id !== 'option') {
-        return $value;
-    }
-
-    return is_array($value) ? $value : [];
-}, 10, 2);
-
-add_filter('acf/load_value/name=legal_links', function ($value, $post_id) {
-    if ($post_id !== 'options' && $post_id !== 'option') {
-        return $value;
-    }
-
-    return is_array($value) ? $value : [];
-}, 10, 2);
-
-// Drop corrupt repeater data that can white-screen the Social tab.
+// Remove corrupt legacy repeater data (old field types that crash the options screen).
 add_action('acf/init', function () {
     if (! is_admin()) {
         return;
@@ -172,8 +176,7 @@ add_action('acf/init', function () {
             continue;
         }
 
-        $value = maybe_unserialize($raw);
-        if (! is_array($value)) {
+        if (! is_array(maybe_unserialize($raw))) {
             delete_option('options_' . $name);
             delete_option('_options_' . $name);
         }
@@ -203,7 +206,7 @@ add_action('admin_notices', function () {
         return;
     }
 
-    foreach (['group_luux_site_options.json', 'group_luux_site_options_social.json'] as $file) {
+    foreach (['group_luux_site_options.json'] as $file) {
         if (! is_readable(get_template_directory() . '/acf-json/' . $file)) {
             echo '<div class="notice notice-error"><p><strong>Luux:</strong> Missing <code>acf-json/' . esc_html($file) . '</code> on the server. Deploy the theme.</p></div>';
             return;

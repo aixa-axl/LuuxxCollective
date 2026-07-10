@@ -15,8 +15,8 @@ $group_text   = function_exists('get_field') ? get_field('footer_group_text', 'o
 $footer_logo_one = function_exists('get_field') ? get_field('footer_logo_one', 'option') : null;
 $footer_logo_two = function_exists('get_field') ? get_field('footer_logo_two', 'option') : null;
 $footer_disclaimer = function_exists('get_field') ? get_field('footer_disclaimer', 'option') : '';
-$socials      = function_exists('get_field') ? get_field('social_links', 'option') : [];
-$legal_links  = function_exists('get_field') ? get_field('legal_links', 'option') : [];
+$socials      = luux_get_social_links();
+$legal_links  = luux_get_legal_links();
 $footer_bg    = function_exists('luux_uses_blue_footer') && luux_uses_blue_footer() ? 'bg-brand-primary' : 'bg-brand-navy';
 $whatsapp_url = 'https://api.whatsapp.com/send/?phone=443333059912&text&type=phone_number&app_absent=0';
 $whatsapp_icon_path = get_template_directory() . '/assets/images/whatsapp-icon.png';
