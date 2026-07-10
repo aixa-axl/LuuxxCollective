@@ -8,6 +8,7 @@ defined('ABSPATH') || exit;
 
 require get_template_directory() . '/inc/instagram.php';
 require get_template_directory() . '/inc/site-options.php';
+require get_template_directory() . '/inc/acf-repair.php';
 
 /* ── Theme supports & menus ─────────────────────────────── */
 add_action('after_setup_theme', function () {
@@ -76,56 +77,6 @@ add_action('admin_enqueue_scripts', function (string $hook): void {
     }
 
     wp_enqueue_media();
-});
-
-add_action('admin_notices', function () {
-    if (! current_user_can('edit_posts') || ! function_exists('acf_get_field_groups')) {
-        return;
-    }
-
-    $screen = function_exists('get_current_screen') ? get_current_screen() : null;
-    if (! $screen) {
-        return;
-    }
-
-    $on_site_options = isset($_GET['page']) && sanitize_key(wp_unslash($_GET['page'])) === luux_site_options_slug();
-    $on_acf          = $screen->id === 'edit-acf-field-group' || $screen->post_type === 'acf-field-group';
-    $on_page_edit    = $screen->base === 'post' && $screen->post_type === 'page';
-
-    if (! $on_site_options && ! $on_acf && ! $on_page_edit) {
-        return;
-    }
-
-    if (! function_exists('acf_add_options_page')) {
-        echo '<div class="notice notice-error"><p><strong>Luux:</strong> ACF Pro is required.</p></div>';
-        return;
-    }
-
-    foreach (['group_luux_site_options.json', 'group_luux_page_sections.json'] as $file) {
-        if (! is_readable(get_template_directory() . '/acf-json/' . $file)) {
-            echo '<div class="notice notice-error"><p><strong>Luux:</strong> Missing <code>acf-json/' . esc_html($file) . '</code>. Deploy the theme.</p></div>';
-            return;
-        }
-    }
-
-    $site_options_count = 0;
-    $page_sections_count = 0;
-
-    foreach (acf_get_field_groups() as $group) {
-        $title = $group['title'] ?? '';
-        if ($title === 'Site Options') {
-            $site_options_count++;
-        }
-        if ($title === 'Page Sections') {
-            $page_sections_count++;
-        }
-    }
-
-    if ($site_options_count > 1 || $page_sections_count > 1) {
-        echo '<div class="notice notice-error"><p><strong>Luux:</strong> Duplicate ACF field groups detected. Go to <strong>ACF → Field Groups</strong>, trash every duplicate <strong>Site Options</strong> and <strong>Page Sections</strong> row, empty the trash, then click <strong>Sync</strong> on the remaining JSON copies.</p></div>';
-    } elseif ($on_site_options || $on_acf) {
-        echo '<div class="notice notice-info"><p><strong>Luux:</strong> Field groups load from theme JSON. If fields do not save, sync <strong>Site Options</strong> and <strong>Page Sections</strong> under ACF → Field Groups.</p></div>';
-    }
 });
 
 // Remove corrupt legacy repeater rows that crash the options screen.
