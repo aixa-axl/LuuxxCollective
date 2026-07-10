@@ -67,7 +67,9 @@ add_action('acf/init', function () {
         'page_title' => __('Site Options', 'luux'),
         'menu_title' => __('Site Options', 'luux'),
         'menu_slug'  => luux_site_options_slug(),
-        'capability' => 'edit_posts',
+        'capability' => 'manage_options',
+        'post_id'    => 'options',
+        'autoload'   => true,
         'redirect'   => false,
     ]);
 }, 0);

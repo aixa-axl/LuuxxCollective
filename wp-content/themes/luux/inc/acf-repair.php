@@ -5,7 +5,7 @@
 
 defined('ABSPATH') || exit;
 
-const LUUX_ACF_REPAIR_VERSION = 8;
+const LUUX_ACF_REPAIR_VERSION = 9;
 
 /** @return list<string> */
 function luux_acf_json_paths(): array {
@@ -144,8 +144,14 @@ function luux_acf_repair_managed_groups(): array {
 
     if ($result['errors'] === []) {
         luux_acf_register_managed_groups_from_json();
+        luux_acf_relink_option_field_keys();
+        luux_acf_relink_page_section_fields();
         update_option('luux_acf_repair_version', LUUX_ACF_REPAIR_VERSION, false);
         update_option('luux_acf_repaired_at', time(), false);
+
+        if (function_exists('wp_cache_flush')) {
+            wp_cache_flush();
+        }
     }
 
     return $result;
@@ -171,12 +177,79 @@ function luux_acf_register_managed_groups_from_json(): void {
 }
 
 function luux_acf_page_sections_layout_count(): int {
-    $group = luux_acf_prepare_group_from_json('group_luux_page_sections.json', 'group_luux_page_sections');
-    if (! $group || empty($group['fields'][0]['layouts']) || ! is_array($group['fields'][0]['layouts'])) {
+    $field = luux_acf_get_page_sections_field();
+
+    if (! $field || empty($field['layouts']) || ! is_array($field['layouts'])) {
         return 0;
     }
 
-    return count($group['fields'][0]['layouts']);
+    return count($field['layouts']);
+}
+
+function luux_acf_get_page_sections_field(): ?array {
+    $group = luux_acf_prepare_group_from_json('group_luux_page_sections.json', 'group_luux_page_sections');
+    if (! $group || empty($group['fields'][0]) || ! is_array($group['fields'][0])) {
+        return null;
+    }
+
+    return $group['fields'][0];
+}
+
+/**
+ * @param array<int, array<string, mixed>> $fields
+ */
+function luux_acf_walk_fields(array $fields, callable $callback): void {
+    foreach ($fields as $field) {
+        if (! is_array($field)) {
+            continue;
+        }
+
+        $callback($field);
+
+        if (! empty($field['sub_fields']) && is_array($field['sub_fields'])) {
+            luux_acf_walk_fields($field['sub_fields'], $callback);
+        }
+
+        if (! empty($field['layouts']) && is_array($field['layouts'])) {
+            foreach ($field['layouts'] as $layout) {
+                if (! empty($layout['sub_fields']) && is_array($layout['sub_fields'])) {
+                    luux_acf_walk_fields($layout['sub_fields'], $callback);
+                }
+            }
+        }
+    }
+}
+
+function luux_acf_relink_option_field_keys(): void {
+    $group = luux_acf_prepare_group_from_json('group_luux_site_options.json', 'group_luux_site_options');
+    if (! $group || empty($group['fields']) || ! is_array($group['fields'])) {
+        return;
+    }
+
+    luux_acf_walk_fields($group['fields'], function (array $field): void {
+        $name = $field['name'] ?? '';
+        $key  = $field['key'] ?? '';
+        $type = $field['type'] ?? '';
+
+        if ($name === '' || $key === '' || $type === 'tab') {
+            return;
+        }
+
+        update_option('_options_' . $name, $key, false);
+    });
+}
+
+function luux_acf_relink_page_section_fields(): void {
+    $pages = get_posts([
+        'post_type'      => 'page',
+        'post_status'    => 'any',
+        'posts_per_page' => -1,
+        'fields'         => 'ids',
+    ]);
+
+    foreach ($pages as $page_id) {
+        update_post_meta($page_id, '_page_sections', 'field_luux_page_sections');
+    }
 }
 
 /** @return array<string, mixed> */
@@ -189,6 +262,7 @@ function luux_acf_diagnostics(): array {
         'options_groups'       => 0,
         'page_groups'          => 0,
         'page_sections_layouts' => luux_acf_page_sections_layout_count(),
+        'live_layouts'          => 0,
     ];
 
     foreach (luux_acf_managed_field_groups() as $managed) {
@@ -217,6 +291,13 @@ function luux_acf_diagnostics(): array {
             'post_type' => 'page',
         ]);
         $diag['page_screen_groups'] = count($for_pages);
+    }
+
+    if (function_exists('acf_get_field')) {
+        $live = acf_get_field('field_luux_page_sections');
+        if (is_array($live) && ! empty($live['layouts']) && is_array($live['layouts'])) {
+            $diag['live_layouts'] = count($live['layouts']);
+        }
     }
 
     return $diag;
@@ -257,6 +338,7 @@ function luux_acf_render_repair_page(): void {
     echo '<h2>Diagnostics</h2><table class="widefat striped" style="max-width:48rem"><tbody>';
     echo '<tr><th>ACF Pro active</th><td>' . ($diag['acf_pro'] ? 'Yes' : '<strong style="color:#b32d2e">No</strong>') . '</td></tr>';
     echo '<tr><th>Page Sections layouts in JSON</th><td>' . esc_html((string) $diag['page_sections_layouts']) . ' (want 20+)</td></tr>';
+    echo '<tr><th>Page Sections layouts loaded by ACF</th><td>' . esc_html((string) ($diag['live_layouts'] ?? 0)) . ' (want 20+)</td></tr>';
 
     foreach ($diag['json_files'] as $file => $path) {
         if ($path) {
@@ -299,6 +381,19 @@ add_action('init', function (): void {
 
 add_action('acf/include_fields', 'luux_acf_register_managed_groups_from_json', 99);
 
+add_filter('acf/load_field', function ($field) {
+    if (! is_array($field) || ($field['key'] ?? '') !== 'field_luux_page_sections') {
+        return $field;
+    }
+
+    $from_json = luux_acf_get_page_sections_field();
+    if (! $from_json) {
+        return $field;
+    }
+
+    return array_merge($field, $from_json);
+}, 20);
+
 add_filter('acf/load_field_group', function ($group) {
     if (! is_array($group)) {
         return $group;
@@ -318,29 +413,6 @@ add_filter('acf/load_field_group', function ($group) {
 
     return $from_json ?? $group;
 });
-
-add_filter('acf/load_fields', function ($fields, $parent) {
-    if (! is_array($parent)) {
-        return $fields;
-    }
-
-    $map = [
-        'group_luux_site_options'  => 'group_luux_site_options.json',
-        'group_luux_page_sections' => 'group_luux_page_sections.json',
-    ];
-
-    $key = $parent['key'] ?? '';
-    if (! isset($map[$key])) {
-        return $fields;
-    }
-
-    $from_json = luux_acf_prepare_group_from_json($map[$key], $key);
-    if (! $from_json || empty($from_json['fields']) || ! is_array($from_json['fields'])) {
-        return $fields;
-    }
-
-    return $from_json['fields'];
-}, 20, 2);
 
 add_filter('acf/location/screen', function ($screen) {
     $page = isset($_GET['page']) ? sanitize_key(wp_unslash($_GET['page'])) : '';
@@ -362,6 +434,12 @@ add_filter('acf/location/rule_match/options_page', function ($match, $rule, $scr
 
     return ($screen['options_page'] ?? '') === luux_site_options_slug();
 }, 10, 4);
+
+add_action('acf/save_post', function ($post_id): void {
+    if ($post_id === 'options' || $post_id === 'option') {
+        luux_acf_relink_option_field_keys();
+    }
+}, 20);
 
 add_action('admin_menu', function (): void {
     add_management_page(
@@ -392,7 +470,8 @@ add_action('admin_notices', function (): void {
 
     if (($diag['options_screen_groups'] ?? 0) < 1
         || ($diag['page_screen_groups'] ?? 0) < 1
-        || ($diag['page_sections_layouts'] ?? 0) < 5) {
+        || ($diag['page_sections_layouts'] ?? 0) < 5
+        || ($diag['live_layouts'] ?? 0) < 5) {
         $repair_url = esc_url(admin_url('tools.php?page=luux-acf-repair'));
         echo '<div class="notice notice-error"><p><strong>Luux:</strong> ACF field groups need repair. '
             . '<a href="' . $repair_url . '">Open Tools → Luux ACF Repair</a> and run repair.</p></div>';
