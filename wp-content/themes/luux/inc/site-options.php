@@ -205,6 +205,10 @@ add_action('acf/init', 'luux_migrate_site_options_legacy_data', 20);
  * If ACF cannot resolve a value (broken field-key reference), fall back to wp_options.
  */
 add_filter('acf/load_value', function ($value, $post_id, $field) {
+    if (is_admin()) {
+        return $value;
+    }
+
     if ($post_id !== 'options' && $post_id !== 'option') {
         return $value;
     }
