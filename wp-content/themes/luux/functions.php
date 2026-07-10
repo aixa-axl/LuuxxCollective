@@ -78,11 +78,6 @@ add_action('admin_enqueue_scripts', function (string $hook): void {
     wp_enqueue_media();
 });
 
-// ACF flexible content is reliable in the classic page editor.
-add_filter('use_block_editor_for_post_type', function ($use, $post_type) {
-    return $post_type === 'page' ? false : $use;
-}, 10, 2);
-
 /* ── Flexible Content router ────────────────────────────── *
  * Loops page_sections and includes template-parts/layouts/{layout}.php.
  * Underscores in layout names map to hyphens in filenames:

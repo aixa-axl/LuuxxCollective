@@ -6,6 +6,10 @@
 
 defined('ABSPATH') || exit;
 
+function luux_acf_is_page_section_meta_key(string $key): bool {
+    return (bool) preg_match('/^_?page_sections/', $key);
+}
+
 /** @return array<string, array<int, array<string, mixed>>> */
 function luux_acf_page_section_layout_fields(): array {
     static $layouts = null;
@@ -26,6 +30,22 @@ function luux_acf_page_section_layout_fields(): array {
     }
 
     return $layouts;
+}
+
+function luux_acf_page_section_layout_key(string $layout_name): ?string {
+    $fc = luux_acf_get_page_sections_field();
+
+    if (! $fc || empty($fc['layouts']) || ! is_array($fc['layouts'])) {
+        return null;
+    }
+
+    foreach ($fc['layouts'] as $layout) {
+        if (($layout['name'] ?? '') === $layout_name) {
+            return $layout['key'] ?? null;
+        }
+    }
+
+    return null;
 }
 
 function luux_page_section_count_from_meta(array $meta): int {
@@ -127,21 +147,26 @@ function luux_acf_fix_section_meta_refs(array $meta): array {
             continue;
         }
 
-        $ref_prefix = "_page_sections_{$i}_";
+        $layout_key = luux_acf_page_section_layout_key($layout);
+        if ($layout_key) {
+            $meta["_page_sections_{$i}"] = $layout_key;
+        }
 
-        foreach ($meta as $key => $value) {
-            if (! str_starts_with($key, $ref_prefix)) {
+        $value_prefix = "page_sections_{$i}_";
+
+        foreach (array_keys($meta) as $key) {
+            if (! str_starts_with($key, $value_prefix)) {
                 continue;
             }
 
-            $path = substr($key, strlen($ref_prefix));
+            $path = substr($key, strlen($value_prefix));
             if ($path === '' || $path === 'acf_fc_layout') {
                 continue;
             }
 
             $field_key = luux_acf_resolve_section_field_key($layouts[$layout], $path);
             if ($field_key) {
-                $meta[$key] = $field_key;
+                $meta["_page_sections_{$i}_{$path}"] = $field_key;
             }
         }
     }
@@ -165,7 +190,7 @@ function luux_acf_get_page_section_meta(int $post_id): array {
     }
 
     foreach ($raw as $key => $values) {
-        if (str_starts_with($key, 'page_sections')) {
+        if (luux_acf_is_page_section_meta_key($key)) {
             $meta[$key] = $values[0];
         }
     }
@@ -180,25 +205,12 @@ function luux_acf_relink_page_section_meta_for_post(int $post_id): void {
         return;
     }
 
-    $raw = get_metadata('post', $post_id);
-
     foreach ($meta as $key => $value) {
-        if (! str_starts_with($key, '_page_sections')) {
-            continue;
-        }
-
-        if (! is_array($raw) || ($raw[$key][0] ?? '') === $value) {
+        if (! luux_acf_is_page_section_meta_key($key)) {
             continue;
         }
 
         update_post_meta($post_id, $key, $value);
-    }
-
-    update_post_meta($post_id, '_page_sections', 'field_luux_page_sections');
-
-    $count = luux_page_section_count_from_meta($meta);
-    if ($count > 0) {
-        update_post_meta($post_id, 'page_sections', $count);
     }
 }
 

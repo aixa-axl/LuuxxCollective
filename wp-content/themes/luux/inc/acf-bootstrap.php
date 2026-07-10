@@ -6,7 +6,7 @@
 
 defined('ABSPATH') || exit;
 
-const LUUX_ACF_BOOTSTRAP_VERSION = 2;
+const LUUX_ACF_BOOTSTRAP_VERSION = 3;
 
 function luux_site_options_slug(): string {
     return 'luux-site-options';
@@ -101,7 +101,7 @@ function luux_acf_walk_fields(array $fields, callable $callback): void {
 }
 
 function luux_acf_register_local_groups(): void {
-    if (! function_exists('acf_add_local_field_group') || ! function_exists('acf_add_local_field')) {
+    if (! function_exists('acf_add_local_field_group')) {
         return;
     }
 
@@ -114,9 +114,7 @@ function luux_acf_register_local_groups(): void {
     }
 
     $page_sections = luux_acf_prepare_group_from_json('group_luux_page_sections.json', 'group_luux_page_sections');
-    $fc_field      = luux_acf_get_page_sections_field();
-
-    if (! $page_sections || ! $fc_field) {
+    if (! $page_sections) {
         return;
     }
 
@@ -124,12 +122,7 @@ function luux_acf_register_local_groups(): void {
         acf_remove_local_field_group('group_luux_page_sections');
     }
 
-    // Flexible content layouts register reliably as a standalone local field.
-    $page_sections['fields'] = [];
     acf_add_local_field_group($page_sections);
-
-    $fc_field['parent'] = 'group_luux_page_sections';
-    acf_add_local_field($fc_field);
 }
 
 function luux_acf_relink_option_field_keys(): void {
@@ -176,6 +169,10 @@ function luux_acf_run_bootstrap(): void {
         luux_acf_relink_page_section_meta_keys();
     }
 
+    if ($current < 3) {
+        luux_acf_relink_page_section_meta_keys();
+    }
+
     update_option('luux_acf_bootstrap_version', LUUX_ACF_BOOTSTRAP_VERSION, false);
 }
 
@@ -188,6 +185,18 @@ add_action('acf/init', function (): void {
 
     luux_acf_run_bootstrap();
 }, 5);
+
+add_filter('acf/load_fields', function ($fields, $parent) {
+    $parent_key = is_array($parent) ? ($parent['key'] ?? '') : '';
+
+    if ($parent_key !== 'group_luux_page_sections') {
+        return $fields;
+    }
+
+    $fc = luux_acf_get_page_sections_field();
+
+    return $fc ? [$fc] : $fields;
+}, 20, 2);
 
 add_filter('acf/load_field', function ($field) {
     if (! is_array($field) || ($field['key'] ?? '') !== 'field_luux_page_sections') {
@@ -238,3 +247,32 @@ add_action('acf/save_post', function ($post_id): void {
 }, 20);
 
 require get_template_directory() . '/inc/page-sections.php';
+
+add_filter('acf/pre_load_meta', function ($null, $post_id) {
+    if (! is_numeric($post_id)) {
+        return $null;
+    }
+
+    $post_id = (int) $post_id;
+
+    if (get_post_type($post_id) !== 'page') {
+        return $null;
+    }
+
+    $section_meta = luux_acf_get_page_section_meta($post_id);
+
+    if ($section_meta === [] || luux_page_section_count_from_meta($section_meta) < 1) {
+        return $null;
+    }
+
+    $all = [];
+    $raw = get_metadata('post', $post_id);
+
+    if (is_array($raw)) {
+        foreach ($raw as $key => $values) {
+            $all[$key] = $values[0];
+        }
+    }
+
+    return array_merge($all, $section_meta);
+}, 10, 2);
