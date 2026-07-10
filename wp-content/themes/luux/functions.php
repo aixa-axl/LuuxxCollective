@@ -8,6 +8,7 @@ defined('ABSPATH') || exit;
 
 require get_template_directory() . '/inc/instagram.php';
 require get_template_directory() . '/inc/site-options.php';
+require get_template_directory() . '/inc/acf-bootstrap.php';
 
 /* ── Theme supports & menus ─────────────────────────────── */
 add_action('after_setup_theme', function () {
@@ -61,14 +62,16 @@ add_action('acf/init', function () {
     acf_add_options_page([
         'page_title' => __('Site Options', 'luux'),
         'menu_title' => __('Site Options', 'luux'),
-        'menu_slug'  => 'luux-site-options',
+        'menu_slug'  => luux_site_options_slug(),
         'capability' => 'edit_posts',
+        'post_id'    => 'options',
+        'autoload'   => true,
         'redirect'   => false,
     ]);
 }, 0);
 
 add_action('admin_enqueue_scripts', function (string $hook): void {
-    if ($hook !== 'toplevel_page_luux-site-options') {
+    if ($hook !== 'toplevel_page_' . luux_site_options_slug()) {
         return;
     }
 
@@ -96,15 +99,55 @@ function luux_uses_hero_header(): bool {
 }
 
 function luux_render_sections(): void {
-    if (! function_exists('have_rows') || ! have_rows('page_sections')) {
+    $post_id = get_the_ID();
+    if (! $post_id || ! function_exists('have_rows')) {
         return;
     }
 
-    while (have_rows('page_sections')) {
+    if (luux_loop_page_sections($post_id)) {
+        return;
+    }
+
+    luux_render_sections_from_meta($post_id);
+}
+
+function luux_loop_page_sections(int $post_id): bool {
+    if (! have_rows('page_sections', $post_id)) {
+        return false;
+    }
+
+    while (have_rows('page_sections', $post_id)) {
         the_row();
         $layout = str_replace('_', '-', get_row_layout());
         get_template_part('template-parts/layouts/' . $layout);
     }
+
+    return true;
+}
+
+function luux_render_sections_from_meta(int $post_id): bool {
+    if (! function_exists('acf_setup_meta') || ! function_exists('acf_get_meta')) {
+        return false;
+    }
+
+    $row_count = (int) get_post_meta($post_id, 'page_sections', true);
+    if ($row_count < 1) {
+        return false;
+    }
+
+    $meta = acf_get_meta($post_id);
+    if (empty($meta)) {
+        return false;
+    }
+
+    acf_setup_meta($meta, $post_id, true);
+    $rendered = luux_loop_page_sections($post_id);
+
+    if (function_exists('acf_reset_meta')) {
+        acf_reset_meta($post_id);
+    }
+
+    return $rendered;
 }
 
 /* ── Light hardening / cleanup ──────────────────────────── */
