@@ -6,7 +6,7 @@
 
 defined('ABSPATH') || exit;
 
-const LUUX_ACF_BOOTSTRAP_VERSION = 1;
+const LUUX_ACF_BOOTSTRAP_VERSION = 2;
 
 function luux_site_options_slug(): string {
     return 'luux-site-options';
@@ -165,8 +165,17 @@ function luux_acf_relink_page_section_fields(): void {
 }
 
 function luux_acf_run_bootstrap(): void {
-    luux_acf_relink_option_field_keys();
-    luux_acf_relink_page_section_fields();
+    $current = (int) get_option('luux_acf_bootstrap_version', 0);
+
+    if ($current < 1) {
+        luux_acf_relink_option_field_keys();
+    }
+
+    if ($current < 2) {
+        luux_acf_relink_page_section_fields();
+        luux_acf_relink_page_section_meta_keys();
+    }
+
     update_option('luux_acf_bootstrap_version', LUUX_ACF_BOOTSTRAP_VERSION, false);
 }
 
@@ -220,5 +229,12 @@ add_filter('acf/location/rule_match/options_page', function ($match, $rule, $scr
 add_action('acf/save_post', function ($post_id): void {
     if ($post_id === 'options' || $post_id === 'option') {
         luux_acf_relink_option_field_keys();
+        return;
+    }
+
+    if (is_numeric($post_id) && get_post_type((int) $post_id) === 'page') {
+        luux_acf_relink_page_section_meta_for_post((int) $post_id);
     }
 }, 20);
+
+require get_template_directory() . '/inc/page-sections.php';

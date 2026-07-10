@@ -78,6 +78,11 @@ add_action('admin_enqueue_scripts', function (string $hook): void {
     wp_enqueue_media();
 });
 
+// ACF flexible content is reliable in the classic page editor.
+add_filter('use_block_editor_for_post_type', function ($use, $post_type) {
+    return $post_type === 'page' ? false : $use;
+}, 10, 2);
+
 /* ── Flexible Content router ────────────────────────────── *
  * Loops page_sections and includes template-parts/layouts/{layout}.php.
  * Underscores in layout names map to hyphens in filenames:
@@ -100,11 +105,11 @@ function luux_uses_hero_header(): bool {
 
 function luux_render_sections(): void {
     $post_id = get_the_ID();
-    if (! $post_id || ! function_exists('have_rows')) {
+    if (! $post_id) {
         return;
     }
 
-    if (luux_loop_page_sections($post_id)) {
+    if (function_exists('have_rows') && luux_loop_page_sections($post_id)) {
         return;
     }
 
@@ -126,17 +131,16 @@ function luux_loop_page_sections(int $post_id): bool {
 }
 
 function luux_render_sections_from_meta(int $post_id): bool {
-    if (! function_exists('acf_setup_meta') || ! function_exists('acf_get_meta')) {
+    if (! function_exists('acf_setup_meta') || ! function_exists('have_rows')) {
         return false;
     }
 
-    $row_count = (int) get_post_meta($post_id, 'page_sections', true);
-    if ($row_count < 1) {
+    if (! function_exists('luux_acf_get_page_section_meta')) {
         return false;
     }
 
-    $meta = acf_get_meta($post_id);
-    if (empty($meta)) {
+    $meta = luux_acf_get_page_section_meta($post_id);
+    if ($meta === [] || luux_page_section_count_from_meta($meta) < 1) {
         return false;
     }
 
