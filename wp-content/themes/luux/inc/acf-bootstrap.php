@@ -98,10 +98,61 @@ function luux_acf_normalize_field(array $field): array {
         $field['default_value'] = $field['default_value'] ?? '';
     }
 
+    if ($type === 'wysiwyg') {
+        $field['tabs']          = $field['tabs'] ?? 'all';
+        $field['toolbar']       = $field['toolbar'] ?? 'full';
+        $field['media_upload']  = $field['media_upload'] ?? 1;
+        $field['delay']         = $field['delay'] ?? 0;
+        $field['default_value'] = $field['default_value'] ?? '';
+    }
+
+    if ($type === 'link') {
+        $field['return_format'] = $field['return_format'] ?? 'array';
+    }
+
     if ($type === 'image') {
         $field['return_format'] = $field['return_format'] ?? 'array';
         $field['preview_size']  = $field['preview_size'] ?? 'medium';
         $field['library']       = $field['library'] ?? 'all';
+        $field['min_width']     = $field['min_width'] ?? '';
+        $field['min_height']    = $field['min_height'] ?? '';
+        $field['min_size']      = $field['min_size'] ?? '';
+        $field['max_width']     = $field['max_width'] ?? '';
+        $field['max_height']    = $field['max_height'] ?? '';
+        $field['max_size']      = $field['max_size'] ?? '';
+        $field['mime_types']    = $field['mime_types'] ?? '';
+    }
+
+    if ($type === 'file') {
+        $field['return_format'] = $field['return_format'] ?? 'array';
+        $field['library']       = $field['library'] ?? 'all';
+        $field['min_size']      = $field['min_size'] ?? '';
+        $field['max_size']      = $field['max_size'] ?? '';
+        $field['mime_types']    = $field['mime_types'] ?? '';
+    }
+
+    if ($type === 'button_group') {
+        $field['choices']       = $field['choices'] ?? [];
+        $field['default_value'] = $field['default_value'] ?? '';
+        $field['return_format'] = $field['return_format'] ?? 'value';
+        $field['layout']        = $field['layout'] ?? 'horizontal';
+    }
+
+    if ($type === 'true_false') {
+        $field['default_value'] = $field['default_value'] ?? 0;
+        $field['ui']            = $field['ui'] ?? 0;
+        $field['ui_on_text']    = $field['ui_on_text'] ?? '';
+        $field['ui_off_text']   = $field['ui_off_text'] ?? '';
+    }
+
+    if ($type === 'select') {
+        $field['choices']       = $field['choices'] ?? [];
+        $field['default_value'] = $field['default_value'] ?? '';
+        $field['return_format'] = $field['return_format'] ?? 'value';
+        $field['multiple']      = $field['multiple'] ?? 0;
+        $field['ui']            = $field['ui'] ?? 0;
+        $field['ajax']          = $field['ajax'] ?? 0;
+        $field['placeholder']   = $field['placeholder'] ?? '';
     }
 
     if ($type === 'repeater') {
@@ -109,12 +160,31 @@ function luux_acf_normalize_field(array $field): array {
         $field['button_label']  = $field['button_label'] ?? '';
         $field['min']           = $field['min'] ?? 0;
         $field['max']           = $field['max'] ?? 0;
+        $field['rows_per_page'] = $field['rows_per_page'] ?? 20;
+        $field['collapsed']     = $field['collapsed'] ?? '';
     }
 
     if ($type === 'flexible_content') {
         $field['button_label'] = $field['button_label'] ?? '';
         $field['min']          = $field['min'] ?? '';
         $field['max']          = $field['max'] ?? '';
+    }
+
+    if ($type === 'group') {
+        $field['layout'] = $field['layout'] ?? 'block';
+    }
+
+    if ($type === 'gallery') {
+        $field['return_format'] = $field['return_format'] ?? 'array';
+        $field['preview_size']  = $field['preview_size'] ?? 'medium';
+        $field['library']       = $field['library'] ?? 'all';
+        $field['min']           = $field['min'] ?? 0;
+        $field['max']           = $field['max'] ?? 0;
+    }
+
+    if ($type === 'oembed') {
+        $field['width']  = $field['width'] ?? '';
+        $field['height'] = $field['height'] ?? '';
     }
 
     return $field;
@@ -187,8 +257,14 @@ function luux_acf_register_site_options_group(): void {
     }
 
     $site_options = luux_acf_prepare_group_from_json('group_luux_site_options.json', 'group_luux_site_options');
-    if (! $site_options) {
+    if (! $site_options || empty($site_options['fields']) || ! is_array($site_options['fields'])) {
         return;
+    }
+
+    foreach ($site_options['fields'] as $index => $field) {
+        if (is_array($field)) {
+            $site_options['fields'][$index] = luux_acf_normalize_field_tree($field);
+        }
     }
 
     if (function_exists('acf_remove_local_field_group')) {
@@ -196,6 +272,17 @@ function luux_acf_register_site_options_group(): void {
     }
 
     acf_add_local_field_group($site_options);
+}
+
+function luux_acf_maybe_relink_option_field_keys(): void {
+    $stored_key = (string) get_option('_options_site_logo', '');
+    $expected   = 'field_luux_options_site_logo';
+
+    if ($stored_key === $expected) {
+        return;
+    }
+
+    luux_acf_relink_option_field_keys();
 }
 
 function luux_acf_relink_option_field_keys(): void {
@@ -254,6 +341,10 @@ add_filter('acf/load_field', function ($field) {
 }, 1);
 
 add_action('acf/include_fields', 'luux_acf_register_site_options_group', 1);
+
+add_action('acf/init', function (): void {
+    luux_acf_maybe_relink_option_field_keys();
+}, 6);
 
 add_action('acf/init', function (): void {
     if ((int) get_option('luux_acf_bootstrap_version', 0) >= LUUX_ACF_BOOTSTRAP_VERSION) {

@@ -5,6 +5,22 @@
 
 defined('ABSPATH') || exit;
 
+function luux_get_site_option(string $name, mixed $default = null): mixed {
+    if (function_exists('get_field')) {
+        $value = get_field($name, 'option');
+        if ($value !== null && $value !== false && $value !== '') {
+            return $value;
+        }
+    }
+
+    $raw = luux_get_raw_option_value($name);
+    if ($raw !== null && $raw !== false && $raw !== '') {
+        return $raw;
+    }
+
+    return $default;
+}
+
 /**
  * Read a raw ACF options value from wp_options (bypasses broken field-key references).
  */

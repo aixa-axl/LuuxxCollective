@@ -167,6 +167,15 @@ function luux_render_sections_from_meta(int $post_id): bool {
     return $rendered;
 }
 
+/* ── Page editor: classic editor plays nicer with ACF flexible content ── */
+add_filter('use_block_editor_for_post_type', function (bool $use_block_editor, string $post_type): bool {
+    if ($post_type === 'page') {
+        return false;
+    }
+
+    return $use_block_editor;
+}, 10, 2);
+
 /* ── Light hardening / cleanup ──────────────────────────── */
 remove_action('wp_head', 'wp_generator');
 add_filter('xmlrpc_enabled', '__return_false');
