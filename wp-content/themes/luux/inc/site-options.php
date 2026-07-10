@@ -199,17 +199,7 @@ function luux_migrate_site_options_legacy_data(): void {
     update_option('luux_site_options_migrated_v2', time(), false);
 }
 
-add_action('acf/init', function (): void {
-    if (! function_exists('update_field') || get_option('luux_site_options_migrated_v2')) {
-        return;
-    }
-
-    if ((int) get_option('luux_acf_repair_version', 0) < LUUX_ACF_REPAIR_VERSION) {
-        return;
-    }
-
-    luux_migrate_site_options_legacy_data();
-}, 20);
+add_action('acf/init', 'luux_migrate_site_options_legacy_data', 20);
 
 /**
  * If ACF cannot resolve a value (broken field-key reference), fall back to wp_options.

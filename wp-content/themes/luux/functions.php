@@ -8,7 +8,6 @@ defined('ABSPATH') || exit;
 
 require get_template_directory() . '/inc/instagram.php';
 require get_template_directory() . '/inc/site-options.php';
-require get_template_directory() . '/inc/acf-repair.php';
 
 /* ── Theme supports & menus ─────────────────────────────── */
 add_action('after_setup_theme', function () {
@@ -46,23 +45,13 @@ add_action('wp_enqueue_scripts', function () {
     }
 });
 
-/* ── ACF JSON + Site Options page ─────────────────────────── */
+/* ── ACF JSON sync + Site Options page ───────────────────── */
 add_filter('acf/settings/save_json', fn() => get_template_directory() . '/acf-json');
 add_filter('acf/settings/load_json', function ($paths) {
-    foreach (luux_acf_json_paths() as $dir) {
-        $paths[] = $dir;
-    }
+    $paths[] = get_template_directory() . '/acf-json';
+    $paths[] = get_template_directory() . '/inc/acf-field-groups';
     return $paths;
 });
-
-function luux_site_options_slug(): string {
-    return 'luux-site-options';
-}
-
-// ACF flexible content works reliably in the classic editor.
-add_filter('use_block_editor_for_post_type', function ($use, $post_type) {
-    return $post_type === 'page' ? false : $use;
-}, 10, 2);
 
 add_action('acf/init', function () {
     if (! function_exists('acf_add_options_page')) {
@@ -72,16 +61,14 @@ add_action('acf/init', function () {
     acf_add_options_page([
         'page_title' => __('Site Options', 'luux'),
         'menu_title' => __('Site Options', 'luux'),
-        'menu_slug'  => luux_site_options_slug(),
-        'capability' => 'manage_options',
-        'post_id'    => 'options',
-        'autoload'   => true,
+        'menu_slug'  => 'luux-site-options',
+        'capability' => 'edit_posts',
         'redirect'   => false,
     ]);
 }, 0);
 
 add_action('admin_enqueue_scripts', function (string $hook): void {
-    if ($hook !== 'toplevel_page_' . luux_site_options_slug()) {
+    if ($hook !== 'toplevel_page_luux-site-options') {
         return;
     }
 
@@ -109,55 +96,15 @@ function luux_uses_hero_header(): bool {
 }
 
 function luux_render_sections(): void {
-    $post_id = get_the_ID();
-    if (! $post_id || ! function_exists('have_rows')) {
+    if (! function_exists('have_rows') || ! have_rows('page_sections')) {
         return;
     }
 
-    if (luux_loop_page_sections($post_id)) {
-        return;
-    }
-
-    luux_render_sections_from_meta($post_id);
-}
-
-function luux_loop_page_sections(int $post_id): bool {
-    if (! have_rows('page_sections', $post_id)) {
-        return false;
-    }
-
-    while (have_rows('page_sections', $post_id)) {
+    while (have_rows('page_sections')) {
         the_row();
         $layout = str_replace('_', '-', get_row_layout());
         get_template_part('template-parts/layouts/' . $layout);
     }
-
-    return true;
-}
-
-function luux_render_sections_from_meta(int $post_id): bool {
-    if (! function_exists('acf_get_field') || ! function_exists('acf_setup_meta') || ! function_exists('acf_get_meta')) {
-        return false;
-    }
-
-    $row_count = (int) get_post_meta($post_id, 'page_sections', true);
-    if ($row_count < 1) {
-        return false;
-    }
-
-    $meta = acf_get_meta($post_id);
-    if (empty($meta)) {
-        return false;
-    }
-
-    acf_setup_meta($meta, $post_id, true);
-    $rendered = luux_loop_page_sections($post_id);
-
-    if (function_exists('acf_reset_meta')) {
-        acf_reset_meta($post_id);
-    }
-
-    return $rendered;
 }
 
 /* ── Light hardening / cleanup ──────────────────────────── */
