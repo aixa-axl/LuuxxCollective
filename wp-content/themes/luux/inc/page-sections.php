@@ -6,7 +6,7 @@
 
 defined('ABSPATH') || exit;
 
-const LUUX_PAGE_SECTIONS_REPAIR_VERSION = 6;
+const LUUX_PAGE_SECTIONS_REPAIR_VERSION = 7;
 
 function luux_acf_is_page_section_meta_key(string $key): bool {
     return (bool) preg_match('/^_?page_sections/', $key);
@@ -111,7 +111,6 @@ function luux_acf_repair_page_sections_definitions(): array {
     }
 
     luux_acf_delete_page_sections_db_group();
-    luux_acf_import_page_sections_group();
     luux_acf_register_page_sections_local();
 
     if (function_exists('wp_cache_flush')) {
@@ -120,9 +119,11 @@ function luux_acf_repair_page_sections_definitions(): array {
 
     $layouts = luux_acf_page_sections_layout_count();
     if ($layouts < 20) {
+        delete_option('luux_page_sections_repair_version');
+
         return [
             'ok'      => false,
-            'message' => 'Repair ran but ACF still reports ' . $layouts . ' layouts (expected 25).',
+            'message' => 'Repair ran but ACF still reports ' . $layouts . ' layouts (expected 25). Check JSON is deployed.',
         ];
     }
 
@@ -135,12 +136,15 @@ function luux_acf_repair_page_sections_definitions(): array {
 }
 
 function luux_acf_maybe_repair_page_sections_definitions(): void {
-    if (luux_acf_page_sections_layout_count() >= 20) {
+    static $ran = false;
+
+    if ($ran) {
         return;
     }
 
-    if ((int) get_option('luux_page_sections_repair_version', 0) >= LUUX_PAGE_SECTIONS_REPAIR_VERSION) {
-        luux_acf_register_page_sections_local();
+    $ran = true;
+
+    if (luux_acf_page_sections_layout_count() >= 20) {
         return;
     }
 
@@ -161,7 +165,17 @@ function luux_acf_page_sections_diagnostics(): array {
         'group_source' => is_array($group) ? ($group['local'] ?? 'database') : 'none',
         'group_id'     => is_array($group) ? ($group['ID'] ?? 0) : 0,
         'repair_done'  => (int) get_option('luux_page_sections_repair_version', 0),
+        'pages_with_sections' => luux_acf_count_pages_with_sections(),
     ];
+}
+
+function luux_acf_count_pages_with_sections(): int {
+    global $wpdb;
+
+    return (int) $wpdb->get_var(
+        "SELECT COUNT(DISTINCT post_id) FROM {$wpdb->postmeta}
+        WHERE meta_key LIKE 'page\\_sections\\_%\\_acf\\_fc\\_layout'"
+    );
 }
 
 function luux_acf_render_page_sections_tools_page(): void {
@@ -195,6 +209,7 @@ function luux_acf_render_page_sections_tools_page(): void {
     echo '<tr><th>JSON file on server</th><td>' . ($diag['json_path'] ? '<code>' . esc_html((string) $diag['json_path']) . '</code>' : '<strong style="color:#b32d2e">Missing</strong>') . '</td></tr>';
     echo '<tr><th>Layouts in theme JSON</th><td>' . esc_html((string) $diag['json_layouts']) . ' (want 25)</td></tr>';
     echo '<tr><th>Layouts ACF is using</th><td>' . esc_html((string) $diag['live_layouts']) . ' (want 25)</td></tr>';
+    echo '<tr><th>Pages with saved sections</th><td>' . esc_html((string) $diag['pages_with_sections']) . '</td></tr>';
     echo '<tr><th>Field group source</th><td><code>' . esc_html((string) $diag['group_source']) . '</code></td></tr>';
     echo '</tbody></table>';
 
@@ -439,11 +454,122 @@ function luux_acf_merged_page_meta(int $post_id): ?array {
     return array_merge($all, $section_meta);
 }
 
+/** @return list<int> */
+function luux_get_page_section_row_indices(int $post_id): array {
+    $indices = [];
+    $raw     = get_metadata('post', $post_id);
+
+    if (! is_array($raw)) {
+        return $indices;
+    }
+
+    foreach (array_keys($raw) as $key) {
+        if (preg_match('/^page_sections_(\d+)_acf_fc_layout$/', $key, $matches)) {
+            $indices[] = (int) $matches[1];
+        }
+    }
+
+    sort($indices);
+
+    return array_values(array_unique($indices));
+}
+
+/** @return array<string, mixed> */
+function luux_build_single_row_meta(array $full_meta, int $row_index): array {
+    $layout = $full_meta["page_sections_{$row_index}_acf_fc_layout"] ?? '';
+    $row    = [
+        'page_sections'                  => 1,
+        '_page_sections'                 => 'field_luux_page_sections',
+        'page_sections_0_acf_fc_layout'  => $layout,
+    ];
+
+    $layout_key = luux_acf_page_section_layout_key($layout);
+    if ($layout_key) {
+        $row['_page_sections_0'] = $layout_key;
+    }
+
+    $value_prefix = "page_sections_{$row_index}_";
+    $ref_prefix   = "_page_sections_{$row_index}_";
+
+    foreach ($full_meta as $key => $value) {
+        if (str_starts_with($key, $value_prefix)) {
+            $suffix = substr($key, strlen($value_prefix));
+            if ($suffix !== '' && $suffix !== 'acf_fc_layout') {
+                $row['page_sections_0_' . $suffix] = $value;
+            }
+        }
+
+        if (str_starts_with($key, $ref_prefix)) {
+            $suffix = substr($key, strlen($ref_prefix));
+            if ($suffix !== '') {
+                $row['_page_sections_0_' . $suffix] = $value;
+            }
+        }
+    }
+
+    return $row;
+}
+
+function luux_render_page_sections_by_row(int $post_id): bool {
+    if (! function_exists('acf_setup_meta') || ! function_exists('have_rows')) {
+        return false;
+    }
+
+    $indices = luux_get_page_section_row_indices($post_id);
+    if ($indices === []) {
+        return false;
+    }
+
+    $full_meta = luux_acf_get_page_section_meta($post_id);
+    $rendered  = false;
+
+    foreach ($indices as $row_index) {
+        $layout = $full_meta["page_sections_{$row_index}_acf_fc_layout"] ?? '';
+        if ($layout === '') {
+            continue;
+        }
+
+        $row_meta = luux_build_single_row_meta($full_meta, $row_index);
+        acf_setup_meta($row_meta, $post_id, true);
+
+        if (have_rows('page_sections', $post_id)) {
+            while (have_rows('page_sections', $post_id)) {
+                the_row();
+                get_template_part('template-parts/layouts/' . str_replace('_', '-', $layout));
+                $rendered = true;
+            }
+        }
+
+        if (function_exists('acf_reset_meta')) {
+            acf_reset_meta($post_id);
+        }
+    }
+
+    return $rendered;
+}
+
+function luux_acf_is_page_edit_screen(): bool {
+    if (! is_admin()) {
+        return false;
+    }
+
+    $screen = function_exists('get_current_screen') ? get_current_screen() : null;
+    if ($screen && $screen->id === 'page') {
+        return true;
+    }
+
+    if (isset($_GET['post']) && is_numeric($_GET['post'])) {
+        return get_post_type((int) $_GET['post']) === 'page';
+    }
+
+    return false;
+}
+
 add_action('acf/include_fields', function (): void {
     luux_acf_register_page_sections_local();
-}, 20);
+}, 999);
 
-add_action('acf/init', 'luux_acf_maybe_repair_page_sections_definitions', 15);
+add_action('acf/init', 'luux_acf_maybe_repair_page_sections_definitions', 99);
 
 add_filter('acf/load_field', function ($field) {
     if (! is_array($field) || ($field['key'] ?? '') !== 'field_luux_page_sections') {
@@ -462,11 +588,11 @@ add_filter('acf/load_field', function ($field) {
 }, 999);
 
 add_filter('acf/pre_load_meta', function ($null, $post_id) {
-    if (is_admin()) {
+    if (! is_numeric($post_id) || get_post_type((int) $post_id) !== 'page') {
         return $null;
     }
 
-    if (! is_numeric($post_id) || get_post_type((int) $post_id) !== 'page') {
+    if (is_admin() && ! luux_acf_is_page_edit_screen()) {
         return $null;
     }
 

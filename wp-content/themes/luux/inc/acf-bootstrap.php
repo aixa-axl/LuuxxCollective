@@ -6,7 +6,7 @@
 
 defined('ABSPATH') || exit;
 
-const LUUX_ACF_BOOTSTRAP_VERSION = 6;
+const LUUX_ACF_BOOTSTRAP_VERSION = 7;
 
 function luux_site_options_slug(): string {
     return 'luux-site-options';
