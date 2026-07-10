@@ -72,7 +72,88 @@ function luux_acf_get_page_sections_field(): ?array {
         return null;
     }
 
-    return $group['fields'][0];
+    return luux_acf_normalize_field_tree($group['fields'][0]);
+}
+
+/**
+ * Ensure JSON-loaded fields include keys ACF expects (PHP 8.4 safe).
+ *
+ * @param array<string, mixed> $field
+ * @return array<string, mixed>
+ */
+function luux_acf_normalize_field(array $field): array {
+    $type = $field['type'] ?? '';
+
+    if ($type === 'textarea') {
+        $field['new_lines']     = $field['new_lines'] ?? '';
+        $field['rows']          = $field['rows'] ?? '';
+        $field['maxlength']     = $field['maxlength'] ?? '';
+        $field['placeholder']   = $field['placeholder'] ?? '';
+        $field['default_value'] = $field['default_value'] ?? '';
+    }
+
+    if ($type === 'text') {
+        $field['maxlength']     = $field['maxlength'] ?? '';
+        $field['placeholder']   = $field['placeholder'] ?? '';
+        $field['default_value'] = $field['default_value'] ?? '';
+    }
+
+    if ($type === 'image') {
+        $field['return_format'] = $field['return_format'] ?? 'array';
+        $field['preview_size']  = $field['preview_size'] ?? 'medium';
+        $field['library']       = $field['library'] ?? 'all';
+    }
+
+    if ($type === 'repeater') {
+        $field['layout']        = $field['layout'] ?? 'table';
+        $field['button_label']  = $field['button_label'] ?? '';
+        $field['min']           = $field['min'] ?? 0;
+        $field['max']           = $field['max'] ?? 0;
+    }
+
+    if ($type === 'flexible_content') {
+        $field['button_label'] = $field['button_label'] ?? '';
+        $field['min']          = $field['min'] ?? '';
+        $field['max']          = $field['max'] ?? '';
+    }
+
+    return $field;
+}
+
+/**
+ * @param array<string, mixed> $field
+ * @return array<string, mixed>
+ */
+function luux_acf_normalize_field_tree(array $field): array {
+    $field = luux_acf_normalize_field($field);
+
+    if (! empty($field['sub_fields']) && is_array($field['sub_fields'])) {
+        foreach ($field['sub_fields'] as $index => $sub_field) {
+            if (is_array($sub_field)) {
+                $field['sub_fields'][$index] = luux_acf_normalize_field_tree($sub_field);
+            }
+        }
+    }
+
+    if (! empty($field['layouts']) && is_array($field['layouts'])) {
+        foreach ($field['layouts'] as $index => $layout) {
+            if (! is_array($layout)) {
+                continue;
+            }
+
+            if (! empty($layout['sub_fields']) && is_array($layout['sub_fields'])) {
+                foreach ($layout['sub_fields'] as $sub_index => $sub_field) {
+                    if (is_array($sub_field)) {
+                        $layout['sub_fields'][$sub_index] = luux_acf_normalize_field_tree($sub_field);
+                    }
+                }
+            }
+
+            $field['layouts'][$index] = $layout;
+        }
+    }
+
+    return $field;
 }
 
 /**
@@ -163,6 +244,14 @@ function luux_acf_run_bootstrap(): void {
 
     update_option('luux_acf_bootstrap_version', LUUX_ACF_BOOTSTRAP_VERSION, false);
 }
+
+add_filter('acf/load_field', function ($field) {
+    if (! is_array($field)) {
+        return $field;
+    }
+
+    return luux_acf_normalize_field($field);
+}, 1);
 
 add_action('acf/include_fields', 'luux_acf_register_site_options_group', 1);
 

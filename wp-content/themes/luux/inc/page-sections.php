@@ -172,10 +172,49 @@ function luux_acf_page_sections_diagnostics(): array {
 function luux_acf_count_pages_with_sections(): int {
     global $wpdb;
 
-    return (int) $wpdb->get_var(
+    $modern = (int) $wpdb->get_var(
         "SELECT COUNT(DISTINCT post_id) FROM {$wpdb->postmeta}
         WHERE meta_key LIKE 'page\\_sections\\_%\\_acf\\_fc\\_layout'"
     );
+
+    $legacy = (int) $wpdb->get_var(
+        "SELECT COUNT(DISTINCT post_id) FROM {$wpdb->postmeta}
+        WHERE meta_key = 'page_sections'
+        AND meta_value LIKE 'a:%'"
+    );
+
+    return max($modern, $legacy);
+}
+
+/**
+ * Parse layout slugs stored in page_sections (legacy serialized array format).
+ *
+ * @return list<string>
+ */
+function luux_acf_parse_page_sections_layout_list(mixed $value): array {
+    if (is_array($value)) {
+        return array_values(array_filter($value, 'is_string'));
+    }
+
+    if (is_numeric($value)) {
+        return [];
+    }
+
+    if (! is_string($value) || $value === '') {
+        return [];
+    }
+
+    $parsed = maybe_unserialize($value);
+
+    if (is_string($parsed)) {
+        $parsed = maybe_unserialize($parsed);
+    }
+
+    if (! is_array($parsed)) {
+        return [];
+    }
+
+    return array_values(array_filter($parsed, 'is_string'));
 }
 
 function luux_acf_render_page_sections_tools_page(): void {
@@ -186,9 +225,6 @@ function luux_acf_render_page_sections_tools_page(): void {
     $result = null;
     if (isset($_GET['luux_repair_page_sections']) && check_admin_referer('luux_repair_page_sections')) {
         $result = luux_acf_repair_page_sections_definitions();
-        if ($result['ok']) {
-            luux_acf_relink_page_section_meta_keys();
-        }
     }
 
     $diag = luux_acf_page_sections_diagnostics();
@@ -213,7 +249,18 @@ function luux_acf_render_page_sections_tools_page(): void {
     echo '<tr><th>Field group source</th><td><code>' . esc_html((string) $diag['group_source']) . '</code></td></tr>';
     echo '</tbody></table>';
 
-    echo '<p><a class="button button-primary" href="' . esc_url($url) . '">Repair Page Sections now</a></p>';
+    if ($diag['live_layouts'] >= 20 && (int) $diag['pages_with_sections'] < 1) {
+        echo '<div class="notice notice-warning" style="max-width:40rem;margin-top:1rem"><p><strong>Layouts are registered, but no page section content was detected.</strong> ';
+        echo 'If pages look blank on the frontend, import page section postmeta from staging. ';
+        echo 'Repair only fixes field definitions — it does not restore page content and must not rewrite saved meta.</p></div>';
+    } elseif ($diag['live_layouts'] >= 20) {
+        echo '<div class="notice notice-success" style="max-width:40rem;margin-top:1rem"><p><strong>Page Sections field group looks healthy.</strong> ';
+        echo 'If a page still looks blank, edit that page and confirm sections appear in the Page Sections box.</p></div>';
+    }
+
+    echo '<div class="notice notice-warning" style="max-width:40rem;margin-top:1rem"><p><strong>Only use Repair if layouts are missing.</strong> ';
+    echo 'It re-registers field definitions from theme JSON. It does not touch Site Options or page content.</p></div>';
+    echo '<p><a class="button button-secondary" href="' . esc_url($url) . '">Repair field definitions only</a></p>';
     echo '</div>';
 }
 
@@ -255,8 +302,24 @@ function luux_acf_page_section_layout_key(string $layout_name): ?string {
     return null;
 }
 
+function luux_page_section_layout_slug(array $meta, int $index): string {
+    $layout = $meta["page_sections_{$index}_acf_fc_layout"] ?? '';
+    if ($layout !== '') {
+        return $layout;
+    }
+
+    $layout_list = luux_acf_parse_page_sections_layout_list($meta['page_sections'] ?? null);
+
+    return $layout_list[$index] ?? '';
+}
+
 function luux_page_section_count_from_meta(array $meta): int {
-    if (! empty($meta['page_sections'])) {
+    $layout_list = luux_acf_parse_page_sections_layout_list($meta['page_sections'] ?? null);
+    if ($layout_list !== []) {
+        return count($layout_list);
+    }
+
+    if (isset($meta['page_sections']) && is_numeric($meta['page_sections']) && (int) $meta['page_sections'] > 0) {
         return (int) $meta['page_sections'];
     }
 
@@ -272,25 +335,10 @@ function luux_page_section_count_from_meta(array $meta): int {
 }
 
 function luux_page_section_count(int $post_id): int {
-    $stored = (int) get_post_meta($post_id, 'page_sections', true);
-    if ($stored > 0) {
-        return $stored;
-    }
+    $stored = get_post_meta($post_id, 'page_sections', true);
+    $meta   = ['page_sections' => $stored];
 
-    $max = -1;
-    $raw = get_metadata('post', $post_id);
-
-    if (! is_array($raw)) {
-        return 0;
-    }
-
-    foreach (array_keys($raw) as $key) {
-        if (preg_match('/^page_sections_(\d+)_acf_fc_layout$/', $key, $matches)) {
-            $max = max($max, (int) $matches[1]);
-        }
-    }
-
-    return $max + 1;
+    return luux_page_section_count_from_meta($meta);
 }
 
 /**
@@ -349,10 +397,12 @@ function luux_acf_fix_section_meta_refs(array $meta): array {
     $count   = luux_page_section_count_from_meta($meta);
 
     for ($i = 0; $i < $count; $i++) {
-        $layout = $meta["page_sections_{$i}_acf_fc_layout"] ?? '';
+        $layout = luux_page_section_layout_slug($meta, $i);
         if ($layout === '' || ! isset($layouts[$layout])) {
             continue;
         }
+
+        $meta["page_sections_{$i}_acf_fc_layout"] = $layout;
 
         $layout_key = luux_acf_page_section_layout_key($layout);
         if ($layout_key) {
@@ -379,10 +429,6 @@ function luux_acf_fix_section_meta_refs(array $meta): array {
     }
 
     $meta['_page_sections'] = 'field_luux_page_sections';
-
-    if ($count > 0) {
-        $meta['page_sections'] = $count;
-    }
 
     return $meta;
 }
@@ -413,7 +459,7 @@ function luux_acf_relink_page_section_meta_for_post(int $post_id): void {
     }
 
     foreach ($meta as $key => $value) {
-        if (! luux_acf_is_page_section_meta_key($key)) {
+        if (! str_starts_with($key, '_') || ! luux_acf_is_page_section_meta_key($key)) {
             continue;
         }
 
@@ -469,14 +515,23 @@ function luux_get_page_section_row_indices(int $post_id): array {
         }
     }
 
-    sort($indices);
+    if ($indices !== []) {
+        sort($indices);
 
-    return array_values(array_unique($indices));
+        return array_values(array_unique($indices));
+    }
+
+    $layout_list = luux_acf_parse_page_sections_layout_list($raw['page_sections'][0] ?? null);
+    if ($layout_list === []) {
+        return [];
+    }
+
+    return range(0, count($layout_list) - 1);
 }
 
 /** @return array<string, mixed> */
 function luux_build_single_row_meta(array $full_meta, int $row_index): array {
-    $layout = $full_meta["page_sections_{$row_index}_acf_fc_layout"] ?? '';
+    $layout = luux_page_section_layout_slug($full_meta, $row_index);
     $row    = [
         'page_sections'                  => 1,
         '_page_sections'                 => 'field_luux_page_sections',
@@ -524,7 +579,7 @@ function luux_render_page_sections_by_row(int $post_id): bool {
     $rendered  = false;
 
     foreach ($indices as $row_index) {
-        $layout = $full_meta["page_sections_{$row_index}_acf_fc_layout"] ?? '';
+        $layout = luux_page_section_layout_slug($full_meta, $row_index);
         if ($layout === '') {
             continue;
         }
@@ -584,11 +639,19 @@ add_filter('acf/load_field', function ($field) {
     $from_json['ID']     = $field['ID'] ?? 0;
     $from_json['parent'] = $field['parent'] ?? 'group_luux_page_sections';
 
-    return $from_json;
+    return luux_acf_normalize_field_tree($from_json);
 }, 999);
 
 add_filter('acf/pre_load_meta', function ($null, $post_id) {
+    static $loading = [];
+
     if (! is_numeric($post_id) || get_post_type((int) $post_id) !== 'page') {
+        return $null;
+    }
+
+    $post_id = (int) $post_id;
+
+    if (isset($loading[$post_id])) {
         return $null;
     }
 
@@ -596,7 +659,11 @@ add_filter('acf/pre_load_meta', function ($null, $post_id) {
         return $null;
     }
 
-    return luux_acf_merged_page_meta((int) $post_id);
+    $loading[$post_id] = true;
+    $meta              = luux_acf_merged_page_meta($post_id);
+    unset($loading[$post_id]);
+
+    return $meta;
 }, 10, 2);
 
 add_action('acf/save_post', function ($post_id): void {
