@@ -393,8 +393,13 @@ function luux_acf_resolve_section_field_key(array $fields, string $path): ?strin
 
 /** @return array<string, mixed> */
 function luux_acf_fix_section_meta_refs(array $meta): array {
-    $layouts = luux_acf_page_section_layout_fields();
-    $count   = luux_page_section_count_from_meta($meta);
+    $layouts     = luux_acf_page_section_layout_fields();
+    $layout_list = luux_acf_parse_page_sections_layout_list($meta['page_sections'] ?? null);
+    $count       = count($layout_list);
+
+    if ($count < 1) {
+        $count = luux_page_section_count_from_meta($meta);
+    }
 
     for ($i = 0; $i < $count; $i++) {
         $layout = luux_page_section_layout_slug($meta, $i);
@@ -429,6 +434,11 @@ function luux_acf_fix_section_meta_refs(array $meta): array {
     }
 
     $meta['_page_sections'] = 'field_luux_page_sections';
+
+    // In-memory only: ACF expects a row count integer, not the legacy serialized array.
+    if ($count > 0) {
+        $meta['page_sections'] = $count;
+    }
 
     return $meta;
 }
@@ -565,8 +575,19 @@ function luux_build_single_row_meta(array $full_meta, int $row_index): array {
     return $row;
 }
 
+function luux_page_sections_uses_legacy_storage(int $post_id): bool {
+    $stored = get_post_meta($post_id, 'page_sections', true);
+
+    return luux_acf_parse_page_sections_layout_list($stored) !== [];
+}
+
 function luux_render_page_sections_by_row(int $post_id): bool {
     if (! function_exists('acf_setup_meta') || ! function_exists('have_rows')) {
+        return false;
+    }
+
+    // Legacy imports store layouts as a serialized array — render via full meta instead.
+    if (luux_page_sections_uses_legacy_storage($post_id)) {
         return false;
     }
 

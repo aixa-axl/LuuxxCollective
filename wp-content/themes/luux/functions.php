@@ -104,15 +104,17 @@ function luux_render_sections(): void {
         return;
     }
 
-    if (function_exists('luux_render_page_sections_by_row') && luux_render_page_sections_by_row($post_id)) {
-        return;
-    }
-
-    if (luux_render_sections_from_meta($post_id)) {
+    // Full merged meta first — required for legacy serialized layout lists from staging imports.
+    if (function_exists('luux_render_sections_from_meta') && luux_render_sections_from_meta($post_id)) {
         return;
     }
 
     if (function_exists('have_rows') && luux_loop_page_sections($post_id)) {
+        return;
+    }
+
+    // Row-by-row fallback for modern acf_fc_layout-only storage.
+    if (function_exists('luux_render_page_sections_by_row') && luux_render_page_sections_by_row($post_id)) {
         return;
     }
 }
