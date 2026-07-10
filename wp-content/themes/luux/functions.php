@@ -46,12 +46,8 @@ add_action('wp_enqueue_scripts', function () {
     }
 });
 
-/* ── ACF JSON + Site Options page ───────────────────────── */
+/* ── ACF: export JSON from admin; definitions load via inc/acf-repair.php ── */
 add_filter('acf/settings/save_json', fn() => get_template_directory() . '/acf-json');
-add_filter('acf/settings/load_json', function ($paths) {
-    $paths[] = get_template_directory() . '/acf-json';
-    return $paths;
-});
 
 function luux_site_options_slug(): string {
     return 'luux-site-options';
@@ -78,25 +74,6 @@ add_action('admin_enqueue_scripts', function (string $hook): void {
 
     wp_enqueue_media();
 });
-
-// Remove corrupt legacy repeater rows that crash the options screen.
-add_action('acf/init', function () {
-    if (! is_admin()) {
-        return;
-    }
-
-    foreach (['social_links', 'legal_links'] as $name) {
-        $raw = get_option('options_' . $name);
-        if ($raw === false) {
-            continue;
-        }
-
-        if (! is_array(maybe_unserialize($raw))) {
-            delete_option('options_' . $name);
-            delete_option('_options_' . $name);
-        }
-    }
-}, 5);
 
 /* ── Flexible Content router ────────────────────────────── *
  * Loops page_sections and includes template-parts/layouts/{layout}.php.

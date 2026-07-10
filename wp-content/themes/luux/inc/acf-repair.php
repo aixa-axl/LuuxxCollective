@@ -1,9 +1,11 @@
 <?php
 /**
- * One-click ACF field group repair for Site Options + Page Sections.
+ * ACF repair — purge broken DB field groups and register canonical JSON definitions.
  */
 
 defined('ABSPATH') || exit;
+
+const LUUX_ACF_REPAIR_VERSION = 5;
 
 /** @return list<array{file: string, key: string, title: string}> */
 function luux_acf_managed_field_groups(): array {
@@ -32,36 +34,27 @@ function luux_acf_load_group_from_json(string $filename): ?array {
     return is_array($decoded) ? $decoded : null;
 }
 
-/** @return array{site_options: int, page_sections: int, managed: int} */
-function luux_acf_count_managed_groups(): array {
-    $counts = [
-        'site_options'   => 0,
-        'page_sections'  => 0,
-        'managed'        => 0,
+function luux_acf_site_options_location(): array {
+    return [
+        [
+            [
+                'param'    => 'options_page',
+                'operator' => '==',
+                'value'    => luux_site_options_slug(),
+            ],
+        ],
     ];
+}
 
-    if (! function_exists('acf_get_field_groups')) {
-        return $counts;
+function luux_acf_purge_legacy_option_repeaters(): void {
+    foreach (['social_links', 'legal_links'] as $name) {
+        delete_option('options_' . $name);
+        delete_option('_options_' . $name);
+        delete_option('options_' . $name . '_0_label');
+        delete_option('options_' . $name . '_0_url');
+        delete_option('options_' . $name . '_0_icon');
+        delete_option('options_' . $name . '_0_link');
     }
-
-    $managed_keys = array_column(luux_acf_managed_field_groups(), 'key');
-
-    foreach (acf_get_field_groups() as $group) {
-        $key   = $group['key'] ?? '';
-        $title = $group['title'] ?? '';
-
-        if ($title === 'Site Options') {
-            $counts['site_options']++;
-        }
-        if ($title === 'Page Sections') {
-            $counts['page_sections']++;
-        }
-        if (in_array($key, $managed_keys, true)) {
-            $counts['managed']++;
-        }
-    }
-
-    return $counts;
 }
 
 function luux_acf_delete_managed_groups(): int {
@@ -86,98 +79,121 @@ function luux_acf_delete_managed_groups(): int {
         }
     }
 
-    if (function_exists('acf_get_field_groups') && function_exists('acf_delete_field_group')) {
-        $managed_keys = array_column(luux_acf_managed_field_groups(), 'key');
-
-        foreach (acf_get_field_groups() as $group) {
-            $key = $group['key'] ?? '';
-            $id  = $group['ID'] ?? 0;
-
-            if (! $id || ! in_array($key, $managed_keys, true)) {
-                continue;
-            }
-
-            if (acf_delete_field_group($id)) {
-                $deleted++;
-            }
-        }
-    }
-
     return $deleted;
 }
 
 /**
- * @return array{deleted: int, imported: int, errors: list<string>}
+ * @return array{deleted: int, errors: list<string>}
  */
 function luux_acf_repair_managed_groups(): array {
     $result = [
-        'deleted'  => 0,
-        'imported' => 0,
-        'errors'   => [],
+        'deleted' => 0,
+        'errors'  => [],
     ];
 
-    if (! function_exists('acf_import_field_group')) {
-        $result['errors'][] = 'ACF import is unavailable. Activate Advanced Custom Fields PRO.';
+    if (! function_exists('acf_add_local_field_group')) {
+        $result['errors'][] = 'ACF Pro is not active.';
         return $result;
     }
 
+    luux_acf_purge_legacy_option_repeaters();
     $result['deleted'] = luux_acf_delete_managed_groups();
 
     foreach (luux_acf_managed_field_groups() as $managed) {
-        $group = luux_acf_load_group_from_json($managed['file']);
-        if (! $group) {
-            $result['errors'][] = 'Missing theme file: acf-json/' . $managed['file'];
-            continue;
+        if (! luux_acf_load_group_from_json($managed['file'])) {
+            $result['errors'][] = 'Missing acf-json/' . $managed['file'];
         }
-
-        $imported = acf_import_field_group($group);
-        if (! is_array($imported) || empty($imported['ID'])) {
-            $result['errors'][] = 'Import failed for ' . $managed['title'] . '.';
-            continue;
-        }
-
-        $result['imported']++;
     }
 
     if ($result['errors'] === []) {
+        update_option('luux_acf_repair_version', LUUX_ACF_REPAIR_VERSION, false);
         update_option('luux_acf_repaired_at', time(), false);
     }
 
     return $result;
 }
 
+function luux_acf_register_managed_groups_from_json(): void {
+    if (! function_exists('acf_add_local_field_group')) {
+        return;
+    }
+
+    foreach (luux_acf_managed_field_groups() as $managed) {
+        $group = luux_acf_load_group_from_json($managed['file']);
+        if (! $group) {
+            continue;
+        }
+
+        $group['key']    = $managed['key'];
+        $group['active'] = true;
+
+        if ($managed['key'] === 'group_luux_site_options') {
+            $group['location'] = luux_acf_site_options_location();
+        }
+
+        if (function_exists('acf_remove_local_field_group')) {
+            acf_remove_local_field_group($managed['key']);
+        }
+
+        acf_add_local_field_group($group);
+    }
+}
+
 function luux_acf_repair_url(): string {
     return wp_nonce_url(
-        add_query_arg('luux_acf_repair', '1', admin_url('index.php')),
+        add_query_arg('luux_acf_repair', '1', admin_url('tools.php?page=luux-acf-repair')),
         'luux_acf_repair'
     );
 }
 
-add_action('admin_init', function (): void {
-    if (! is_admin() || ! current_user_can('manage_options')) {
+add_action('init', function (): void {
+    if (! is_admin()) {
         return;
     }
 
-    if (! isset($_GET['luux_acf_repair'])) {
+    luux_acf_purge_legacy_option_repeaters();
+
+    if ((int) get_option('luux_acf_repair_version', 0) >= LUUX_ACF_REPAIR_VERSION) {
         return;
     }
 
-    check_admin_referer('luux_acf_repair');
+    luux_acf_repair_managed_groups();
+}, 5);
 
-    $result = luux_acf_repair_managed_groups();
+add_action('acf/include_fields', 'luux_acf_register_managed_groups_from_json', 99);
 
-    $query = [
-        'luux_acf_repair_done' => '1',
-        'luux_deleted'         => (string) $result['deleted'],
-        'luux_imported'        => (string) $result['imported'],
-    ];
+add_action('admin_menu', function (): void {
+    add_management_page(
+        __('Luux ACF Repair', 'luux'),
+        __('Luux ACF Repair', 'luux'),
+        'manage_options',
+        'luux-acf-repair',
+        function (): void {
+            $result = null;
 
-    if ($result['errors'] !== []) {
-        $query['luux_acf_repair_error'] = rawurlencode(implode(' ', $result['errors']));
-    }
+            if (isset($_GET['luux_acf_repair']) && check_admin_referer('luux_acf_repair')) {
+                $result = luux_acf_repair_managed_groups();
+            }
 
-    wp_safe_redirect(add_query_arg($query, admin_url('index.php')));
-    exit;
+            echo '<div class="wrap">';
+            echo '<h1>Luux ACF Repair</h1>';
+            echo '<p>Use this if page editors or Site Options show a blank screen, or fields will not save.</p>';
+
+            if (is_array($result)) {
+                if ($result['errors'] !== []) {
+                    echo '<div class="notice notice-error"><p>' . esc_html(implode(' ', $result['errors'])) . '</p></div>';
+                } else {
+                    echo '<div class="notice notice-success"><p>Repair complete. Deleted '
+                        . esc_html((string) $result['deleted'])
+                        . ' broken database field group(s). Field definitions now load from theme JSON.</p></div>';
+                }
+            }
+
+            echo '<p><a class="button button-primary button-hero" href="' . esc_url(luux_acf_repair_url()) . '">Run ACF repair now</a></p>';
+            echo '<p><em>Safe to run — page content and Site Options values stay in the database.</em></p>';
+            echo '</div>';
+        }
+    );
 });
 
 add_action('admin_notices', function (): void {
@@ -185,26 +201,8 @@ add_action('admin_notices', function (): void {
         return;
     }
 
-    if (isset($_GET['luux_acf_repair_done'])) {
-        $deleted  = isset($_GET['luux_deleted']) ? (int) $_GET['luux_deleted'] : 0;
-        $imported = isset($_GET['luux_imported']) ? (int) $_GET['luux_imported'] : 0;
-        $error    = isset($_GET['luux_acf_repair_error']) ? sanitize_text_field(wp_unslash($_GET['luux_acf_repair_error'])) : '';
-
-        if ($error !== '') {
-            echo '<div class="notice notice-error"><p><strong>Luux ACF repair failed:</strong> ' . esc_html($error) . '</p></div>';
-            return;
-        }
-
-        echo '<div class="notice notice-success"><p><strong>Luux ACF repair complete.</strong> Removed '
-            . esc_html((string) $deleted)
-            . ' old field group(s) and imported '
-            . esc_html((string) $imported)
-            . ' from theme JSON. Try editing a page and saving Site Options again.</p></div>';
-        return;
-    }
-
     if (! function_exists('acf_get_field_groups')) {
-        echo '<div class="notice notice-error"><p><strong>Luux:</strong> Advanced Custom Fields PRO is not active. Activate ACF Pro — reinstalling the zip only helps if the plugin is missing or corrupted.</p></div>';
+        echo '<div class="notice notice-error"><p><strong>Luux:</strong> ACF Pro is not active. Go to <strong>Plugins</strong> and activate <strong>Advanced Custom Fields PRO</strong>.</p></div>';
         return;
     }
 
@@ -213,21 +211,12 @@ add_action('admin_notices', function (): void {
         $pro_active  = is_plugin_active('advanced-custom-fields-pro/acf.php');
 
         if ($free_active && $pro_active) {
-            echo '<div class="notice notice-error"><p><strong>Luux:</strong> Both free ACF and ACF Pro are active. Deactivate the free <strong>Advanced Custom Fields</strong> plugin and keep only <strong>ACF PRO</strong>.</p></div>';
+            echo '<div class="notice notice-error"><p><strong>Luux:</strong> Deactivate the free <strong>Advanced Custom Fields</strong> plugin. Keep only <strong>ACF PRO</strong>.</p></div>';
         }
     }
 
-    $counts = luux_acf_count_managed_groups();
-    if ($counts['site_options'] <= 1 && $counts['page_sections'] <= 1 && $counts['managed'] >= 2) {
-        return;
-    }
+    $repair_url = esc_url(admin_url('tools.php?page=luux-acf-repair'));
 
-    $repair_url = luux_acf_repair_url();
-
-    echo '<div class="notice notice-error"><p><strong>Luux ACF needs repair.</strong> ';
-    echo 'Detected ' . esc_html((string) $counts['site_options']) . ' Site Options group(s) and ';
-    echo esc_html((string) $counts['page_sections']) . ' Page Sections group(s). ';
-    echo 'This causes blank page editors and Site Options that will not save. ';
-    echo '<a class="button button-primary" href="' . esc_url($repair_url) . '">Repair ACF field groups</a>';
-    echo ' (safe — page content and Site Options values stay in the database).</p></div>';
+    echo '<div class="notice notice-warning"><p><strong>Luux:</strong> Blank page editor or Site Options? '
+        . '<a href="' . $repair_url . '">Open Tools → Luux ACF Repair</a> and click <strong>Run ACF repair now</strong>.</p></div>';
 }, 5);
