@@ -46,12 +46,21 @@ add_action('wp_enqueue_scripts', function () {
     }
 });
 
-/* ── ACF: export JSON from admin; definitions load via inc/acf-repair.php ── */
+/* ── ACF JSON sync + Site Options page ──────────────────── */
 add_filter('acf/settings/save_json', fn() => get_template_directory() . '/acf-json');
+add_filter('acf/settings/load_json', function ($paths) {
+    $paths[] = get_template_directory() . '/acf-json';
+    return $paths;
+});
 
 function luux_site_options_slug(): string {
     return 'luux-site-options';
 }
+
+// ACF flexible content works reliably in the classic editor.
+add_filter('use_block_editor_for_post_type', function ($use, $post_type) {
+    return $post_type === 'page' ? false : $use;
+}, 10, 2);
 
 add_action('acf/init', function () {
     if (! function_exists('acf_add_options_page')) {
