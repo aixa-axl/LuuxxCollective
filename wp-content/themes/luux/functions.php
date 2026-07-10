@@ -68,6 +68,39 @@ function luux_site_options_location(): array {
     ];
 }
 
+/**
+ * Canonical Site Options field group from theme JSON (complete field definitions).
+ */
+function luux_get_site_options_field_group(): ?array {
+    static $group = null;
+
+    if ($group !== null) {
+        return $group === false ? null : $group;
+    }
+
+    $path = get_template_directory() . '/acf-json/group_luux_site_options.json';
+    if (! is_readable($path)) {
+        $group = false;
+        return null;
+    }
+
+    $decoded = json_decode((string) file_get_contents($path), true);
+    if (! is_array($decoded)) {
+        $group = false;
+        return null;
+    }
+
+    if (function_exists('acf_prepare_field_group_for_import')) {
+        $decoded = acf_prepare_field_group_for_import($decoded);
+    }
+
+    $decoded['location'] = luux_site_options_location();
+    $decoded['active']   = true;
+
+    $group = $decoded;
+    return $group;
+}
+
 add_action('acf/init', function () {
     if (! function_exists('acf_add_options_page')) {
         return;
@@ -82,16 +115,50 @@ add_action('acf/init', function () {
     ]);
 }, 0);
 
-// DB sync on production can leave the wrong location (Page / Post Type). Force the correct rule at load time.
+// Register the complete field group from JSON so local fields win over a partial DB sync.
+add_action('acf/include_fields', function () {
+    if (! function_exists('acf_add_local_field_group')) {
+        return;
+    }
+
+    $json = luux_get_site_options_field_group();
+    if (! $json) {
+        return;
+    }
+
+    if (function_exists('acf_remove_local_field_group')) {
+        acf_remove_local_field_group('group_luux_site_options');
+    }
+
+    acf_add_local_field_group($json);
+}, 99);
+
+// DB sync on production can leave wrong location rules or incomplete child fields.
 add_filter('acf/load_field_group', function ($group) {
     if (! is_array($group) || ($group['key'] ?? '') !== 'group_luux_site_options') {
         return $group;
     }
 
-    $group['location'] = luux_site_options_location();
-    $group['active']   = true;
+    $json = luux_get_site_options_field_group();
+    return $json ?? $group;
+});
 
-    return $group;
+add_filter('acf/load_fields', function ($fields, $parent) {
+    if (! is_array($parent) || ($parent['key'] ?? '') !== 'group_luux_site_options') {
+        return $fields;
+    }
+
+    $json = luux_get_site_options_field_group();
+    if (! $json || empty($json['fields']) || ! is_array($json['fields'])) {
+        return $fields;
+    }
+
+    return $json['fields'];
+}, 20, 2);
+
+// Corrupt repeater data in wp_options can white-screen the Social tab.
+add_filter('acf/load_value/name=social_links', function ($value) {
+    return is_array($value) ? $value : [];
 });
 
 add_filter('acf/location/rule_match/options_page', function ($match, $rule, $screen, $field_group) {
@@ -106,6 +173,14 @@ add_filter('acf/location/rule_match/options_page', function ($match, $rule, $scr
 
     return $match;
 }, 10, 4);
+
+add_action('admin_enqueue_scripts', function (string $hook): void {
+    if ($hook !== 'toplevel_page_' . luux_site_options_slug()) {
+        return;
+    }
+
+    wp_enqueue_media();
+});
 
 add_action('admin_notices', function () {
     $page = isset($_GET['page']) ? sanitize_key(wp_unslash($_GET['page'])) : '';
