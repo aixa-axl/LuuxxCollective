@@ -51,7 +51,23 @@ add_filter('acf/settings/load_json', function ($paths) {
     return $paths;
 });
 
-/* ── ACF Site Options (page + local field group from JSON) ─ */
+/* ── ACF Site Options ───────────────────────────────────── */
+function luux_site_options_slug(): string {
+    return 'luux-site-options';
+}
+
+function luux_site_options_location(): array {
+    return [
+        [
+            [
+                'param'    => 'options_page',
+                'operator' => '==',
+                'value'    => luux_site_options_slug(),
+            ],
+        ],
+    ];
+}
+
 add_action('acf/init', function () {
     if (! function_exists('acf_add_options_page')) {
         return;
@@ -60,36 +76,72 @@ add_action('acf/init', function () {
     acf_add_options_page([
         'page_title' => __('Site Options', 'luux'),
         'menu_title' => __('Site Options', 'luux'),
-        'menu_slug'  => 'luux-site-options',
+        'menu_slug'  => luux_site_options_slug(),
         'capability' => 'edit_posts',
         'redirect'   => false,
     ]);
-
-    if (! function_exists('acf_add_local_field_group')) {
-        return;
-    }
-
-    $path = get_template_directory() . '/acf-json/group_luux_site_options.json';
-    if (! is_readable($path)) {
-        return;
-    }
-
-    $group = json_decode((string) file_get_contents($path), true);
-    if (is_array($group)) {
-        acf_add_local_field_group($group);
-    }
 }, 0);
+
+// DB sync on production can leave the wrong location (Page / Post Type). Force the correct rule at load time.
+add_filter('acf/load_field_group', function ($group) {
+    if (! is_array($group) || ($group['key'] ?? '') !== 'group_luux_site_options') {
+        return $group;
+    }
+
+    $group['location'] = luux_site_options_location();
+    $group['active']   = true;
+
+    return $group;
+});
+
+add_filter('acf/location/rule_match/options_page', function ($match, $rule, $screen, $field_group) {
+    if (($field_group['key'] ?? '') !== 'group_luux_site_options') {
+        return $match;
+    }
+
+    $slug = $screen['options_page'] ?? '';
+    if ($slug === luux_site_options_slug()) {
+        return true;
+    }
+
+    return $match;
+}, 10, 4);
 
 add_action('admin_notices', function () {
     $page = isset($_GET['page']) ? sanitize_key(wp_unslash($_GET['page'])) : '';
-    if ($page !== 'luux-site-options') {
+    if ($page !== luux_site_options_slug()) {
+        return;
+    }
+
+    if (! function_exists('acf_add_options_page')) {
+        echo '<div class="notice notice-error"><p><strong>Luux:</strong> ACF Pro is required for Site Options. Activate Advanced Custom Fields PRO.</p></div>';
         return;
     }
 
     $path = get_template_directory() . '/acf-json/group_luux_site_options.json';
     if (! is_readable($path)) {
         echo '<div class="notice notice-error"><p><strong>Luux:</strong> Missing <code>acf-json/group_luux_site_options.json</code> on the server. Deploy the theme or upload that file.</p></div>';
+        return;
     }
+
+    if (! function_exists('acf_get_field_groups')) {
+        return;
+    }
+
+    $groups = acf_get_field_groups(['options_page' => luux_site_options_slug()]);
+    if (! empty($groups)) {
+        return;
+    }
+
+    $pages = function_exists('acf_get_options_pages') ? acf_get_options_pages() : [];
+    $slugs = $pages ? array_column($pages, 'menu_slug') : [];
+
+    echo '<div class="notice notice-warning"><p><strong>Luux:</strong> No field groups are linked to this options page yet.';
+    if ($slugs && ! in_array(luux_site_options_slug(), $slugs, true)) {
+        echo ' Registered options page slugs: <code>' . esc_html(implode('</code>, <code>', $slugs)) . '</code>.';
+        echo ' This page expects <code>' . esc_html(luux_site_options_slug()) . '</code>.';
+    }
+    echo ' Deploy the latest theme, then under <strong>Custom Fields → Field Groups</strong> trash any <strong>Site Options</strong> group whose location is not Options Page, and sync it again from the JSON file.</p></div>';
 });
 
 /* ── Flexible Content router ────────────────────────────── *
