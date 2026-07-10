@@ -46,14 +46,8 @@ add_action('wp_enqueue_scripts', function () {
     }
 });
 
-/* ── ACF JSON sync + Site Options page ──────────────────── */
+/* ── ACF: export JSON from admin; definitions load via inc/acf-repair.php ── */
 add_filter('acf/settings/save_json', fn() => get_template_directory() . '/acf-json');
-add_filter('acf/settings/load_json', function ($paths) {
-    foreach (luux_acf_json_paths() as $dir) {
-        $paths[] = $dir;
-    }
-    return $paths;
-});
 
 function luux_site_options_slug(): string {
     return 'luux-site-options';

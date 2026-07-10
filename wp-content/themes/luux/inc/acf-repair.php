@@ -1,11 +1,11 @@
 <?php
 /**
- * ACF repair — clean database field definitions and import from theme JSON.
+ * ACF repair — load complete field definitions from theme JSON (not partial DB copies).
  */
 
 defined('ABSPATH') || exit;
 
-const LUUX_ACF_REPAIR_VERSION = 7;
+const LUUX_ACF_REPAIR_VERSION = 8;
 
 /** @return list<string> */
 function luux_acf_json_paths(): array {
@@ -63,6 +63,22 @@ function luux_acf_load_group_from_json(string $filename): ?array {
     return is_array($decoded) ? $decoded : null;
 }
 
+function luux_acf_prepare_group_from_json(string $filename, string $key): ?array {
+    $group = luux_acf_load_group_from_json($filename);
+    if (! $group) {
+        return null;
+    }
+
+    $group['key']    = $key;
+    $group['active'] = true;
+
+    if ($key === 'group_luux_site_options') {
+        $group['location'] = luux_acf_site_options_location();
+    }
+
+    return $group;
+}
+
 function luux_acf_site_options_location(): array {
     return [
         [
@@ -82,10 +98,10 @@ function luux_acf_purge_legacy_option_repeaters(): void {
     }
 }
 
-function luux_acf_delete_all_field_posts(): int {
+function luux_acf_delete_definition_posts(): int {
     $deleted = 0;
 
-    foreach (['acf-field', 'acf-field-group'] as $post_type) {
+    foreach (['acf-field', 'acf-field-group', 'acf-ui-options-page'] as $post_type) {
         $ids = get_posts([
             'post_type'      => $post_type,
             'post_status'    => 'any',
@@ -104,46 +120,30 @@ function luux_acf_delete_all_field_posts(): int {
 }
 
 /**
- * @return array{deleted: int, imported: int, errors: list<string>}
+ * @return array{deleted: int, errors: list<string>}
  */
 function luux_acf_repair_managed_groups(): array {
     $result = [
-        'deleted'  => 0,
-        'imported' => 0,
-        'errors'   => [],
+        'deleted' => 0,
+        'errors'  => [],
     ];
 
-    if (! function_exists('acf_import_field_group')) {
+    if (! function_exists('acf_add_local_field_group')) {
         $result['errors'][] = 'ACF Pro is not active.';
         return $result;
     }
 
     luux_acf_purge_legacy_option_repeaters();
-    $result['deleted'] = luux_acf_delete_all_field_posts();
+    $result['deleted'] = luux_acf_delete_definition_posts();
 
     foreach (luux_acf_managed_field_groups() as $managed) {
-        $group = luux_acf_load_group_from_json($managed['file']);
-        if (! $group) {
-            $result['errors'][] = 'Missing ' . $managed['file'] . ' in acf-json/ and inc/acf-field-groups/. Deploy the theme.';
-            continue;
+        if (! luux_acf_prepare_group_from_json($managed['file'], $managed['key'])) {
+            $result['errors'][] = 'Missing ' . $managed['file'] . ' in acf-json/ or inc/acf-field-groups/.';
         }
-
-        if ($managed['key'] === 'group_luux_site_options') {
-            $group['location'] = luux_acf_site_options_location();
-        }
-
-        $group['active'] = true;
-
-        $imported = acf_import_field_group($group);
-        if (! is_array($imported) || empty($imported['ID'])) {
-            $result['errors'][] = 'Import failed for ' . $managed['title'] . '.';
-            continue;
-        }
-
-        $result['imported']++;
     }
 
     if ($result['errors'] === []) {
+        luux_acf_register_managed_groups_from_json();
         update_option('luux_acf_repair_version', LUUX_ACF_REPAIR_VERSION, false);
         update_option('luux_acf_repaired_at', time(), false);
     }
@@ -151,15 +151,44 @@ function luux_acf_repair_managed_groups(): array {
     return $result;
 }
 
+function luux_acf_register_managed_groups_from_json(): void {
+    if (! function_exists('acf_add_local_field_group')) {
+        return;
+    }
+
+    foreach (luux_acf_managed_field_groups() as $managed) {
+        $group = luux_acf_prepare_group_from_json($managed['file'], $managed['key']);
+        if (! $group) {
+            continue;
+        }
+
+        if (function_exists('acf_remove_local_field_group')) {
+            acf_remove_local_field_group($managed['key']);
+        }
+
+        acf_add_local_field_group($group);
+    }
+}
+
+function luux_acf_page_sections_layout_count(): int {
+    $group = luux_acf_prepare_group_from_json('group_luux_page_sections.json', 'group_luux_page_sections');
+    if (! $group || empty($group['fields'][0]['layouts']) || ! is_array($group['fields'][0]['layouts'])) {
+        return 0;
+    }
+
+    return count($group['fields'][0]['layouts']);
+}
+
 /** @return array<string, mixed> */
 function luux_acf_diagnostics(): array {
     $diag = [
-        'acf_pro'        => function_exists('acf_add_options_page'),
-        'json_dir'       => luux_acf_json_dir(),
-        'json_files'     => [],
-        'field_groups'   => [],
-        'options_groups' => 0,
-        'page_groups'    => 0,
+        'acf_pro'              => function_exists('acf_add_options_page'),
+        'json_dir'             => luux_acf_json_dir(),
+        'json_files'           => [],
+        'field_groups'         => [],
+        'options_groups'       => 0,
+        'page_groups'          => 0,
+        'page_sections_layouts' => luux_acf_page_sections_layout_count(),
     ];
 
     foreach (luux_acf_managed_field_groups() as $managed) {
@@ -179,17 +208,15 @@ function luux_acf_diagnostics(): array {
             }
         }
 
-        if (function_exists('acf_get_field_groups')) {
-            $for_options = acf_get_field_groups([
-                'options_page' => luux_site_options_slug(),
-            ]);
-            $diag['options_screen_groups'] = count($for_options);
+        $for_options = acf_get_field_groups([
+            'options_page' => luux_site_options_slug(),
+        ]);
+        $diag['options_screen_groups'] = count($for_options);
 
-            $for_pages = acf_get_field_groups([
-                'post_type' => 'page',
-            ]);
-            $diag['page_screen_groups'] = count($for_pages);
-        }
+        $for_pages = acf_get_field_groups([
+            'post_type' => 'page',
+        ]);
+        $diag['page_screen_groups'] = count($for_pages);
     }
 
     return $diag;
@@ -220,9 +247,7 @@ function luux_acf_render_repair_page(): void {
         } else {
             echo '<div class="notice notice-success"><p><strong>Repair complete.</strong> Removed '
                 . esc_html((string) $result['deleted'])
-                . ' ACF database record(s) and imported '
-                . esc_html((string) $result['imported'])
-                . ' field group(s) from theme JSON.</p></div>';
+                . ' broken ACF definition record(s). Field groups now load from theme JSON.</p></div>';
         }
     }
 
@@ -231,7 +256,7 @@ function luux_acf_render_repair_page(): void {
 
     echo '<h2>Diagnostics</h2><table class="widefat striped" style="max-width:48rem"><tbody>';
     echo '<tr><th>ACF Pro active</th><td>' . ($diag['acf_pro'] ? 'Yes' : '<strong style="color:#b32d2e">No</strong>') . '</td></tr>';
-    echo '<tr><th>JSON directory</th><td><code>' . esc_html($diag['json_dir']) . '</code></td></tr>';
+    echo '<tr><th>Page Sections layouts in JSON</th><td>' . esc_html((string) $diag['page_sections_layouts']) . ' (want 20+)</td></tr>';
 
     foreach ($diag['json_files'] as $file => $path) {
         if ($path) {
@@ -272,6 +297,72 @@ add_action('init', function (): void {
     luux_acf_repair_managed_groups();
 }, 5);
 
+add_action('acf/include_fields', 'luux_acf_register_managed_groups_from_json', 99);
+
+add_filter('acf/load_field_group', function ($group) {
+    if (! is_array($group)) {
+        return $group;
+    }
+
+    $map = [
+        'group_luux_site_options'   => 'group_luux_site_options.json',
+        'group_luux_page_sections'  => 'group_luux_page_sections.json',
+    ];
+
+    $key = $group['key'] ?? '';
+    if (! isset($map[$key])) {
+        return $group;
+    }
+
+    $from_json = luux_acf_prepare_group_from_json($map[$key], $key);
+
+    return $from_json ?? $group;
+});
+
+add_filter('acf/load_fields', function ($fields, $parent) {
+    if (! is_array($parent)) {
+        return $fields;
+    }
+
+    $map = [
+        'group_luux_site_options'  => 'group_luux_site_options.json',
+        'group_luux_page_sections' => 'group_luux_page_sections.json',
+    ];
+
+    $key = $parent['key'] ?? '';
+    if (! isset($map[$key])) {
+        return $fields;
+    }
+
+    $from_json = luux_acf_prepare_group_from_json($map[$key], $key);
+    if (! $from_json || empty($from_json['fields']) || ! is_array($from_json['fields'])) {
+        return $fields;
+    }
+
+    return $from_json['fields'];
+}, 20, 2);
+
+add_filter('acf/location/screen', function ($screen) {
+    $page = isset($_GET['page']) ? sanitize_key(wp_unslash($_GET['page'])) : '';
+    if ($page === luux_site_options_slug()) {
+        $screen['options_page'] = luux_site_options_slug();
+    }
+
+    return $screen;
+});
+
+add_filter('acf/location/rule_match/options_page', function ($match, $rule, $screen, $field_group) {
+    if (($field_group['key'] ?? '') !== 'group_luux_site_options') {
+        return $match;
+    }
+
+    if (($rule['value'] ?? '') !== luux_site_options_slug()) {
+        return $match;
+    }
+
+    return ($screen['options_page'] ?? '') === luux_site_options_slug();
+}, 10, 4);
+
 add_action('admin_menu', function (): void {
     add_management_page(
         __('Luux ACF Repair', 'luux'),
@@ -299,9 +390,11 @@ add_action('admin_notices', function (): void {
 
     $diag = luux_acf_diagnostics();
 
-    if (($diag['options_screen_groups'] ?? 0) < 1 || ($diag['page_screen_groups'] ?? 0) < 1) {
+    if (($diag['options_screen_groups'] ?? 0) < 1
+        || ($diag['page_screen_groups'] ?? 0) < 1
+        || ($diag['page_sections_layouts'] ?? 0) < 5) {
         $repair_url = esc_url(admin_url('tools.php?page=luux-acf-repair'));
-        echo '<div class="notice notice-error"><p><strong>Luux:</strong> ACF field groups are not attached to pages or Site Options. '
+        echo '<div class="notice notice-error"><p><strong>Luux:</strong> ACF field groups need repair. '
             . '<a href="' . $repair_url . '">Open Tools → Luux ACF Repair</a> and run repair.</p></div>';
     }
 }, 5);
