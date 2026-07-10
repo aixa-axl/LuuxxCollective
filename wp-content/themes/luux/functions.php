@@ -212,6 +212,14 @@ add_action('admin_notices', function () {
             return;
         }
     }
+
+    if (current_user_can('manage_options') && get_option('luux_site_options_migrated_v2')) {
+        $sample = luux_get_raw_option_value('footer_tagline');
+        $shown  = function_exists('get_field') ? get_field('footer_tagline', 'option') : null;
+        if ($sample && ! $shown) {
+            echo '<div class="notice notice-warning"><p><strong>Luux:</strong> Some Site Options values may still be in the database under old keys. A migration has run — try saving Site Options once. If content is still missing, restore a <strong>WP Engine backup</strong> from before the data was lost.</p></div>';
+        }
+    }
 });
 
 /* ── Flexible Content router ────────────────────────────── *
