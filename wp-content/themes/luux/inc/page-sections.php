@@ -166,6 +166,7 @@ function luux_acf_page_sections_diagnostics(): array {
         'group_id'     => is_array($group) ? ($group['ID'] ?? 0) : 0,
         'repair_done'  => (int) get_option('luux_page_sections_repair_version', 0),
         'pages_with_sections' => luux_acf_count_pages_with_sections(),
+        'legacy_pages'        => luux_acf_count_legacy_pages(),
     ];
 }
 
@@ -217,6 +218,54 @@ function luux_acf_parse_page_sections_layout_list(mixed $value): array {
     return array_values(array_filter($parsed, 'is_string'));
 }
 
+function luux_acf_count_legacy_pages(): int {
+    global $wpdb;
+
+    return (int) $wpdb->get_var(
+        "SELECT COUNT(DISTINCT post_id) FROM {$wpdb->postmeta}
+        WHERE meta_key = 'page_sections'
+        AND meta_value LIKE 'a:%'"
+    );
+}
+
+/**
+ * @return array{ok: bool, message: string}
+ */
+function luux_acf_migrate_all_legacy_page_sections(): array {
+    $pages = get_posts([
+        'post_type'      => 'page',
+        'post_status'    => 'any',
+        'posts_per_page' => -1,
+        'fields'         => 'ids',
+    ]);
+
+    $migrated = 0;
+
+    foreach ($pages as $page_id) {
+        $page_id = (int) $page_id;
+
+        if (! luux_page_sections_uses_legacy_storage($page_id)) {
+            continue;
+        }
+
+        if (! luux_acf_migrate_legacy_page_sections_storage($page_id)) {
+            continue;
+        }
+
+        luux_acf_relink_page_section_meta_for_post($page_id);
+        $migrated++;
+    }
+
+    return [
+        'ok'      => true,
+        'message' => sprintf(
+            /* translators: %d: number of pages migrated */
+            __('Migrated %d page(s) from legacy section storage to the modern ACF format.', 'luux'),
+            $migrated
+        ),
+    ];
+}
+
 function luux_acf_render_page_sections_tools_page(): void {
     if (! current_user_can('manage_options')) {
         return;
@@ -227,10 +276,18 @@ function luux_acf_render_page_sections_tools_page(): void {
         $result = luux_acf_repair_page_sections_definitions();
     }
 
+    if (isset($_GET['luux_migrate_legacy_sections']) && check_admin_referer('luux_migrate_legacy_sections')) {
+        $result = luux_acf_migrate_all_legacy_page_sections();
+    }
+
     $diag = luux_acf_page_sections_diagnostics();
     $url  = wp_nonce_url(
         add_query_arg('luux_repair_page_sections', '1', admin_url('tools.php?page=luux-page-sections')),
         'luux_repair_page_sections'
+    );
+    $migrate_url = wp_nonce_url(
+        add_query_arg('luux_migrate_legacy_sections', '1', admin_url('tools.php?page=luux-page-sections')),
+        'luux_migrate_legacy_sections'
     );
 
     echo '<div class="wrap"><h1>Luux Page Sections</h1>';
@@ -246,6 +303,7 @@ function luux_acf_render_page_sections_tools_page(): void {
     echo '<tr><th>Layouts in theme JSON</th><td>' . esc_html((string) $diag['json_layouts']) . ' (want 25)</td></tr>';
     echo '<tr><th>Layouts ACF is using</th><td>' . esc_html((string) $diag['live_layouts']) . ' (want 25)</td></tr>';
     echo '<tr><th>Pages with saved sections</th><td>' . esc_html((string) $diag['pages_with_sections']) . '</td></tr>';
+    echo '<tr><th>Pages on legacy storage</th><td>' . esc_html((string) $diag['legacy_pages']) . '</td></tr>';
     echo '<tr><th>Field group source</th><td><code>' . esc_html((string) $diag['group_source']) . '</code></td></tr>';
     echo '</tbody></table>';
 
@@ -261,6 +319,13 @@ function luux_acf_render_page_sections_tools_page(): void {
     echo '<div class="notice notice-warning" style="max-width:40rem;margin-top:1rem"><p><strong>Only use Repair if layouts are missing.</strong> ';
     echo 'It re-registers field definitions from theme JSON. It does not touch Site Options or page content.</p></div>';
     echo '<p><a class="button button-secondary" href="' . esc_url($url) . '">Repair field definitions only</a></p>';
+
+    if ((int) $diag['legacy_pages'] > 0) {
+        echo '<div class="notice notice-warning" style="max-width:40rem;margin-top:1rem"><p><strong>Legacy imported pages detected.</strong> ';
+        echo 'Resort pages imported from staging (e.g. Ikos) may fail to save Video Tours media until their section storage is migrated.</p></div>';
+        echo '<p><a class="button button-primary" href="' . esc_url($migrate_url) . '">Migrate legacy page storage</a></p>';
+    }
+
     echo '</div>';
 }
 
@@ -452,6 +517,91 @@ function luux_acf_page_sections_row_count(array $meta): int {
     }
 
     return luux_page_section_count_from_meta($meta);
+}
+
+/**
+ * Map video_tours ACF field keys to stored meta names.
+ *
+ * @return array<string, array{0: string, 1: string}>
+ */
+function luux_acf_video_tours_field_map(): array {
+    return [
+        'field_luux_video_tours_media_type_left'  => ['media_type_left', 'field_luux_video_tours_media_type_left'],
+        'field_luux_video_tours_media_type_right' => ['media_type_right', 'field_luux_video_tours_media_type_right'],
+        'field_luux_video_tours_image_left'       => ['image_left', 'field_luux_video_tours_image_left'],
+        'field_luux_video_tours_image_right'      => ['image_right', 'field_luux_video_tours_image_right'],
+        'field_luux_video_tours_video_left'       => ['video_left', 'field_luux_video_tours_video_left'],
+        'field_luux_video_tours_video_right'      => ['video_right', 'field_luux_video_tours_video_right'],
+    ];
+}
+
+/**
+ * Write video_tours media fields directly from the ACF POST payload.
+ * Imported resort pages (legacy storage) can drop conditional/file fields during a normal ACF save.
+ */
+function luux_acf_persist_video_tours_from_request(int $post_id): void {
+    if (empty($_POST['acf']) || ! is_array($_POST['acf'])) {
+        return;
+    }
+
+    $rows = $_POST['acf']['field_luux_page_sections'] ?? null;
+    if (! is_array($rows)) {
+        return;
+    }
+
+    $field_map = luux_acf_video_tours_field_map();
+
+    foreach (array_values($rows) as $row_index => $row) {
+        if (! is_array($row) || ($row['acf_fc_layout'] ?? '') !== 'video_tours') {
+            continue;
+        }
+
+        $prefix = 'page_sections_' . (int) $row_index . '_';
+
+        foreach ($field_map as $post_key => [$name, $ref]) {
+            if (! array_key_exists($post_key, $row)) {
+                continue;
+            }
+
+            $value = wp_unslash($row[$post_key]);
+            $meta_key = $prefix . $name;
+
+            if ($value === '' || $value === null) {
+                delete_post_meta($post_id, $meta_key);
+                delete_post_meta($post_id, '_' . $meta_key);
+
+                continue;
+            }
+
+            update_post_meta($post_id, $meta_key, $value);
+            update_post_meta($post_id, '_' . $meta_key, $ref);
+        }
+    }
+}
+
+/**
+ * Convert imported legacy page_sections storage (serialized layout list) to modern ACF row format.
+ */
+function luux_acf_migrate_legacy_page_sections_storage(int $post_id): bool {
+    $layout_list = luux_acf_parse_page_sections_layout_list(get_post_meta($post_id, 'page_sections', true));
+
+    if ($layout_list === []) {
+        return false;
+    }
+
+    foreach ($layout_list as $i => $layout) {
+        update_post_meta($post_id, "page_sections_{$i}_acf_fc_layout", $layout);
+
+        $layout_key = luux_acf_page_section_layout_key($layout);
+        if ($layout_key) {
+            update_post_meta($post_id, "_page_sections_{$i}", $layout_key);
+        }
+    }
+
+    update_post_meta($post_id, 'page_sections', count($layout_list));
+    update_post_meta($post_id, '_page_sections', 'field_luux_page_sections');
+
+    return true;
 }
 
 /**
@@ -738,8 +888,8 @@ add_filter('acf/pre_load_meta', function ($null, $post_id) {
         return $null;
     }
 
-    // Frontend: let ACF read legacy serialized layout lists straight from the database.
-    if (! is_admin() && luux_page_sections_uses_legacy_storage($post_id)) {
+    // Imported resort pages store a serialized layout list — merged meta breaks ACF saves.
+    if (luux_page_sections_uses_legacy_storage($post_id)) {
         return $null;
     }
 
@@ -751,8 +901,6 @@ add_filter('acf/pre_load_meta', function ($null, $post_id) {
         return $meta;
     }
 
-    // Preserve the raw page_sections value — converting legacy serialized layout lists to a
-    // row count here breaks ACF admin saves on imported resort pages (e.g. Ikos).
     $raw_page_sections = get_post_meta($post_id, 'page_sections', true);
     if ($raw_page_sections !== '' && $raw_page_sections !== false) {
         $meta['page_sections'] = $raw_page_sections;
@@ -761,6 +909,32 @@ add_filter('acf/pre_load_meta', function ($null, $post_id) {
     return $meta;
 }, 10, 2);
 
+add_action('load-post.php', function (): void {
+    if (! isset($_GET['post']) || ! is_numeric($_GET['post'])) {
+        return;
+    }
+
+    $post_id = (int) $_GET['post'];
+
+    if (get_post_type($post_id) !== 'page' || ! luux_page_sections_uses_legacy_storage($post_id)) {
+        return;
+    }
+
+    if (luux_acf_migrate_legacy_page_sections_storage($post_id)) {
+        luux_acf_relink_page_section_meta_for_post($post_id);
+    }
+});
+
+add_action('acf/save_post', function ($post_id): void {
+    if (! is_numeric($post_id) || get_post_type((int) $post_id) !== 'page') {
+        return;
+    }
+
+    if (luux_page_sections_uses_legacy_storage((int) $post_id)) {
+        luux_acf_migrate_legacy_page_sections_storage((int) $post_id);
+    }
+}, 5);
+
 add_action('acf/save_post', function ($post_id): void {
     if (! is_numeric($post_id) || get_post_type((int) $post_id) !== 'page') {
         return;
@@ -768,6 +942,7 @@ add_action('acf/save_post', function ($post_id): void {
 
     $post_id = (int) $post_id;
 
+    luux_acf_persist_video_tours_from_request($post_id);
     luux_acf_relink_page_section_meta_for_post($post_id);
     luux_acf_sync_video_tours_media_meta($post_id);
 }, 20);
