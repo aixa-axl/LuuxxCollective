@@ -32,9 +32,11 @@ $render_media = static function ($type, $image_id, $video_id) {
             return;
         }
 
-        $poster_url = luux_get_video_poster_url($video_id);
+        $video_url  = wp_get_attachment_url($video_id);
+        $video_mime = get_post_mime_type($video_id);
+        $poster_url = luux_video_tours_poster_url($video_id);
 
-        if (luux_get_video_sources($video_id) === []) {
+        if (! $video_url) {
             return;
         }
         ?>
@@ -47,7 +49,7 @@ $render_media = static function ($type, $image_id, $video_id) {
                 playsinline
                 preload="auto"<?php echo $poster_url ? ' poster="' . esc_url($poster_url) . '"' : ''; ?>
             >
-                <?php luux_render_video_sources($video_id); ?>
+                <source src="<?php echo esc_url($video_url); ?>"<?php echo $video_mime ? ' type="' . esc_attr($video_mime) . '"' : ''; ?>>
             </video>
         </div>
         <?php

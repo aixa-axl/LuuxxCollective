@@ -19,9 +19,14 @@ $has_media = $has_video || $image_id;
 <section<?php echo $section_id ? ' id="' . esc_attr($section_id) . '"' : ''; ?> class="resort-hero resort-hero--bleed relative flex min-h-[640px] flex-col lg:min-h-[780px]">
     <?php if ($has_media) : ?>
         <div class="resort-hero__media" aria-hidden="true">
-            <?php if ($has_video) : ?>
+            <?php if ($has_video) :
+                $video_url  = wp_get_attachment_url($video_id);
+                $video_mime = get_post_mime_type($video_id);
+                ?>
                 <video class="resort-hero__media-el" autoplay muted loop playsinline>
-                    <?php luux_render_video_sources((int) $video_id); ?>
+                    <?php if ($video_url) : ?>
+                        <source src="<?php echo esc_url($video_url); ?>"<?php echo $video_mime ? ' type="' . esc_attr($video_mime) . '"' : ''; ?>>
+                    <?php endif; ?>
                 </video>
             <?php elseif ($image_id) : ?>
                 <?php echo wp_get_attachment_image($image_id, 'full', false, [

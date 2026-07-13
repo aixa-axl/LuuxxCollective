@@ -69,13 +69,18 @@ foreach ([$image_top_left, $image_top, $image_bottom_left, $image_bottom] as $ca
 
         <?php if ($has_hero) : ?>
             <div class="dining__hero<?php echo ($hero_media_type === 'video' && $hero_video_id) ? ' dining__hero--video' : ''; ?>">
-                <?php if ($hero_media_type === 'video' && $hero_video_id) : ?>
+                <?php if ($hero_media_type === 'video' && $hero_video_id) :
+                    $hero_video_url  = wp_get_attachment_url($hero_video_id);
+                    $hero_video_mime = get_post_mime_type($hero_video_id);
+                    ?>
                     <video class="dining__video"
                            autoplay
                            muted
                            loop
                            playsinline>
-                        <?php luux_render_video_sources((int) $hero_video_id); ?>
+                        <?php if ($hero_video_url) : ?>
+                            <source src="<?php echo esc_url($hero_video_url); ?>"<?php echo $hero_video_mime ? ' type="' . esc_attr($hero_video_mime) . '"' : ''; ?>>
+                        <?php endif; ?>
                     </video>
                 <?php elseif ($image_hero) : ?>
                     <?php echo wp_get_attachment_image($image_hero, 'large', false, [
@@ -138,9 +143,14 @@ foreach ([$image_top_left, $image_top, $image_bottom_left, $image_bottom] as $ca
                     <div class="dining__carousel-track" data-dining-track>
                         <?php foreach ($carousel_slides as $slide) : ?>
                             <div class="dining__carousel-slide">
-                                <?php if ($slide['type'] === 'video') : ?>
+                                <?php if ($slide['type'] === 'video') :
+                                    $slide_video_url  = wp_get_attachment_url($slide['id']);
+                                    $slide_video_mime = get_post_mime_type($slide['id']);
+                                    ?>
                                     <video class="dining__media" autoplay muted loop playsinline>
-                                        <?php luux_render_video_sources((int) $slide['id']); ?>
+                                        <?php if ($slide_video_url) : ?>
+                                            <source src="<?php echo esc_url($slide_video_url); ?>"<?php echo $slide_video_mime ? ' type="' . esc_attr($slide_video_mime) . '"' : ''; ?>>
+                                        <?php endif; ?>
                                     </video>
                                 <?php else : ?>
                                     <?php echo wp_get_attachment_image($slide['id'], 'large', false, [

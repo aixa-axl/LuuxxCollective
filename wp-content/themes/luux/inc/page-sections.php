@@ -842,9 +842,23 @@ function luux_acf_video_tours_attachment_id(mixed $value): int {
  * Poster frame for a video attachment (WordPress-generated thumbnail when available).
  */
 function luux_video_tours_poster_url(int $attachment_id): string {
-    return function_exists('luux_get_video_poster_url')
-        ? luux_get_video_poster_url($attachment_id)
-        : '';
+    if ($attachment_id < 1) {
+        return '';
+    }
+
+    $meta = wp_get_attachment_metadata($attachment_id);
+
+    if (! is_array($meta) || empty($meta['image']['file'])) {
+        return '';
+    }
+
+    $video_url = wp_get_attachment_url($attachment_id);
+
+    if (! $video_url) {
+        return '';
+    }
+
+    return trailingslashit(dirname($video_url)) . $meta['image']['file'];
 }
 
 /**
@@ -1121,12 +1135,6 @@ function luux_acf_ajax_save_video_tours_media(): void {
     luux_acf_sync_video_tours_media_meta($post_id);
     luux_acf_relink_video_tours_meta_for_post($post_id);
 
-    foreach (['video_left', 'video_right'] as $side) {
-        if (! empty($stash[$side]) && is_numeric($stash[$side])) {
-            luux_maybe_generate_video_mp4_derivative((int) $stash[$side]);
-        }
-    }
-
     wp_send_json_success(['row_index' => $db_index]);
 }
 
@@ -1181,27 +1189,6 @@ function luux_acf_persist_video_tours_from_request(int $post_id): void {
 function luux_acf_save_video_tours_meta(int $post_id): void {
     luux_acf_persist_video_tours_from_request($post_id);
     luux_acf_restore_video_tours_from_stash($post_id);
-
-    if (! function_exists('luux_maybe_generate_video_mp4_derivative')) {
-        return;
-    }
-
-    $meta  = luux_acf_get_page_section_meta($post_id);
-    $count = luux_acf_page_sections_row_count($meta);
-
-    for ($i = 0; $i < $count; $i++) {
-        if (luux_page_section_layout_slug($meta, $i) !== 'video_tours') {
-            continue;
-        }
-
-        foreach (['video_left', 'video_right'] as $name) {
-            $video_id = luux_acf_video_tours_attachment_id(get_post_meta($post_id, "page_sections_{$i}_{$name}", true));
-
-            if ($video_id) {
-                luux_maybe_generate_video_mp4_derivative($video_id);
-            }
-        }
-    }
 }
 
 /**
