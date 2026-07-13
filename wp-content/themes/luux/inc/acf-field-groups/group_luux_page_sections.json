@@ -838,16 +838,7 @@
               "name": "image_left",
               "type": "image",
               "return_format": "id",
-              "preview_size": "medium",
-              "conditional_logic": [
-                [
-                  {
-                    "field": "field_luux_video_tours_media_type_left",
-                    "operator": "==",
-                    "value": "image"
-                  }
-                ]
-              ]
+              "preview_size": "medium"
             },
             {
               "key": "field_luux_video_tours_video_left",
@@ -856,16 +847,7 @@
               "type": "file",
               "return_format": "id",
               "mime_types": "mp4,webm,mov",
-              "instructions": "Upload an MP4, WebM, or MOV file. Plays muted and loops automatically.",
-              "conditional_logic": [
-                [
-                  {
-                    "field": "field_luux_video_tours_media_type_left",
-                    "operator": "==",
-                    "value": "video"
-                  }
-                ]
-              ]
+              "instructions": "Upload an MP4, WebM, or MOV file. Plays muted and loops automatically. Only used when Left Media Type is Video."
             },
             {
               "key": "field_luux_video_tours_media_type_right",
@@ -885,16 +867,7 @@
               "name": "image_right",
               "type": "image",
               "return_format": "id",
-              "preview_size": "medium",
-              "conditional_logic": [
-                [
-                  {
-                    "field": "field_luux_video_tours_media_type_right",
-                    "operator": "==",
-                    "value": "image"
-                  }
-                ]
-              ]
+              "preview_size": "medium"
             },
             {
               "key": "field_luux_video_tours_video_right",
@@ -903,16 +876,7 @@
               "type": "file",
               "return_format": "id",
               "mime_types": "mp4,webm,mov",
-              "instructions": "Upload an MP4, WebM, or MOV file. Plays muted and loops automatically.",
-              "conditional_logic": [
-                [
-                  {
-                    "field": "field_luux_video_tours_media_type_right",
-                    "operator": "==",
-                    "value": "video"
-                  }
-                ]
-              ]
+              "instructions": "Upload an MP4, WebM, or MOV file. Plays muted and loops automatically. Only used when Right Media Type is Video."
             },
             {
               "key": "field_luux_video_tours_section_id",

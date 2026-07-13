@@ -435,12 +435,70 @@ function luux_acf_fix_section_meta_refs(array $meta): array {
 
     $meta['_page_sections'] = 'field_luux_page_sections';
 
-    // In-memory only: ACF expects a row count integer, not the legacy serialized array.
-    if ($count > 0) {
-        $meta['page_sections'] = $count;
+    return $meta;
+}
+
+/**
+ * Row count for ACF flexible content when meta is merged in memory (frontend helpers only).
+ */
+function luux_acf_page_sections_row_count(array $meta): int {
+    $layout_list = luux_acf_parse_page_sections_layout_list($meta['page_sections'] ?? null);
+    if ($layout_list !== []) {
+        return count($layout_list);
     }
 
-    return $meta;
+    if (isset($meta['page_sections']) && is_numeric($meta['page_sections']) && (int) $meta['page_sections'] > 0) {
+        return (int) $meta['page_sections'];
+    }
+
+    return luux_page_section_count_from_meta($meta);
+}
+
+/**
+ * Keep video_tours media meta consistent after save and ensure ACF field reference keys exist.
+ */
+function luux_acf_sync_video_tours_media_meta(int $post_id): void {
+    $meta = luux_acf_get_page_section_meta($post_id);
+    if ($meta === []) {
+        return;
+    }
+
+    $count = luux_acf_page_sections_row_count($meta);
+
+    for ($i = 0; $i < $count; $i++) {
+        if (luux_page_section_layout_slug($meta, $i) !== 'video_tours') {
+            continue;
+        }
+
+        $prefix = "page_sections_{$i}_";
+
+        foreach (['left', 'right'] as $side) {
+            $type_key  = $prefix . 'media_type_' . $side;
+            $media_type = get_post_meta($post_id, $type_key, true) ?: 'image';
+
+            update_post_meta($post_id, '_' . $type_key, 'field_luux_video_tours_media_type_' . $side);
+
+            if ($media_type === 'video') {
+                delete_post_meta($post_id, $prefix . 'image_' . $side);
+                delete_post_meta($post_id, '_' . $prefix . 'image_' . $side);
+
+                $video_key = $prefix . 'video_' . $side;
+                if (get_post_meta($post_id, $video_key, true)) {
+                    update_post_meta($post_id, '_' . $video_key, 'field_luux_video_tours_video_' . $side);
+                }
+
+                continue;
+            }
+
+            delete_post_meta($post_id, $prefix . 'video_' . $side);
+            delete_post_meta($post_id, '_' . $prefix . 'video_' . $side);
+
+            $image_key = $prefix . 'image_' . $side;
+            if (get_post_meta($post_id, $image_key, true)) {
+                update_post_meta($post_id, '_' . $image_key, 'field_luux_video_tours_image_' . $side);
+            }
+        }
+    }
 }
 
 /** @return array<string, mixed> */
@@ -689,6 +747,17 @@ add_filter('acf/pre_load_meta', function ($null, $post_id) {
     $meta              = luux_acf_merged_page_meta($post_id);
     unset($loading[$post_id]);
 
+    if (! is_array($meta)) {
+        return $meta;
+    }
+
+    // Preserve the raw page_sections value — converting legacy serialized layout lists to a
+    // row count here breaks ACF admin saves on imported resort pages (e.g. Ikos).
+    $raw_page_sections = get_post_meta($post_id, 'page_sections', true);
+    if ($raw_page_sections !== '' && $raw_page_sections !== false) {
+        $meta['page_sections'] = $raw_page_sections;
+    }
+
     return $meta;
 }, 10, 2);
 
@@ -697,11 +766,10 @@ add_action('acf/save_post', function ($post_id): void {
         return;
     }
 
-    if (luux_page_sections_uses_legacy_storage((int) $post_id)) {
-        return;
-    }
+    $post_id = (int) $post_id;
 
-    luux_acf_relink_page_section_meta_for_post((int) $post_id);
+    luux_acf_relink_page_section_meta_for_post($post_id);
+    luux_acf_sync_video_tours_media_meta($post_id);
 }, 20);
 
 add_action('admin_menu', function (): void {
