@@ -104,6 +104,18 @@ function luux_render_sections(): void {
         return;
     }
 
+    $legacy = function_exists('luux_page_sections_uses_legacy_storage')
+        && luux_page_sections_uses_legacy_storage($post_id);
+
+    // Staging imports store layouts as a serialized array — ACF reads that directly from postmeta.
+    if ($legacy) {
+        if (function_exists('have_rows') && luux_loop_page_sections($post_id)) {
+            return;
+        }
+
+        return;
+    }
+
     if (function_exists('luux_render_sections_from_meta') && luux_render_sections_from_meta($post_id)) {
         return;
     }
