@@ -34,21 +34,13 @@ $render_media = static function ($type, $image_id, $video_id) {
 
         $video_url  = wp_get_attachment_url($video_id);
         $video_mime = get_post_mime_type($video_id);
-        $poster_url = luux_video_tours_poster_url($video_id);
 
         if (! $video_url) {
             return;
         }
         ?>
         <div class="video-tours__media">
-            <video
-                class="video-tours__media-el"
-                autoplay
-                muted
-                loop
-                playsinline
-                preload="auto"<?php echo $poster_url ? ' poster="' . esc_url($poster_url) . '"' : ''; ?>
-            >
+            <video class="h-full w-full object-cover" autoplay muted loop playsinline>
                 <source src="<?php echo esc_url($video_url); ?>"<?php echo $video_mime ? ' type="' . esc_attr($video_mime) . '"' : ''; ?>>
             </video>
         </div>
@@ -62,7 +54,7 @@ $render_media = static function ($type, $image_id, $video_id) {
     ?>
     <div class="video-tours__media">
         <?php echo wp_get_attachment_image($image_id, 'large', false, [
-            'class'   => 'video-tours__media-el',
+            'class'   => 'h-full w-full object-cover',
             'loading' => 'lazy',
         ]); ?>
     </div>

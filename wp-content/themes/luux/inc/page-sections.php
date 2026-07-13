@@ -839,90 +839,34 @@ function luux_acf_video_tours_attachment_id(mixed $value): int {
 }
 
 /**
- * Poster frame for a video attachment (WordPress-generated thumbnail when available).
- */
-function luux_video_tours_poster_url(int $attachment_id): string {
-    if ($attachment_id < 1) {
-        return '';
-    }
-
-    $meta = wp_get_attachment_metadata($attachment_id);
-
-    if (! is_array($meta) || empty($meta['image']['file'])) {
-        return '';
-    }
-
-    $video_url = wp_get_attachment_url($attachment_id);
-
-    if (! $video_url) {
-        return '';
-    }
-
-    return trailingslashit(dirname($video_url)) . $meta['image']['file'];
-}
-
-/**
- * Current flexible-content row index while rendering page_sections.
- */
-function luux_video_tours_current_row_index(): int {
-    if (isset($GLOBALS['luux_page_section_row_index'])) {
-        return (int) $GLOBALS['luux_page_section_row_index'];
-    }
-
-    if (function_exists('acf_get_loop')) {
-        $loop = acf_get_loop('active');
-
-        if (is_array($loop) && ($loop['selector'] ?? '') === 'page_sections' && isset($loop['i'])) {
-            return (int) $loop['i'];
-        }
-    }
-
-    if (function_exists('get_row_index')) {
-        return max(0, (int) get_row_index() - 1);
-    }
-
-    return -1;
-}
-
-function luux_set_page_section_row_context(int $row_index): void {
-    $GLOBALS['luux_page_section_row_index'] = $row_index;
-}
-
-function luux_clear_page_section_row_context(): void {
-    unset($GLOBALS['luux_page_section_row_index']);
-}
-
-/**
  * Read a video_tours sub-field from the current flexible row, with direct postmeta fallback.
  */
 function luux_video_tours_sub_field(string $name) {
-    $post_id    = get_the_ID();
-    $row_index  = luux_video_tours_current_row_index();
-    $media_keys = ['media_type_left', 'media_type_right', 'video_left', 'video_right', 'image_left', 'image_right'];
-
-    if ($post_id && $row_index >= 0) {
-        $direct = get_post_meta($post_id, "page_sections_{$row_index}_{$name}", true);
-
-        if (in_array($name, $media_keys, true) && $direct !== '' && $direct !== false) {
-            return $direct;
-        }
-    }
-
     $value = get_sub_field($name);
 
     if ($value !== null && $value !== false && $value !== '') {
         return $value;
     }
 
-    if ($post_id && $row_index >= 0) {
-        $direct = get_post_meta($post_id, "page_sections_{$row_index}_{$name}", true);
+    $post_id = get_the_ID();
 
-        if ($direct !== '' && $direct !== false) {
-            return $direct;
-        }
+    if (! $post_id || ! function_exists('get_row_index')) {
+        return $value;
     }
 
-    return $value;
+    $row_index = (int) get_row_index() - 1;
+
+    if ($row_index < 0) {
+        return $value;
+    }
+
+    $direct = get_post_meta($post_id, "page_sections_{$row_index}_{$name}", true);
+
+    if ($direct === '' || $direct === false) {
+        return $value;
+    }
+
+    return $direct;
 }
 
 /**
@@ -1413,6 +1357,11 @@ function luux_render_page_sections_by_row(int $post_id): bool {
         return false;
     }
 
+    // Legacy imports store layouts as a serialized array — render via full meta instead.
+    if (luux_page_sections_uses_legacy_storage($post_id)) {
+        return false;
+    }
+
     $indices = luux_get_page_section_row_indices($post_id);
     if ($indices === []) {
         return false;
@@ -1429,7 +1378,6 @@ function luux_render_page_sections_by_row(int $post_id): bool {
 
         $row_meta = luux_build_single_row_meta($full_meta, $row_index);
         acf_setup_meta($row_meta, $post_id, true);
-        luux_set_page_section_row_context($row_index);
 
         if (have_rows('page_sections', $post_id)) {
             while (have_rows('page_sections', $post_id)) {
@@ -1438,8 +1386,6 @@ function luux_render_page_sections_by_row(int $post_id): bool {
                 $rendered = true;
             }
         }
-
-        luux_clear_page_section_row_context();
 
         if (function_exists('acf_reset_meta')) {
             acf_reset_meta($post_id);
@@ -1540,7 +1486,7 @@ add_filter('acf/pre_update_metadata', function ($check, $post_id, $name, $value,
 }, 10, 5);
 
 add_filter('acf/load_value', function ($value, $post_id, $field) {
-    if (! is_array($field)) {
+    if (! is_admin() || ! is_array($field)) {
         return $value;
     }
 
