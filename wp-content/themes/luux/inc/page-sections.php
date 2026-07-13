@@ -697,6 +697,10 @@ add_action('acf/save_post', function ($post_id): void {
         return;
     }
 
+    if (luux_page_sections_uses_legacy_storage((int) $post_id)) {
+        return;
+    }
+
     luux_acf_relink_page_section_meta_for_post((int) $post_id);
 }, 20);
 
