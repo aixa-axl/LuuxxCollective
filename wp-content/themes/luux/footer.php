@@ -5,16 +5,16 @@
 
 defined('ABSPATH') || exit;
 
-$tagline      = (string) (luux_get_site_option('footer_tagline') ?: '');
-$logo_id      = luux_get_site_option('site_logo_light');
-$email        = (string) (luux_get_site_option('contact_email') ?: '');
-$phone        = (string) (luux_get_site_option('contact_phone') ?: '');
-$address      = (string) (luux_get_site_option('contact_address') ?: '');
-$contact_text = (string) (luux_get_site_option('contact_intro') ?: '');
-$group_text   = (string) (luux_get_site_option('footer_group_text') ?: '');
-$footer_logo_one = luux_get_site_option('footer_logo_one');
-$footer_logo_two = luux_get_site_option('footer_logo_two');
-$footer_disclaimer = (string) (luux_get_site_option('footer_disclaimer') ?: '');
+$tagline      = function_exists('get_field') ? get_field('footer_tagline', 'option') : '';
+$logo_id      = function_exists('get_field') ? get_field('site_logo_light', 'option') : null;
+$email        = function_exists('get_field') ? get_field('contact_email', 'option') : '';
+$phone        = function_exists('get_field') ? get_field('contact_phone', 'option') : '';
+$address      = function_exists('get_field') ? get_field('contact_address', 'option') : '';
+$contact_text = function_exists('get_field') ? get_field('contact_intro', 'option') : '';
+$group_text   = function_exists('get_field') ? get_field('footer_group_text', 'option') : '';
+$footer_logo_one = function_exists('get_field') ? get_field('footer_logo_one', 'option') : null;
+$footer_logo_two = function_exists('get_field') ? get_field('footer_logo_two', 'option') : null;
+$footer_disclaimer = function_exists('get_field') ? get_field('footer_disclaimer', 'option') : '';
 $socials      = luux_get_social_links();
 $legal_links  = luux_get_legal_links();
 $whatsapp_url = 'https://api.whatsapp.com/send/?phone=443333059912&text&type=phone_number&app_absent=0';

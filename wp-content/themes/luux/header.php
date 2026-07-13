@@ -10,9 +10,9 @@
 
 <?php
 $on_hero    = luux_uses_hero_header();
-$logo_light = luux_get_site_option('site_logo');
-$logo_dark  = luux_get_site_option('site_logo_dark');
-$enquire    = luux_get_site_option('enquire_link');
+$logo_light = function_exists('get_field') ? get_field('site_logo', 'option') : null;
+$logo_dark  = function_exists('get_field') ? get_field('site_logo_dark', 'option') : null;
+$enquire    = function_exists('get_field') ? get_field('enquire_link', 'option') : null;
 
 $header_class = 'site-header' . ($on_hero ? ' site-header--hero' : '');
 ?>
