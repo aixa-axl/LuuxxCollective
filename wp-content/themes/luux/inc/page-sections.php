@@ -575,11 +575,65 @@ function luux_acf_video_tours_db_row_indices(int $post_id): array {
 }
 
 /**
- * video_tours rows submitted in the current save request, with flexible-content row index.
+ * video_tours rows from early hidden inputs (injected at top of form — survives max_input_vars truncation).
  *
  * @return list<array{index: int, row: array<string, mixed>}>
  */
-function luux_acf_video_tours_post_rows_with_indices(): array {
+function luux_acf_video_tours_early_post_rows(): array {
+    if (empty($_POST['luux_video_tours']) || ! is_array($_POST['luux_video_tours'])) {
+        return [];
+    }
+
+    $field_map   = luux_acf_video_tours_field_map();
+    $name_to_key = [];
+
+    foreach ($field_map as $key => [$name]) {
+        $name_to_key[$name] = $key;
+    }
+
+    $rows = [];
+
+    foreach ($_POST['luux_video_tours'] as $index => $fields) {
+        if (! is_array($fields)) {
+            continue;
+        }
+
+        $row = ['acf_fc_layout' => 'video_tours'];
+
+        foreach ($fields as $name => $value) {
+            if (! is_string($name) || ! array_key_exists($name, $name_to_key)) {
+                continue;
+            }
+
+            $value = wp_unslash($value);
+
+            if ($value === '' || $value === null) {
+                continue;
+            }
+
+            $row[$name_to_key[$name]] = $value;
+            $row[$name]               = $value;
+        }
+
+        if (count($row) < 2) {
+            continue;
+        }
+
+        $rows[] = [
+            'index' => (int) $index,
+            'row'   => $row,
+        ];
+    }
+
+    return $rows;
+}
+
+/**
+ * video_tours rows from the ACF flexible content POST payload.
+ *
+ * @return list<array{index: int, row: array<string, mixed>}>
+ */
+function luux_acf_video_tours_post_rows_from_acf(): array {
     if (empty($_POST['acf']) || ! is_array($_POST['acf'])) {
         return [];
     }
@@ -619,6 +673,22 @@ function luux_acf_video_tours_post_rows_with_indices(): array {
     }
 
     return $rows;
+}
+
+/**
+ * video_tours rows submitted in the current save request, with flexible-content row index.
+ *
+ * @return list<array{index: int, row: array<string, mixed>}>
+ */
+function luux_acf_video_tours_post_rows_with_indices(): array {
+    $early = luux_acf_video_tours_early_post_rows();
+    $acf   = luux_acf_video_tours_post_rows_from_acf();
+
+    if ($early !== []) {
+        return $early;
+    }
+
+    return $acf;
 }
 
 /**
@@ -816,6 +886,117 @@ function luux_acf_video_tours_field_map(): array {
 }
 
 /**
+ * Write video_tours media fields for a single flexible-content row.
+ *
+ * @param array<string, mixed> $row
+ */
+function luux_acf_persist_video_tours_row(int $post_id, int $db_index, array $row): void {
+    $prefix    = 'page_sections_' . (int) $db_index . '_';
+    $field_map = luux_acf_video_tours_field_map();
+
+    foreach ($field_map as $post_key => [$name, $ref]) {
+        if (! luux_acf_video_tours_row_has_field($row, $post_key, $name)) {
+            continue;
+        }
+
+        $value    = luux_acf_video_tours_row_value($row, $post_key, $name);
+        $meta_key = $prefix . $name;
+
+        if (str_starts_with($name, 'video_')) {
+            $value = luux_acf_video_tours_attachment_id($value);
+        }
+
+        if ($value === '' || $value === null || $value === 0) {
+            delete_post_meta($post_id, $meta_key);
+            delete_post_meta($post_id, '_' . $meta_key);
+
+            continue;
+        }
+
+        update_post_meta($post_id, $meta_key, $value);
+        update_post_meta($post_id, '_' . $meta_key, $ref);
+    }
+
+    foreach (['left', 'right'] as $side) {
+        $video_key  = $prefix . 'video_' . $side;
+        $type_key   = $prefix . 'media_type_' . $side;
+        $video_id   = luux_acf_video_tours_attachment_id(get_post_meta($post_id, $video_key, true));
+        $media_type = get_post_meta($post_id, $type_key, true);
+
+        if ($video_id && $media_type !== 'video') {
+            update_post_meta($post_id, $type_key, 'video');
+            update_post_meta($post_id, '_' . $type_key, 'field_luux_video_tours_media_type_' . $side);
+            update_post_meta($post_id, $video_key, $video_id);
+            update_post_meta($post_id, '_' . $video_key, 'field_luux_video_tours_video_' . $side);
+        }
+    }
+}
+
+function luux_acf_video_tours_row_layout(int $post_id, int $index): string {
+    $meta = luux_acf_get_page_section_meta($post_id);
+
+    if ($meta !== []) {
+        return luux_page_section_layout_slug($meta, $index);
+    }
+
+    return luux_page_section_layout_slug(
+        ['page_sections' => get_post_meta($post_id, 'page_sections', true)],
+        $index
+    );
+}
+
+/**
+ * AJAX — save video_tours media immediately (bypasses large-page POST truncation).
+ */
+function luux_acf_ajax_save_video_tours_media(): void {
+    if (! current_user_can('edit_pages')) {
+        wp_send_json_error(['message' => 'Forbidden'], 403);
+    }
+
+    check_ajax_referer('luux_video_tours_save', 'nonce');
+
+    $post_id   = isset($_POST['post_id']) ? (int) $_POST['post_id'] : 0;
+    $row_index = isset($_POST['row_index']) ? (int) $_POST['row_index'] : -1;
+    $fields    = isset($_POST['fields']) && is_array($_POST['fields']) ? wp_unslash($_POST['fields']) : [];
+
+    if ($post_id < 1 || get_post_type($post_id) !== 'page' || $row_index < 0 || $fields === []) {
+        wp_send_json_error(['message' => 'Invalid request'], 400);
+    }
+
+    if (! current_user_can('edit_post', $post_id)) {
+        wp_send_json_error(['message' => 'Forbidden'], 403);
+    }
+
+    if (luux_acf_video_tours_row_layout($post_id, $row_index) !== 'video_tours') {
+        wp_send_json_error(['message' => 'Row is not video_tours'], 400);
+    }
+
+    $field_map = luux_acf_video_tours_field_map();
+    $row       = ['acf_fc_layout' => 'video_tours'];
+
+    foreach ($fields as $name => $value) {
+        if (! is_string($name)) {
+            continue;
+        }
+
+        foreach ($field_map as $key => [$map_name]) {
+            if ($map_name !== $name) {
+                continue;
+            }
+
+            $row[$key]  = $value;
+            $row[$name] = $value;
+        }
+    }
+
+    luux_acf_persist_video_tours_row($post_id, $row_index, $row);
+    luux_acf_sync_video_tours_media_meta($post_id);
+    luux_acf_relink_video_tours_meta_for_post($post_id);
+
+    wp_send_json_success(['row_index' => $row_index]);
+}
+
+/**
  * Write video_tours media fields directly from the ACF POST payload.
  * Imported resort pages (legacy storage) can drop conditional/file fields during a normal ACF save.
  */
@@ -827,54 +1008,15 @@ function luux_acf_persist_video_tours_from_request(int $post_id): void {
     }
 
     $db_indices = luux_acf_video_tours_db_row_indices($post_id);
-    $field_map  = luux_acf_video_tours_field_map();
 
     foreach ($post_rows as $n => $item) {
-        $row      = $item['row'];
         $db_index = $db_indices[$n] ?? $item['index'] ?? null;
 
         if ($db_index === null) {
             continue;
         }
 
-        $prefix = 'page_sections_' . (int) $db_index . '_';
-
-        foreach ($field_map as $post_key => [$name, $ref]) {
-            if (! luux_acf_video_tours_row_has_field($row, $post_key, $name)) {
-                continue;
-            }
-
-            $value    = luux_acf_video_tours_row_value($row, $post_key, $name);
-            $meta_key = $prefix . $name;
-
-            if (str_starts_with($name, 'video_')) {
-                $value = luux_acf_video_tours_attachment_id($value);
-            }
-
-            if ($value === '' || $value === null || $value === 0) {
-                delete_post_meta($post_id, $meta_key);
-                delete_post_meta($post_id, '_' . $meta_key);
-
-                continue;
-            }
-
-            update_post_meta($post_id, $meta_key, $value);
-            update_post_meta($post_id, '_' . $meta_key, $ref);
-        }
-
-        foreach (['left', 'right'] as $side) {
-            $video_key  = $prefix . 'video_' . $side;
-            $type_key   = $prefix . 'media_type_' . $side;
-            $video_id   = luux_acf_video_tours_attachment_id(get_post_meta($post_id, $video_key, true));
-            $media_type = get_post_meta($post_id, $type_key, true);
-
-            if ($video_id && $media_type !== 'video') {
-                update_post_meta($post_id, $type_key, 'video');
-                update_post_meta($post_id, '_' . $type_key, 'field_luux_video_tours_media_type_' . $side);
-                update_post_meta($post_id, $video_key, $video_id);
-                update_post_meta($post_id, '_' . $video_key, 'field_luux_video_tours_video_' . $side);
-            }
-        }
+        luux_acf_persist_video_tours_row($post_id, (int) $db_index, $item['row']);
     }
 }
 
@@ -1283,7 +1425,10 @@ add_action('acf/save_post', function ($post_id): void {
         return;
     }
 
-    if (! isset($_POST['acf']) || ! is_array($_POST['acf'])) {
+    if (
+        (! isset($_POST['acf']) || ! is_array($_POST['acf']))
+        && empty($_POST['luux_video_tours'])
+    ) {
         return;
     }
 
@@ -1295,12 +1440,47 @@ add_action('save_post_page', function (int $post_id): void {
         return;
     }
 
-    if (! isset($_POST['acf']) || ! is_array($_POST['acf'])) {
+    if (
+        (! isset($_POST['acf']) || ! is_array($_POST['acf']))
+        && empty($_POST['luux_video_tours'])
+    ) {
         return;
     }
 
     luux_acf_save_video_tours_meta($post_id);
 }, 999);
+
+add_action('wp_ajax_luux_save_video_tours_media', 'luux_acf_ajax_save_video_tours_media');
+
+add_action('admin_enqueue_scripts', function (string $hook): void {
+    if (! in_array($hook, ['post.php', 'post-new.php'], true)) {
+        return;
+    }
+
+    $screen = function_exists('get_current_screen') ? get_current_screen() : null;
+
+    if (! $screen || $screen->post_type !== 'page') {
+        return;
+    }
+
+    $path = get_template_directory() . '/assets/js/admin-video-tours.js';
+
+    if (! is_readable($path)) {
+        return;
+    }
+
+    wp_enqueue_script(
+        'luux-admin-video-tours',
+        get_template_directory_uri() . '/assets/js/admin-video-tours.js',
+        ['jquery', 'acf-input'],
+        (string) filemtime($path),
+        true
+    );
+
+    wp_localize_script('luux-admin-video-tours', 'luuxVideoTours', [
+        'nonce' => wp_create_nonce('luux_video_tours_save'),
+    ]);
+});
 
 add_action('admin_menu', function (): void {
     add_management_page(
