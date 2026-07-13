@@ -847,7 +847,7 @@
               "type": "file",
               "return_format": "id",
               "mime_types": "mp4,webm,mov",
-              "instructions": "Upload an MP4, WebM, or MOV file. Plays muted and loops automatically. Only used when Left Media Type is Video."
+              "instructions": "Upload MP4, WebM, or MOV. MOV is auto-converted to MP4 for Chrome and Firefox when the server supports FFmpeg."
             },
             {
               "key": "field_luux_video_tours_media_type_right",
@@ -876,7 +876,7 @@
               "type": "file",
               "return_format": "id",
               "mime_types": "mp4,webm,mov",
-              "instructions": "Upload an MP4, WebM, or MOV file. Plays muted and loops automatically. Only used when Right Media Type is Video."
+              "instructions": "Upload MP4, WebM, or MOV. MOV is auto-converted to MP4 for Chrome and Firefox when the server supports FFmpeg."
             },
             {
               "key": "field_luux_video_tours_section_id",

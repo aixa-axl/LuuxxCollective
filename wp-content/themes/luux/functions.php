@@ -8,6 +8,7 @@ defined('ABSPATH') || exit;
 
 require get_template_directory() . '/inc/instagram.php';
 require get_template_directory() . '/inc/site-options.php';
+require get_template_directory() . '/inc/video-derivatives.php';
 require get_template_directory() . '/inc/acf-bootstrap.php';
 
 /* ── Theme supports & menus ─────────────────────────────── */

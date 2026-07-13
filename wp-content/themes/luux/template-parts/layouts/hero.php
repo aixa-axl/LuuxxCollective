@@ -15,14 +15,9 @@ $has_media = $has_video || $image_id;
 ?>
 
 <section class="hero<?php echo is_front_page() ? ' hero--home-bleed' : ''; ?> relative h-[640px] overflow-hidden lg:h-[700px]">
-    <?php if ($has_video) :
-        $video_url  = wp_get_attachment_url($video_id);
-        $video_mime = get_post_mime_type($video_id);
-        ?>
+    <?php if ($has_video) : ?>
         <video class="absolute inset-0 h-full w-full object-cover" autoplay muted loop playsinline>
-            <?php if ($video_url) : ?>
-                <source src="<?php echo esc_url($video_url); ?>"<?php echo $video_mime ? ' type="' . esc_attr($video_mime) . '"' : ''; ?>>
-            <?php endif; ?>
+            <?php luux_render_video_sources((int) $video_id); ?>
         </video>
     <?php elseif ($image_id) : ?>
         <?php echo wp_get_attachment_image($image_id, 'full', false, [
