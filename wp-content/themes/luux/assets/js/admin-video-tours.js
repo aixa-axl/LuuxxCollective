@@ -1,14 +1,9 @@
 /**
  * Video Tours admin save helpers.
  * Block editor + large resort pages can drop video fields from the save payload.
- * We stash values via AJAX and inject DOM state before ACF serializes.
  */
 (function ($) {
     'use strict';
-
-    if (typeof acf === 'undefined' || typeof luuxVideoTours === 'undefined') {
-        return;
-    }
 
     var FIELD_KEYS = {
         media_type_left: 'field_luux_video_tours_media_type_left',
@@ -19,11 +14,23 @@
         video_right: 'field_luux_video_tours_video_right',
     };
 
-    var FIELD_NAMES = Object.keys(FIELD_KEYS);
     var savingRows = false;
+    var initialized = false;
+
+    function getAjaxUrl() {
+        if (typeof luuxVideoTours !== 'undefined' && luuxVideoTours.ajaxurl) {
+            return luuxVideoTours.ajaxurl;
+        }
+
+        if (typeof ajaxurl !== 'undefined') {
+            return ajaxurl;
+        }
+
+        return '';
+    }
 
     function getPageSectionsFlex() {
-        return $('.acf-field[data-name="page_sections"] .acf-flexible-content').first();
+        return $('.acf-field[data-key="field_luux_page_sections"] .acf-flexible-content, .acf-field[data-name="page_sections"] .acf-flexible-content').first();
     }
 
     function getFlexibleLayouts($flex) {
@@ -50,94 +57,79 @@
         return layouts;
     }
 
-    function readMediaTypeValue($field) {
-        var $checked = $field.find('input[type="radio"]:checked');
+    function fieldNameForKey(key) {
+        var name = '';
 
-        if ($checked.length) {
-            return $checked.val() || '';
-        }
-
-        var $select = $field.find('select').first();
-
-        if ($select.length) {
-            return $select.val() || '';
-        }
-
-        return '';
-    }
-
-    function readAttachmentValue($field) {
-        var $hidden = $field.find('input[type="hidden"]').filter(function () {
-            return this.name && !/^acf\[[^\]]+\]$/.test(this.name);
+        $.each(FIELD_KEYS, function (fieldName, fieldKey) {
+            if (fieldKey === key) {
+                name = fieldName;
+            }
         });
 
-        if ($hidden.length) {
-            var val = $hidden.first().val();
-            if (val) {
-                return val;
-            }
-        }
-
-        $hidden = $field.find('.acf-file-uploader input[type="hidden"], .acf-image-uploader input[type="hidden"]');
-
-        if ($hidden.length) {
-            var attachmentVal = $hidden.first().val();
-            if (attachmentVal) {
-                return attachmentVal;
-            }
-        }
-
-        var dataId = $field.find('[data-id]').first().attr('data-id');
-
-        if (dataId) {
-            return dataId;
-        }
-
-        return '';
+        return name;
     }
 
-    function readFieldValue($layout, name, key) {
-        var $field = $layout.find('.acf-field[data-key="' + key + '"]');
-
-        if (!$field.length) {
+    function readFieldValueFromAcf($fieldEl) {
+        if (typeof acf === 'undefined' || typeof acf.getField !== 'function') {
             return '';
         }
 
-        if (name.indexOf('media_type_') === 0) {
-            return readMediaTypeValue($field);
+        var field = acf.getField($fieldEl);
+
+        if (!field || typeof field.val !== 'function') {
+            return '';
         }
 
-        return readAttachmentValue($field);
+        var value = field.val();
+
+        if (value === null || value === undefined || value === '') {
+            return '';
+        }
+
+        if (typeof value === 'object' && value.id) {
+            return String(value.id);
+        }
+
+        if (typeof value === 'object' && value.ID) {
+            return String(value.ID);
+        }
+
+        return String(value);
     }
 
     function readRowFields($layout) {
         var fields = {};
-        var mediaTypeLeft = readFieldValue($layout, 'media_type_left', FIELD_KEYS.media_type_left) || 'image';
-        var mediaTypeRight = readFieldValue($layout, 'media_type_right', FIELD_KEYS.media_type_right) || 'image';
 
-        $.each(FIELD_KEYS, function (name, key) {
-            if (name === 'image_left' && mediaTypeLeft === 'video') {
+        $layout.find('.acf-field').each(function () {
+            var $fieldEl = $(this);
+            var key = $fieldEl.attr('data-key') || '';
+            var name = fieldNameForKey(key);
+
+            if (!name) {
                 return;
             }
 
-            if (name === 'video_left' && mediaTypeLeft === 'image') {
-                return;
-            }
-
-            if (name === 'image_right' && mediaTypeRight === 'video') {
-                return;
-            }
-
-            if (name === 'video_right' && mediaTypeRight === 'image') {
-                return;
-            }
-
-            var value = readFieldValue($layout, name, key);
+            var value = readFieldValueFromAcf($fieldEl);
 
             if (value !== '') {
                 fields[name] = value;
             }
         });
+
+        var mediaTypeLeft = fields.media_type_left || 'image';
+        var mediaTypeRight = fields.media_type_right || 'image';
+
+        if (mediaTypeLeft === 'video') {
+            delete fields.image_left;
+        } else {
+            delete fields.video_left;
+        }
+
+        if (mediaTypeRight === 'video') {
+            delete fields.image_right;
+        } else {
+            delete fields.video_right;
+        }
 
         if (fields.video_left && !fields.media_type_left) {
             fields.media_type_left = 'video';
@@ -166,11 +158,7 @@
         var $form = $('#post');
 
         if (!$form.length) {
-            $form = $('.acf-postbox').closest('form');
-
-            if (!$form.length) {
-                $form = $('form#post');
-            }
+            $form = $('form').has('#post_ID').first();
         }
 
         if (!$form.length) {
@@ -201,13 +189,14 @@
 
     function saveRowAjax(rowIndex, rowNth, fields, async) {
         var postId = $('#post_ID').val();
+        var url = getAjaxUrl();
 
-        if (!postId || !fields || $.isEmptyObject(fields)) {
+        if (!url || !postId || !fields || $.isEmptyObject(fields)) {
             return $.Deferred().resolve().promise();
         }
 
         return $.ajax({
-            url: ajaxurl,
+            url: url,
             method: 'POST',
             async: async !== false,
             data: {
@@ -250,15 +239,15 @@
         return chain;
     }
 
-    function mergeRowIntoAcfPayload(row, acfRow) {
+    function mergeRowIntoAcfPayload(fields, acfRow) {
         if (!acfRow || typeof acfRow !== 'object') {
             acfRow = { acf_fc_layout: 'video_tours' };
         }
 
         $.each(FIELD_KEYS, function (name, key) {
-            if (row.fields[name]) {
-                acfRow[key] = row.fields[name];
-                acfRow[name] = row.fields[name];
+            if (fields[name]) {
+                acfRow[key] = fields[name];
+                acfRow[name] = fields[name];
             }
         });
 
@@ -298,7 +287,7 @@
             var domRow = rows[nth];
 
             if (domRow) {
-                fc[key] = mergeRowIntoAcfPayload({ fields: readRowFields(domRow.$el) }, row);
+                fc[key] = mergeRowIntoAcfPayload(readRowFields(domRow.$el), row);
             }
 
             nth += 1;
@@ -339,50 +328,15 @@
     }
 
     function isVideoToursField(field) {
-        var key = field.get('key') || '';
-
-        return Object.values(FIELD_KEYS).indexOf(key) !== -1;
-    }
-
-    function isPageSectionsField(field) {
-        var parent = field.parent();
-
-        while (parent) {
-            if (parent.get('name') === 'page_sections') {
-                return true;
-            }
-            parent = parent.parent();
+        if (!field || typeof field.get !== 'function') {
+            return false;
         }
 
-        return false;
+        return Object.values(FIELD_KEYS).indexOf(field.get('key') || '') !== -1;
     }
 
-    function beforeSave() {
-        injectEarlyFields();
-        return stashAllVideoToursRows(false);
-    }
-
-    $('#post').on('submit', function () {
-        beforeSave();
-    });
-
-    acf.addAction('submit', function () {
-        beforeSave();
-    });
-
-    acf.addAction('prepare', function () {
-        injectEarlyFields();
-    });
-
-    if (acf.addFilter) {
-        acf.addFilter('prepare_for_ajax', function (data) {
-            injectEarlyFields();
-            return mergeDomVideoToursIntoAcfData(data);
-        });
-    }
-
-    acf.addAction('change', function (field) {
-        if (!isVideoToursField(field) || !isPageSectionsField(field)) {
+    function handleFieldChange(field) {
+        if (!isVideoToursField(field)) {
             return;
         }
 
@@ -396,26 +350,107 @@
         var fields = readRowFields($layout);
 
         saveRowAjax(indices.domIndex, indices.rowNth, fields, true);
-    });
+    }
 
-    if (window.wp && wp.data && wp.data.subscribe && wp.data.select) {
-        var wasSaving = false;
+    function beforeSave() {
+        injectEarlyFields();
+        return stashAllVideoToursRows(false);
+    }
 
-        wp.data.subscribe(function () {
-            var editor = wp.data.select('core/editor');
+    function bindBlockEditorSave() {
+        var attempts = 0;
 
-            if (!editor || typeof editor.isSavingPost !== 'function') {
+        function tryBind() {
+            attempts += 1;
+
+            if (!window.wp || !wp.data || !wp.data.subscribe || !wp.data.select) {
+                if (attempts < 100) {
+                    window.setTimeout(tryBind, 100);
+                }
                 return;
             }
 
-            var isSaving = editor.isSavingPost();
-            var isAutosave = typeof editor.isAutosavingPost === 'function' && editor.isAutosavingPost();
+            var wasSaving = false;
 
-            if (isSaving && !isAutosave && !wasSaving) {
-                beforeSave();
-            }
+            wp.data.subscribe(function () {
+                var editor = wp.data.select('core/editor');
 
-            wasSaving = isSaving;
+                if (!editor || typeof editor.isSavingPost !== 'function') {
+                    return;
+                }
+
+                var isSaving = editor.isSavingPost();
+                var isAutosave = typeof editor.isAutosavingPost === 'function' && editor.isAutosavingPost();
+
+                if (isSaving && !isAutosave && !wasSaving) {
+                    beforeSave();
+                }
+
+                wasSaving = isSaving;
+            });
+        }
+
+        tryBind();
+    }
+
+    function init() {
+        if (initialized || typeof luuxVideoTours === 'undefined') {
+            return;
+        }
+
+        initialized = true;
+
+        $('#post').on('submit', function () {
+            beforeSave();
+        });
+
+        acf.addAction('submit', function () {
+            beforeSave();
+        });
+
+        acf.addAction('prepare', function () {
+            injectEarlyFields();
+        });
+
+        acf.addAction('change', handleFieldChange);
+        acf.addAction('select', handleFieldChange);
+        acf.addAction('remove', handleFieldChange);
+
+        if (acf.addFilter) {
+            acf.addFilter('prepare_for_ajax', function (data) {
+                injectEarlyFields();
+                return mergeDomVideoToursIntoAcfData(data);
+            });
+        }
+
+        bindBlockEditorSave();
+    }
+
+    if (typeof acf !== 'undefined' && typeof acf.addAction === 'function') {
+        acf.addAction('ready', init);
+
+        $(function () {
+            window.setTimeout(function () {
+                if (!initialized) {
+                    init();
+                }
+            }, 500);
+        });
+    } else {
+        $(function () {
+            var attempts = 0;
+            var timer = window.setInterval(function () {
+                attempts += 1;
+
+                if (typeof acf !== 'undefined' && typeof acf.addAction === 'function') {
+                    window.clearInterval(timer);
+                    acf.addAction('ready', init);
+                }
+
+                if (attempts > 50) {
+                    window.clearInterval(timer);
+                }
+            }, 100);
         });
     }
 })(jQuery);

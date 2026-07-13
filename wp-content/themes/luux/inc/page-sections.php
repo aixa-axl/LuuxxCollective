@@ -1590,13 +1590,18 @@ add_action('admin_enqueue_scripts', function (string $hook): void {
     wp_enqueue_script(
         'luux-admin-video-tours',
         get_template_directory_uri() . '/assets/js/admin-video-tours.js',
-        ['jquery', 'acf-input', 'wp-data'],
+        ['jquery', 'acf-input'],
         (string) filemtime($path),
         true
     );
 
+    if (function_exists('use_block_editor_for_post_type') && use_block_editor_for_post_type('page')) {
+        wp_enqueue_script('wp-data');
+    }
+
     wp_localize_script('luux-admin-video-tours', 'luuxVideoTours', [
-        'nonce' => wp_create_nonce('luux_video_tours_save'),
+        'nonce'   => wp_create_nonce('luux_video_tours_save'),
+        'ajaxurl' => admin_url('admin-ajax.php'),
     ]);
 });
 
