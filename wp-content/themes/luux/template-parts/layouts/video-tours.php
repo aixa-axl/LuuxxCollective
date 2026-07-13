@@ -15,29 +15,39 @@ $section_id       = get_sub_field('section_id');
 
 /**
  * Render a single media slot as either a looping video or an image.
+ * Respects the selected media type — never falls back to a stale image when Video is chosen.
  */
 $render_media = static function ($type, $image_id, $video_id) {
-    $is_video = ($type === 'video' && $video_id);
-    if (! $is_video && ! $image_id) {
+    if ($type === 'video') {
+        if (! $video_id) {
+            return;
+        }
+
+        $video_url  = wp_get_attachment_url($video_id);
+        $video_mime = get_post_mime_type($video_id);
+
+        if (! $video_url) {
+            return;
+        }
+        ?>
+        <div class="video-tours__media">
+            <video class="h-full w-full object-cover" autoplay muted loop playsinline>
+                <source src="<?php echo esc_url($video_url); ?>"<?php echo $video_mime ? ' type="' . esc_attr($video_mime) . '"' : ''; ?>>
+            </video>
+        </div>
+        <?php
+        return;
+    }
+
+    if (! $image_id) {
         return;
     }
     ?>
     <div class="video-tours__media">
-        <?php if ($is_video) :
-            $video_url  = wp_get_attachment_url($video_id);
-            $video_mime = get_post_mime_type($video_id);
-            ?>
-            <video class="h-full w-full object-cover" autoplay muted loop playsinline>
-                <?php if ($video_url) : ?>
-                    <source src="<?php echo esc_url($video_url); ?>"<?php echo $video_mime ? ' type="' . esc_attr($video_mime) . '"' : ''; ?>>
-                <?php endif; ?>
-            </video>
-        <?php else : ?>
-            <?php echo wp_get_attachment_image($image_id, 'large', false, [
-                'class'   => 'h-full w-full object-cover',
-                'loading' => 'lazy',
-            ]); ?>
-        <?php endif; ?>
+        <?php echo wp_get_attachment_image($image_id, 'large', false, [
+            'class'   => 'h-full w-full object-cover',
+            'loading' => 'lazy',
+        ]); ?>
     </div>
     <?php
 };
