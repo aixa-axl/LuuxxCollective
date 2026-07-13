@@ -229,6 +229,36 @@ function luux_acf_count_legacy_pages(): int {
 }
 
 /**
+ * Ensure ACF reference keys exist for video_tours media fields only (no full-page migration).
+ */
+function luux_acf_relink_video_tours_meta_for_post(int $post_id): void {
+    $meta = luux_acf_get_page_section_meta($post_id);
+
+    if ($meta === []) {
+        return;
+    }
+
+    $count     = luux_acf_page_sections_row_count($meta);
+    $field_map = luux_acf_video_tours_field_map();
+
+    for ($i = 0; $i < $count; $i++) {
+        if (luux_page_section_layout_slug($meta, $i) !== 'video_tours') {
+            continue;
+        }
+
+        $prefix = "page_sections_{$i}_";
+
+        foreach ($field_map as [, [$name, $ref]]) {
+            $meta_key = $prefix . $name;
+
+            if (metadata_exists('post', $post_id, $meta_key)) {
+                update_post_meta($post_id, '_' . $meta_key, $ref);
+            }
+        }
+    }
+}
+
+/**
  * @return array{ok: bool, message: string}
  */
 function luux_acf_migrate_all_legacy_page_sections(): array {
@@ -321,9 +351,10 @@ function luux_acf_render_page_sections_tools_page(): void {
     echo '<p><a class="button button-secondary" href="' . esc_url($url) . '">Repair field definitions only</a></p>';
 
     if ((int) $diag['legacy_pages'] > 0) {
-        echo '<div class="notice notice-warning" style="max-width:40rem;margin-top:1rem"><p><strong>Legacy imported pages detected.</strong> ';
-        echo 'Resort pages imported from staging (e.g. Ikos) may fail to save Video Tours media until their section storage is migrated.</p></div>';
-        echo '<p><a class="button button-primary" href="' . esc_url($migrate_url) . '">Migrate legacy page storage</a></p>';
+        echo '<div class="notice notice-info" style="max-width:40rem;margin-top:1rem"><p><strong>Legacy imported pages detected.</strong> ';
+        echo 'You do <em>not</em> need to migrate all pages. Video Tours media is fixed per page when you save that page in the editor.</p></div>';
+        echo '<p class="description" style="max-width:40rem">Optional advanced: migrate every page to modern ACF storage (only use if advised).</p>';
+        echo '<p><a class="button button-secondary" href="' . esc_url($migrate_url) . '">Migrate all legacy pages (advanced)</a></p>';
     }
 
     echo '</div>';
@@ -909,32 +940,6 @@ add_filter('acf/pre_load_meta', function ($null, $post_id) {
     return $meta;
 }, 10, 2);
 
-add_action('load-post.php', function (): void {
-    if (! isset($_GET['post']) || ! is_numeric($_GET['post'])) {
-        return;
-    }
-
-    $post_id = (int) $_GET['post'];
-
-    if (get_post_type($post_id) !== 'page' || ! luux_page_sections_uses_legacy_storage($post_id)) {
-        return;
-    }
-
-    if (luux_acf_migrate_legacy_page_sections_storage($post_id)) {
-        luux_acf_relink_page_section_meta_for_post($post_id);
-    }
-});
-
-add_action('acf/save_post', function ($post_id): void {
-    if (! is_numeric($post_id) || get_post_type((int) $post_id) !== 'page') {
-        return;
-    }
-
-    if (luux_page_sections_uses_legacy_storage((int) $post_id)) {
-        luux_acf_migrate_legacy_page_sections_storage((int) $post_id);
-    }
-}, 5);
-
 add_action('acf/save_post', function ($post_id): void {
     if (! is_numeric($post_id) || get_post_type((int) $post_id) !== 'page') {
         return;
@@ -942,9 +947,10 @@ add_action('acf/save_post', function ($post_id): void {
 
     $post_id = (int) $post_id;
 
+    // Video Tours only — does not migrate or alter other sections/pages.
     luux_acf_persist_video_tours_from_request($post_id);
-    luux_acf_relink_page_section_meta_for_post($post_id);
     luux_acf_sync_video_tours_media_meta($post_id);
+    luux_acf_relink_video_tours_meta_for_post($post_id);
 }, 20);
 
 add_action('admin_menu', function (): void {
