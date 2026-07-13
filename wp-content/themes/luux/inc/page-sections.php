@@ -680,11 +680,6 @@ add_filter('acf/pre_load_meta', function ($null, $post_id) {
         return $null;
     }
 
-    // Frontend: let ACF read legacy serialized layout lists straight from the database.
-    if (! is_admin() && luux_page_sections_uses_legacy_storage($post_id)) {
-        return $null;
-    }
-
     $loading[$post_id] = true;
     $meta              = luux_acf_merged_page_meta($post_id);
     unset($loading[$post_id]);
@@ -694,6 +689,11 @@ add_filter('acf/pre_load_meta', function ($null, $post_id) {
 
 add_action('acf/save_post', function ($post_id): void {
     if (! is_numeric($post_id) || get_post_type((int) $post_id) !== 'page') {
+        return;
+    }
+
+    // Never rewrite legacy page meta on save — it can corrupt the serialized layout list.
+    if (luux_page_sections_uses_legacy_storage((int) $post_id)) {
         return;
     }
 
