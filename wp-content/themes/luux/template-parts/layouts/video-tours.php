@@ -3,15 +3,24 @@
  * Layout: video-tours
  */
 
-$heading          = get_sub_field('heading');
-$text             = get_sub_field('text');
-$media_type_left  = get_sub_field('media_type_left') ?: 'image';
-$image_left       = get_sub_field('image_left');
-$video_left       = get_sub_field('video_left');
-$media_type_right = get_sub_field('media_type_right') ?: 'image';
-$image_right      = get_sub_field('image_right');
-$video_right      = get_sub_field('video_right');
-$section_id       = get_sub_field('section_id');
+$heading          = luux_video_tours_sub_field('heading');
+$text             = luux_video_tours_sub_field('text');
+$media_type_left  = luux_video_tours_sub_field('media_type_left') ?: 'image';
+$image_left       = luux_video_tours_sub_field('image_left');
+$video_left       = luux_acf_video_tours_attachment_id(luux_video_tours_sub_field('video_left'));
+$media_type_right = luux_video_tours_sub_field('media_type_right') ?: 'image';
+$image_right      = luux_video_tours_sub_field('image_right');
+$video_right      = luux_acf_video_tours_attachment_id(luux_video_tours_sub_field('video_right'));
+$section_id       = luux_video_tours_sub_field('section_id');
+
+// If a video attachment exists but media type did not persist, prefer the video.
+if ($media_type_left !== 'video' && $video_left) {
+    $media_type_left = 'video';
+}
+
+if ($media_type_right !== 'video' && $video_right) {
+    $media_type_right = 'video';
+}
 
 /**
  * Render a single media slot as either a looping video or an image.
