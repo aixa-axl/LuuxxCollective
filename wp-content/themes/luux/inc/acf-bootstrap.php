@@ -82,6 +82,14 @@ function luux_acf_get_page_sections_field(): ?array {
  * @return array<string, mixed>
  */
 function luux_acf_normalize_field(array $field): array {
+    $field['label']        = $field['label'] ?? '';
+    $field['required']     = $field['required'] ?? 0;
+    $field['instructions'] = $field['instructions'] ?? '';
+
+    if (! array_key_exists('value', $field)) {
+        $field['value'] = null;
+    }
+
     if (! empty($field['name'])) {
         $field['_name'] = $field['_name'] ?? $field['name'];
     }
