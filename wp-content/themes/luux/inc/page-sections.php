@@ -575,11 +575,11 @@ function luux_acf_video_tours_db_row_indices(int $post_id): array {
 }
 
 /**
- * video_tours rows submitted in the current ACF save request.
+ * video_tours rows submitted in the current save request, with flexible-content row index.
  *
- * @return list<array<string, mixed>>
+ * @return list<array{index: int, row: array<string, mixed>}>
  */
-function luux_acf_video_tours_rows_from_request(): array {
+function luux_acf_video_tours_post_rows_with_indices(): array {
     if (empty($_POST['acf']) || ! is_array($_POST['acf'])) {
         return [];
     }
@@ -587,15 +587,102 @@ function luux_acf_video_tours_rows_from_request(): array {
     $fc = $_POST['acf']['field_luux_page_sections'] ?? null;
 
     if (! is_array($fc)) {
-        return [];
+        return luux_acf_video_tours_find_rows_in_array($_POST['acf']);
     }
 
+    $rows       = [];
+    $form_index = 0;
+
+    foreach ($fc as $key => $row) {
+        if (! is_array($row) || empty($row['acf_fc_layout'])) {
+            continue;
+        }
+
+        $layout = (string) $row['acf_fc_layout'];
+
+        if ($layout === 'video_tours' || $layout === 'layout_luux_video_tours') {
+            $index = $form_index;
+
+            if (is_numeric($key)) {
+                $index = (int) $key;
+            } elseif (preg_match('/^row-(\d+)$/', (string) $key, $matches)) {
+                $index = (int) $matches[1];
+            }
+
+            $rows[] = [
+                'index' => $index,
+                'row'   => $row,
+            ];
+        }
+
+        $form_index++;
+    }
+
+    return $rows;
+}
+
+/**
+ * @param array<string, mixed> $data
+ * @return list<array{index: int, row: array<string, mixed>}>
+ */
+function luux_acf_video_tours_find_rows_in_array(array $data): array {
     $rows = [];
 
-    foreach ($fc as $row) {
-        if (is_array($row) && ($row['acf_fc_layout'] ?? '') === 'video_tours') {
-            $rows[] = $row;
+    foreach ($data as $key => $value) {
+        if (! is_array($value)) {
+            continue;
         }
+
+        $layout = (string) ($value['acf_fc_layout'] ?? '');
+
+        if ($layout === 'video_tours' || $layout === 'layout_luux_video_tours') {
+            $index = is_numeric($key) ? (int) $key : count($rows);
+            $rows[] = [
+                'index' => $index,
+                'row'   => $value,
+            ];
+            continue;
+        }
+
+        if (luux_acf_array_is_sequential_list($value)) {
+            foreach ($value as $child_key => $child) {
+                if (! is_array($child)) {
+                    continue;
+                }
+
+                $child_layout = (string) ($child['acf_fc_layout'] ?? '');
+
+                if ($child_layout === 'video_tours' || $child_layout === 'layout_luux_video_tours') {
+                    $index = is_numeric($child_key) ? (int) $child_key : count($rows);
+                    $rows[] = [
+                        'index' => $index,
+                        'row'   => $child,
+                    ];
+                }
+            }
+        }
+    }
+
+    return $rows;
+}
+
+function luux_acf_array_is_sequential_list(array $array): bool {
+    if ($array === []) {
+        return true;
+    }
+
+    return array_keys($array) === range(0, count($array) - 1)
+        || array_keys($array) === range(0, count($array) - 1, 1);
+}
+
+/**
+ * @return list<array<string, mixed>>
+ */
+function luux_acf_video_tours_rows_from_request(): array {
+    $rows = [];
+
+    foreach (luux_acf_video_tours_post_rows_with_indices() as $item) {
+        $rows[] = $item['row'];
     }
 
     return $rows;
@@ -613,7 +700,53 @@ function luux_acf_video_tours_row_value(array $row, string $field_key, string $n
         return wp_unslash($row[$name]);
     }
 
+    foreach ($row as $key => $value) {
+        if (! is_string($key)) {
+            continue;
+        }
+
+        if ($key === $field_key || $key === $name || str_ends_with($key, '_' . $name)) {
+            return wp_unslash($value);
+        }
+    }
+
     return null;
+}
+
+function luux_acf_video_tours_row_has_field(array $row, string $field_key, string $name): bool {
+    if (array_key_exists($field_key, $row) || array_key_exists($name, $row)) {
+        return true;
+    }
+
+    foreach (array_keys($row) as $key) {
+        if (! is_string($key)) {
+            continue;
+        }
+
+        if ($key === $field_key || $key === $name || str_ends_with($key, '_' . $name)) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+function luux_acf_is_video_tours_meta_name(int $post_id, string $name): bool {
+    if (! preg_match('/^page_sections_(\d+)_(media_type_left|media_type_right|video_left|video_right|image_left|image_right)$/', $name, $matches)) {
+        return false;
+    }
+
+    $index  = (int) $matches[1];
+    $layout = get_post_meta($post_id, "page_sections_{$index}_acf_fc_layout", true);
+
+    if ($layout === '') {
+        $layout = luux_page_section_layout_slug(
+            ['page_sections' => get_post_meta($post_id, 'page_sections', true)],
+            $index
+        );
+    }
+
+    return $layout === 'video_tours';
 }
 
 /**
@@ -687,7 +820,7 @@ function luux_acf_video_tours_field_map(): array {
  * Imported resort pages (legacy storage) can drop conditional/file fields during a normal ACF save.
  */
 function luux_acf_persist_video_tours_from_request(int $post_id): void {
-    $post_rows = luux_acf_video_tours_rows_from_request();
+    $post_rows = luux_acf_video_tours_post_rows_with_indices();
 
     if ($post_rows === []) {
         return;
@@ -695,17 +828,10 @@ function luux_acf_persist_video_tours_from_request(int $post_id): void {
 
     $db_indices = luux_acf_video_tours_db_row_indices($post_id);
     $field_map  = luux_acf_video_tours_field_map();
-    $fc_rows    = array_values($_POST['acf']['field_luux_page_sections'] ?? []);
-    $form_indices = [];
 
-    foreach ($fc_rows as $i => $fc_row) {
-        if (is_array($fc_row) && ($fc_row['acf_fc_layout'] ?? '') === 'video_tours') {
-            $form_indices[] = $i;
-        }
-    }
-
-    foreach ($post_rows as $n => $row) {
-        $db_index = $db_indices[$n] ?? $form_indices[$n] ?? null;
+    foreach ($post_rows as $n => $item) {
+        $row      = $item['row'];
+        $db_index = $db_indices[$n] ?? $item['index'] ?? null;
 
         if ($db_index === null) {
             continue;
@@ -714,7 +840,7 @@ function luux_acf_persist_video_tours_from_request(int $post_id): void {
         $prefix = 'page_sections_' . (int) $db_index . '_';
 
         foreach ($field_map as $post_key => [$name, $ref]) {
-            if (! array_key_exists($post_key, $row) && ! array_key_exists($name, $row)) {
+            if (! luux_acf_video_tours_row_has_field($row, $post_key, $name)) {
                 continue;
             }
 
@@ -735,7 +861,30 @@ function luux_acf_persist_video_tours_from_request(int $post_id): void {
             update_post_meta($post_id, $meta_key, $value);
             update_post_meta($post_id, '_' . $meta_key, $ref);
         }
+
+        foreach (['left', 'right'] as $side) {
+            $video_key  = $prefix . 'video_' . $side;
+            $type_key   = $prefix . 'media_type_' . $side;
+            $video_id   = luux_acf_video_tours_attachment_id(get_post_meta($post_id, $video_key, true));
+            $media_type = get_post_meta($post_id, $type_key, true);
+
+            if ($video_id && $media_type !== 'video') {
+                update_post_meta($post_id, $type_key, 'video');
+                update_post_meta($post_id, '_' . $type_key, 'field_luux_video_tours_media_type_' . $side);
+                update_post_meta($post_id, $video_key, $video_id);
+                update_post_meta($post_id, '_' . $video_key, 'field_luux_video_tours_video_' . $side);
+            }
+        }
     }
+}
+
+/**
+ * Run all video_tours save handlers for a page.
+ */
+function luux_acf_save_video_tours_meta(int $post_id): void {
+    luux_acf_persist_video_tours_from_request($post_id);
+    luux_acf_sync_video_tours_media_meta($post_id);
+    luux_acf_relink_video_tours_meta_for_post($post_id);
 }
 
 /**
@@ -782,8 +931,15 @@ function luux_acf_sync_video_tours_media_meta(int $post_id): void {
         $prefix = "page_sections_{$i}_";
 
         foreach (['left', 'right'] as $side) {
-            $type_key  = $prefix . 'media_type_' . $side;
-            $media_type = get_post_meta($post_id, $type_key, true) ?: 'image';
+            $type_key   = $prefix . 'media_type_' . $side;
+            $video_key   = $prefix . 'video_' . $side;
+            $media_type  = get_post_meta($post_id, $type_key, true) ?: 'image';
+            $video_id    = luux_acf_video_tours_attachment_id(get_post_meta($post_id, $video_key, true));
+
+            if ($video_id && $media_type !== 'video') {
+                $media_type = 'video';
+                update_post_meta($post_id, $type_key, 'video');
+            }
 
             update_post_meta($post_id, '_' . $type_key, 'field_luux_video_tours_media_type_' . $side);
 
@@ -1068,48 +1224,83 @@ add_filter('acf/pre_load_meta', function ($null, $post_id) {
     return $meta;
 }, 10, 2);
 
-/**
- * Migrate only the page being saved when video_tours is in the request (not site-wide).
- */
-function luux_acf_maybe_migrate_page_for_video_tours_save(int $post_id): void {
-    if (! luux_page_sections_uses_legacy_storage($post_id)) {
-        return;
+add_filter('acf/pre_update_metadata', function ($check, $post_id, $name, $value, $hidden) {
+    if ($hidden || ! is_numeric($post_id) || get_post_type((int) $post_id) !== 'page') {
+        return $check;
     }
 
-    if (luux_acf_video_tours_rows_from_request() === []) {
-        return;
+    if (! is_string($name) || ! luux_acf_is_video_tours_meta_name((int) $post_id, $name)) {
+        return $check;
     }
 
-    luux_acf_migrate_legacy_page_sections_storage($post_id);
-}
+    // ACF must not overwrite video_tours media — theme handlers own these keys.
+    return true;
+}, 10, 5);
+
+add_filter('acf/load_value', function ($value, $post_id, $field) {
+    if (! is_admin() || ! is_array($field)) {
+        return $value;
+    }
+
+    $name = $field['name'] ?? '';
+    $allowed = ['media_type_left', 'media_type_right', 'video_left', 'video_right', 'image_left', 'image_right'];
+
+    if (! in_array($name, $allowed, true)) {
+        return $value;
+    }
+
+    if ($value !== null && $value !== false && $value !== '') {
+        return $value;
+    }
+
+    if (! is_numeric($post_id) || get_post_type((int) $post_id) !== 'page' || ! function_exists('acf_get_loop')) {
+        return $value;
+    }
+
+    $loop = acf_get_loop('active');
+
+    if (! is_array($loop) || ($loop['selector'] ?? '') !== 'page_sections') {
+        return $value;
+    }
+
+    $row_index = (int) ($loop['i'] ?? -1);
+
+    if ($row_index < 0) {
+        return $value;
+    }
+
+    $direct = get_post_meta((int) $post_id, "page_sections_{$row_index}_{$name}", true);
+
+    if ($direct === '' || $direct === false) {
+        return $value;
+    }
+
+    return $direct;
+}, 20, 3);
 
 add_action('acf/save_post', function ($post_id): void {
     if (! is_numeric($post_id) || get_post_type((int) $post_id) !== 'page') {
         return;
     }
 
-    luux_acf_persist_video_tours_from_request((int) $post_id);
-}, 1);
-
-add_action('acf/save_post', function ($post_id): void {
-    if (! is_numeric($post_id) || get_post_type((int) $post_id) !== 'page') {
+    if (! isset($_POST['acf']) || ! is_array($_POST['acf'])) {
         return;
     }
 
-    luux_acf_maybe_migrate_page_for_video_tours_save((int) $post_id);
-}, 5);
+    luux_acf_save_video_tours_meta((int) $post_id);
+}, 999);
 
-add_action('acf/save_post', function ($post_id): void {
-    if (! is_numeric($post_id) || get_post_type((int) $post_id) !== 'page') {
+add_action('save_post_page', function (int $post_id): void {
+    if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) {
         return;
     }
 
-    $post_id = (int) $post_id;
+    if (! isset($_POST['acf']) || ! is_array($_POST['acf'])) {
+        return;
+    }
 
-    luux_acf_persist_video_tours_from_request($post_id);
-    luux_acf_sync_video_tours_media_meta($post_id);
-    luux_acf_relink_video_tours_meta_for_post($post_id);
-}, 20);
+    luux_acf_save_video_tours_meta($post_id);
+}, 999);
 
 add_action('admin_menu', function (): void {
     add_management_page(
