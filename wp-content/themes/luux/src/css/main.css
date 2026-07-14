@@ -1709,17 +1709,11 @@
     width: 100%;
   }
 
-  @media (min-width: 768px) {
-    .social-grid__grid {
-      grid-template-columns: repeat(4, 19.6875rem);
-      justify-content: start;
-    }
-  }
-
   .social-grid__item {
     display: block;
     width: 100%;
-    height: 25rem;
+    height: auto;
+    aspect-ratio: 315 / 400;
     padding: 0;
     border: 0;
     overflow: hidden;
@@ -1727,10 +1721,23 @@
     background: var(--color-brand-cream-light);
   }
 
-  @media (max-width: 767px) {
+  @media (min-width: 768px) and (max-width: 1023px) {
+    .social-grid__grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1rem;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .social-grid__grid {
+      grid-template-columns: repeat(4, 19.6875rem);
+      justify-content: start;
+      gap: 0.5rem;
+    }
+
     .social-grid__item {
-      height: auto;
-      aspect-ratio: 315 / 400;
+      height: 25rem;
+      aspect-ratio: auto;
     }
   }
 
