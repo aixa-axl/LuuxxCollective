@@ -168,13 +168,16 @@
     }
   }
 
-  /* Homepage hero — TravelSeen group badge below header */
+  /* Homepage hero — TravelSeen group badge flush below header */
   .hero__group-tag {
     top: calc(
       var(--hero-header-height, 4rem)
       + var(--wp-admin--admin-bar--height, 0px)
-      - 1rem
     );
+  }
+  .hero__group-tag-label {
+    font-family: var(--font-display);
+    font-weight: var(--font-weight-display);
   }
   .hero__group-tag-logo {
     display: block;
@@ -194,7 +197,6 @@
       top: calc(
         var(--hero-header-height, 5rem)
         + var(--wp-admin--admin-bar--height, 0px)
-        - 1.25rem
       );
     }
     .hero__group-tag-logo {

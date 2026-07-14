@@ -46,7 +46,7 @@ $has_media = $has_video || $image_id;
 
     <?php if (is_front_page() && $show_group_tag) : ?>
         <div class="hero__group-tag pointer-events-none absolute inset-x-0 z-40">
-            <div class="hero__group-tag-label inline-flex max-w-[calc(100%-1.25rem)] items-center gap-x-1.5 rounded-r-2xl bg-brand-primary py-2.5 pr-5 pl-5 font-body text-body-sm font-light text-brand-white sm:max-w-none md:gap-x-2 md:pr-6 lg:py-3 lg:pr-8 lg:pl-[var(--spacing-gutter)]">
+            <div class="hero__group-tag-label inline-flex max-w-[calc(100%-1.25rem)] items-center gap-x-1.5 rounded-r-2xl bg-brand-primary py-2.5 pr-5 pl-5 font-display text-body-sm text-brand-white sm:max-w-none md:gap-x-2 md:pr-6 lg:py-3 lg:pr-8 lg:pl-[var(--spacing-gutter)]">
                 <span><?php esc_html_e('Part of the', 'luux'); ?></span>
                 <?php if ($group_tag_logo) :
                     $logo_mime = get_post_mime_type($group_tag_logo);
