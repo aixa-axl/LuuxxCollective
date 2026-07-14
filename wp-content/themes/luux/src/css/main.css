@@ -128,7 +128,13 @@
 
   /* Hero scrims — Figma hero 76:4901 (desktop), 102:815 (mobile) */
   .hero--home-bleed {
+    --hero-header-height: 4rem;
     margin-top: calc(-1 * var(--wp-admin--admin-bar--height, 0px));
+  }
+  @media (min-width: 1024px) {
+    .hero--home-bleed {
+      --hero-header-height: 5rem;
+    }
   }
   .hero-scrim {
     background: linear-gradient(
@@ -164,7 +170,11 @@
 
   /* Homepage hero — TravelSeen group badge below header */
   .hero__group-tag {
-    top: calc(4rem + var(--wp-admin--admin-bar--height, 0px) - 0.125rem);
+    top: calc(
+      var(--hero-header-height, 4rem)
+      + var(--wp-admin--admin-bar--height, 0px)
+      - 1rem
+    );
   }
   .hero__group-tag-logo {
     display: block;
@@ -181,7 +191,11 @@
   }
   @media (min-width: 1024px) {
     .hero__group-tag {
-      top: calc(5rem + var(--wp-admin--admin-bar--height, 0px) - 0.125rem);
+      top: calc(
+        var(--hero-header-height, 5rem)
+        + var(--wp-admin--admin-bar--height, 0px)
+        - 1.25rem
+      );
     }
     .hero__group-tag-logo {
       height: 1.25rem;
