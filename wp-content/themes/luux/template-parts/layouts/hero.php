@@ -13,6 +13,7 @@ $show_group_tag = get_sub_field('show_group_tag');
 if ($show_group_tag === null || $show_group_tag === '') {
     $show_group_tag = true;
 }
+$group_tag_logo = get_sub_field('group_tag_logo');
 
 $has_video = ($media_type === 'video' && $video_id);
 $has_media = $has_video || $image_id;
@@ -40,10 +41,15 @@ $has_media = $has_video || $image_id;
 
     <?php if (is_front_page() && $show_group_tag) : ?>
         <div class="hero__group-tag pointer-events-none absolute inset-x-0 z-10">
-            <p class="hero__group-tag-label inline-flex max-w-[calc(100%-1.25rem)] items-baseline gap-x-1 rounded-r-full bg-brand-primary/90 py-2 pr-4 pl-5 font-body text-caption text-brand-white sm:max-w-none md:pr-5 md:text-body-sm lg:py-2.5 lg:pr-6 lg:pl-[var(--spacing-gutter)]">
+            <p class="hero__group-tag-label inline-flex max-w-[calc(100%-1.25rem)] items-center gap-x-1.5 rounded-r-2xl bg-brand-primary py-2.5 pr-5 pl-5 font-body text-body-sm font-light text-brand-white sm:max-w-none md:gap-x-2 md:pr-6 lg:py-3 lg:pr-8 lg:pl-[var(--spacing-gutter)]">
                 <span><?php esc_html_e('Part of the', 'luux'); ?></span>
-                <span class="font-display text-body-sm md:text-body"><?php esc_html_e('TravelSeen', 'luux'); ?></span>
-                <span><sup class="text-[0.6em] leading-none">®</sup> <?php esc_html_e('Group', 'luux'); ?></span>
+                <?php if ($group_tag_logo) : ?>
+                    <?php echo wp_get_attachment_image($group_tag_logo, 'medium', false, [
+                        'class'   => 'hero__group-tag-logo',
+                        'loading' => 'lazy',
+                    ]); ?>
+                <?php endif; ?>
+                <span><?php esc_html_e('Group', 'luux'); ?></span>
             </p>
         </div>
     <?php endif; ?>

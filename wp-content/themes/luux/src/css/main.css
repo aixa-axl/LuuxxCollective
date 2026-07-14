@@ -166,18 +166,26 @@
   .hero__group-tag {
     top: calc(4rem + var(--wp-admin--admin-bar--height, 0px) + 0.625rem);
   }
-  .hero__group-tag-label {
-    -webkit-backdrop-filter: blur(4px);
-    backdrop-filter: blur(4px);
+  .hero__group-tag-logo {
+    display: block;
+    height: 0.875rem;
+    width: auto;
+    flex-shrink: 0;
   }
   @media (min-width: 768px) {
     .hero__group-tag {
       top: calc(4rem + var(--wp-admin--admin-bar--height, 0px) + 0.75rem);
     }
+    .hero__group-tag-logo {
+      height: 1rem;
+    }
   }
   @media (min-width: 1024px) {
     .hero__group-tag {
       top: calc(5rem + var(--wp-admin--admin-bar--height, 0px) + 0.875rem);
+    }
+    .hero__group-tag-logo {
+      height: 1.125rem;
     }
   }
 

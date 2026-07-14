@@ -99,6 +99,24 @@
               "ui": 1,
               "default_value": 1,
               "instructions": "Shows the “Part of the TravelSeen® Group” badge below the header. Homepage only."
+            },
+            {
+              "key": "field_luux_hero_group_tag_logo",
+              "label": "TravelSeen Logo",
+              "name": "group_tag_logo",
+              "type": "image",
+              "return_format": "id",
+              "preview_size": "medium",
+              "instructions": "White TravelSeen® wordmark shown in the group tag.",
+              "conditional_logic": [
+                [
+                  {
+                    "field": "field_luux_hero_show_group_tag",
+                    "operator": "==",
+                    "value": "1"
+                  }
+                ]
+              ]
             }
           ]
         },
@@ -1625,5 +1643,5 @@
   "style": "seamless",
   "active": true,
   "show_in_rest": 0,
-  "modified": 1784188800
+  "modified": 1784192400
 }
