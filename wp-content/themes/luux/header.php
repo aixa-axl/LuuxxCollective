@@ -70,6 +70,13 @@ $header_class = 'site-header' . ($on_hero ? ' site-header--hero' : '');
         </div>
     </div>
 
+    <?php if ($on_hero && is_front_page()) :
+        $group_tag = luux_get_home_hero_group_tag();
+        if ($group_tag['show']) {
+            get_template_part('template-parts/components/hero-group-tag', null, ['group_tag' => $group_tag]);
+        }
+    endif; ?>
+
     <div id="mobile-nav-panel"
          class="border-t border-brand-cream bg-brand-white px-5 py-6 text-brand-primary lg:hidden"
          data-mobile-nav-panel

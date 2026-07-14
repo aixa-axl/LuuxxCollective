@@ -98,6 +98,56 @@ function luux_uses_hero_header(): bool {
     return in_array($first, ['hero', 'resort_hero', 'contact_hero'], true);
 }
 
+/**
+ * Homepage hero group tag settings from the first hero section.
+ *
+ * @return array{show: bool, logo: int}
+ */
+function luux_get_home_hero_group_tag(): array {
+    if (! is_front_page()) {
+        return ['show' => false, 'logo' => 0];
+    }
+
+    $show = true;
+    $logo = 0;
+
+    if (! function_exists('get_field')) {
+        return ['show' => $show, 'logo' => $logo];
+    }
+
+    $post_id = (int) get_queried_object_id();
+    if (! $post_id) {
+        return ['show' => $show, 'logo' => $logo];
+    }
+
+    $sections = get_field('page_sections', $post_id);
+    if (empty($sections) || ! is_array($sections)) {
+        return ['show' => $show, 'logo' => $logo];
+    }
+
+    foreach ($sections as $section) {
+        if (($section['acf_fc_layout'] ?? '') !== 'hero') {
+            continue;
+        }
+
+        $show = $section['show_group_tag'] ?? true;
+        if ($show === null || $show === '') {
+            $show = true;
+        }
+
+        $logo = $section['group_tag_logo'] ?? 0;
+        if (is_array($logo)) {
+            $logo = (int) ($logo['ID'] ?? $logo['id'] ?? 0);
+        } else {
+            $logo = (int) $logo;
+        }
+
+        break;
+    }
+
+    return ['show' => (bool) $show, 'logo' => $logo];
+}
+
 function luux_render_sections(): void {
     $post_id = get_the_ID();
     if (! $post_id) {

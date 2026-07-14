@@ -128,13 +128,7 @@
 
   /* Hero scrims — Figma hero 76:4901 (desktop), 102:815 (mobile) */
   .hero--home-bleed {
-    --hero-header-height: 4rem;
     margin-top: calc(-1 * var(--wp-admin--admin-bar--height, 0px));
-  }
-  @media (min-width: 1024px) {
-    .hero--home-bleed {
-      --hero-header-height: 5rem;
-    }
   }
   .hero-scrim {
     background: linear-gradient(
@@ -168,18 +162,18 @@
     }
   }
 
-  /* Homepage hero — TravelSeen group badge flush below header */
-  .hero__group-tag {
-    top: calc(
-      var(--hero-header-height, 4rem)
-      + var(--wp-admin--admin-bar--height, 0px)
-    );
+  /* Homepage hero — TravelSeen group badge anchored to header bottom */
+  .site-header__group-tag {
+    position: absolute;
+    inset-inline: 0;
+    top: 100%;
+    z-index: 40;
   }
-  .hero__group-tag-label {
+  .site-header__group-tag-label {
     font-family: var(--font-display);
     font-weight: var(--font-weight-display);
   }
-  .hero__group-tag-logo {
+  .site-header__group-tag-logo {
     display: block;
     height: 1rem;
     width: auto;
@@ -188,18 +182,12 @@
     object-fit: contain;
   }
   @media (min-width: 768px) {
-    .hero__group-tag-logo {
+    .site-header__group-tag-logo {
       height: 1.125rem;
     }
   }
   @media (min-width: 1024px) {
-    .hero__group-tag {
-      top: calc(
-        var(--hero-header-height, 5rem)
-        + var(--wp-admin--admin-bar--height, 0px)
-      );
-    }
-    .hero__group-tag-logo {
+    .site-header__group-tag-logo {
       height: 1.25rem;
     }
   }

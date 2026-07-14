@@ -9,16 +9,6 @@ $media_type     = get_sub_field('media_type') ?: 'image';
 $image_id       = get_sub_field('background_image');
 $video_id       = get_sub_field('background_video');
 $ctas           = get_sub_field('ctas');
-$show_group_tag = get_sub_field('show_group_tag');
-if ($show_group_tag === null || $show_group_tag === '') {
-    $show_group_tag = true;
-}
-$group_tag_logo = get_sub_field('group_tag_logo');
-if (is_array($group_tag_logo)) {
-    $group_tag_logo = (int) ($group_tag_logo['ID'] ?? $group_tag_logo['id'] ?? 0);
-} else {
-    $group_tag_logo = (int) $group_tag_logo;
-}
 
 $has_video = ($media_type === 'video' && $video_id);
 $has_media = $has_video || $image_id;
@@ -42,37 +32,6 @@ $has_media = $has_video || $image_id;
     <?php endif; ?>
     <?php if ($has_media) : ?>
         <div class="hero-scrim absolute inset-0" aria-hidden="true"></div>
-    <?php endif; ?>
-
-    <?php if (is_front_page() && $show_group_tag) : ?>
-        <div class="hero__group-tag pointer-events-none absolute inset-x-0 z-40">
-            <div class="hero__group-tag-label inline-flex max-w-[calc(100%-1.25rem)] items-center gap-x-1.5 rounded-r-2xl bg-brand-primary py-2.5 pr-5 pl-5 font-display text-body-sm text-brand-white sm:max-w-none md:gap-x-2 md:pr-6 lg:py-3 lg:pr-8 lg:pl-[var(--spacing-gutter)]">
-                <span><?php esc_html_e('Part of the', 'luux'); ?></span>
-                <?php if ($group_tag_logo) :
-                    $logo_mime = get_post_mime_type($group_tag_logo);
-                    $logo_atts = [
-                        'class'   => 'hero__group-tag-logo',
-                        'loading' => 'lazy',
-                        'decoding'=> 'async',
-                    ];
-                    if ($logo_mime === 'image/svg+xml') {
-                        $logo_url = wp_get_attachment_url($group_tag_logo);
-                        if ($logo_url) :
-                            $logo_alt = get_post_meta($group_tag_logo, '_wp_attachment_image_alt', true);
-                            ?>
-                            <img class="hero__group-tag-logo"
-                                 src="<?php echo esc_url($logo_url); ?>"
-                                 alt="<?php echo esc_attr($logo_alt ?: __('TravelSeen', 'luux')); ?>"
-                                 loading="lazy"
-                                 decoding="async">
-                        <?php endif;
-                    } else {
-                        echo wp_get_attachment_image($group_tag_logo, 'full', false, $logo_atts);
-                    }
-                endif; ?>
-                <span><?php esc_html_e('Group', 'luux'); ?></span>
-            </div>
-        </div>
     <?php endif; ?>
 
     <div class="absolute inset-x-0 bottom-0 z-10 flex w-full flex-col items-center gap-6 px-5 pb-16 text-center text-brand-white lg:inset-x-auto lg:bottom-auto lg:left-1/2 lg:top-[calc(50%+167px)] lg:w-full lg:max-w-[58.375rem] lg:-translate-x-1/2 lg:-translate-y-1/2 lg:gap-8 lg:px-0 lg:pb-0">
