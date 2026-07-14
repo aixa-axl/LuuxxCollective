@@ -196,7 +196,7 @@
   @media (min-width: 1024px) {
     .site-header__group-tag-label {
       gap: 0.1875rem;
-      padding: 0.5625rem 0.75rem 0.5625rem 0;
+      padding: 0.5625rem 0.75rem 0.5625rem 0.75rem;
     }
     .site-header__group-tag-logo {
       height: 1.1875rem;
