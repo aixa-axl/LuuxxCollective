@@ -30,13 +30,15 @@ if (! $logo_url) {
 ?>
 
 <div class="site-header__group-tag pointer-events-none">
-    <div class="site-header__group-tag-label inline-flex max-w-[calc(100%-1.25rem)] items-center gap-x-1.5 rounded-bl-2xl rounded-br-2xl bg-brand-primary py-2.5 pr-5 pl-5 font-display text-body-sm text-brand-white sm:max-w-none md:gap-x-2 md:pr-6 lg:py-3 lg:pr-8 lg:pl-[var(--spacing-gutter)]">
-        <span><?php esc_html_e('Part of the', 'luux'); ?></span>
-        <img class="site-header__group-tag-logo"
-             src="<?php echo esc_url($logo_url); ?>"
-             alt="<?php echo esc_attr($logo_alt); ?>"
-             loading="lazy"
-             decoding="async">
-        <span><?php esc_html_e('Group', 'luux'); ?></span>
+    <div class="container-site">
+        <div class="site-header__group-tag-label inline-flex w-fit max-w-full items-center rounded-bl-2xl rounded-br-2xl bg-brand-primary font-display text-body-sm text-brand-white">
+            <span><?php esc_html_e('Part of the', 'luux'); ?></span>
+            <img class="site-header__group-tag-logo"
+                 src="<?php echo esc_url($logo_url); ?>"
+                 alt="<?php echo esc_attr($logo_alt); ?>"
+                 loading="lazy"
+                 decoding="async">
+            <span><?php esc_html_e('Group', 'luux'); ?></span>
+        </div>
     </div>
 </div>
