@@ -164,28 +164,27 @@
 
   /* Homepage hero — TravelSeen group badge below header */
   .hero__group-tag {
-    top: calc(4rem + var(--wp-admin--admin-bar--height, 0px) + 0.625rem);
+    top: calc(4rem + var(--wp-admin--admin-bar--height, 0px) - 0.125rem);
   }
   .hero__group-tag-logo {
     display: block;
-    height: 0.875rem;
+    height: 1rem;
     width: auto;
+    max-width: none;
     flex-shrink: 0;
+    object-fit: contain;
   }
   @media (min-width: 768px) {
-    .hero__group-tag {
-      top: calc(4rem + var(--wp-admin--admin-bar--height, 0px) + 0.75rem);
-    }
     .hero__group-tag-logo {
-      height: 1rem;
+      height: 1.125rem;
     }
   }
   @media (min-width: 1024px) {
     .hero__group-tag {
-      top: calc(5rem + var(--wp-admin--admin-bar--height, 0px) + 0.875rem);
+      top: calc(5rem + var(--wp-admin--admin-bar--height, 0px) - 0.125rem);
     }
     .hero__group-tag-logo {
-      height: 1.125rem;
+      height: 1.25rem;
     }
   }
 

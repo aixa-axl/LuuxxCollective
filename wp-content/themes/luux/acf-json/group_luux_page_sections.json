@@ -107,7 +107,9 @@
               "type": "image",
               "return_format": "id",
               "preview_size": "medium",
-              "instructions": "White TravelSeen® wordmark shown in the group tag.",
+              "library": "all",
+              "mime_types": "jpg,jpeg,png,webp,svg",
+              "instructions": "White TravelSeen® wordmark shown in the group tag. SVG or PNG recommended.",
               "conditional_logic": [
                 [
                   {
@@ -1643,5 +1645,5 @@
   "style": "seamless",
   "active": true,
   "show_in_rest": 0,
-  "modified": 1784192400
+  "modified": 1784196000
 }
