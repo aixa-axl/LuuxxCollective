@@ -162,6 +162,25 @@
     }
   }
 
+  /* Homepage hero — TravelSeen group badge below header */
+  .hero__group-tag {
+    top: calc(4rem + var(--wp-admin--admin-bar--height, 0px) + 0.625rem);
+  }
+  .hero__group-tag-label {
+    -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(4px);
+  }
+  @media (min-width: 768px) {
+    .hero__group-tag {
+      top: calc(4rem + var(--wp-admin--admin-bar--height, 0px) + 0.75rem);
+    }
+  }
+  @media (min-width: 1024px) {
+    .hero__group-tag {
+      top: calc(5rem + var(--wp-admin--admin-bar--height, 0px) + 0.875rem);
+    }
+  }
+
   /* Reviews carousel — mobile auto-scroll (desktop stays a 3-col grid) */
   .reviews__carousel {
     display: flex;

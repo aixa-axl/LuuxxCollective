@@ -90,6 +90,15 @@
                   "return_format": "array"
                 }
               ]
+            },
+            {
+              "key": "field_luux_hero_show_group_tag",
+              "label": "Show Group Tag",
+              "name": "show_group_tag",
+              "type": "true_false",
+              "ui": 1,
+              "default_value": 1,
+              "instructions": "Shows the “Part of the TravelSeen® Group” badge below the header. Homepage only."
             }
           ]
         },
@@ -1616,5 +1625,5 @@
   "style": "seamless",
   "active": true,
   "show_in_rest": 0,
-  "modified": 1784112000
+  "modified": 1784188800
 }
