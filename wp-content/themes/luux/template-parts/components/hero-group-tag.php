@@ -1,6 +1,6 @@
 <?php
 /**
- * Component: hero group tag (homepage header)
+ * Component: hero group tag (hero header pages)
  *
  * @var array $args {
  *     @type array $group_tag {

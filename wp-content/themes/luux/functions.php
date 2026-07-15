@@ -99,15 +99,11 @@ function luux_uses_hero_header(): bool {
 }
 
 /**
- * Homepage hero group tag settings from the first hero section.
+ * Hero group tag settings from the first hero section on the current page.
  *
  * @return array{show: bool, logo: int}
  */
-function luux_get_home_hero_group_tag(): array {
-    if (! is_front_page()) {
-        return ['show' => false, 'logo' => 0];
-    }
-
+function luux_get_hero_group_tag(): array {
     $show = true;
     $logo = 0;
 
@@ -125,21 +121,26 @@ function luux_get_home_hero_group_tag(): array {
         return ['show' => $show, 'logo' => $logo];
     }
 
+    $hero_layouts = ['hero', 'resort_hero', 'contact_hero'];
+
     foreach ($sections as $section) {
-        if (($section['acf_fc_layout'] ?? '') !== 'hero') {
+        $layout = $section['acf_fc_layout'] ?? '';
+        if (! in_array($layout, $hero_layouts, true)) {
             continue;
         }
 
-        $show = $section['show_group_tag'] ?? true;
-        if ($show === null || $show === '') {
-            $show = true;
-        }
+        if ($layout === 'hero') {
+            $show = $section['show_group_tag'] ?? true;
+            if ($show === null || $show === '') {
+                $show = true;
+            }
 
-        $logo = $section['group_tag_logo'] ?? 0;
-        if (is_array($logo)) {
-            $logo = (int) ($logo['ID'] ?? $logo['id'] ?? 0);
-        } else {
-            $logo = (int) $logo;
+            $logo = $section['group_tag_logo'] ?? 0;
+            if (is_array($logo)) {
+                $logo = (int) ($logo['ID'] ?? $logo['id'] ?? 0);
+            } else {
+                $logo = (int) $logo;
+            }
         }
 
         break;
