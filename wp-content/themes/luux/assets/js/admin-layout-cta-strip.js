@@ -89,28 +89,58 @@
         };
     }
 
+    function readLinkFromInputs($fieldEl) {
+        var link = { url: '', title: '', target: '' };
+        var $el = $($fieldEl);
+
+        $el.find('input').each(function () {
+            var name = this.name || '';
+            var value = $(this).val() || '';
+
+            if (/\[url\]$/.test(name)) {
+                link.url = String(value);
+            } else if (/\[title\]$/.test(name)) {
+                link.title = String(value);
+            } else if (/\[target\]$/.test(name)) {
+                link.target = String(value);
+            }
+        });
+
+        return normalizeLink(link);
+    }
+
     function readFieldValue($fieldEl, name) {
-        if (typeof acf === 'undefined' || typeof acf.getField !== 'function') {
-            return null;
-        }
+        if (typeof acf !== 'undefined' && typeof acf.getField === 'function') {
+            var field = acf.getField($fieldEl);
 
-        var field = acf.getField($fieldEl);
+            if (field && typeof field.val === 'function') {
+                var value = field.val();
 
-        if (!field || typeof field.val !== 'function') {
-            return null;
-        }
+                if (value !== null && value !== undefined && value !== '') {
+                    if (name === 'primary_link' || name === 'secondary_link') {
+                        var link = normalizeLink(value);
 
-        var value = field.val();
-
-        if (value === null || value === undefined || value === '') {
-            return null;
+                        if (link) {
+                            return link;
+                        }
+                    } else {
+                        return String(value);
+                    }
+                }
+            }
         }
 
         if (name === 'primary_link' || name === 'secondary_link') {
-            return normalizeLink(value);
+            return readLinkFromInputs($fieldEl);
         }
 
-        return String(value);
+        var $input = $($fieldEl).find('input[type="text"], textarea').first();
+
+        if ($input.length && $input.val()) {
+            return String($input.val());
+        }
+
+        return null;
     }
 
     function readRowFields($layout) {
@@ -120,6 +150,10 @@
 
         $.each(FIELD_KEYS, function (name, key) {
             var $fieldEl = $layout.find('.acf-field[data-key="' + key + '"]').first();
+
+            if (!$fieldEl.length) {
+                $fieldEl = $layout.find('.acf-field[data-name="' + name + '"]').first();
+            }
 
             if (!$fieldEl.length) {
                 return;

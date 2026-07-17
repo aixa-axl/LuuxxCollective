@@ -33,7 +33,7 @@ function luux_acf_cta_strip_db_row_indices(int $post_id): array {
     $count   = luux_acf_page_sections_row_count($meta);
 
     for ($i = 0; $i < $count; $i++) {
-        if (luux_page_section_layout_slug($meta, $i) === LUUX_CTA_STRIP_LAYOUT) {
+        if (luux_acf_cta_strip_layout_matches(luux_page_section_layout_slug($meta, $i))) {
             $indices[] = $i;
         }
     }
@@ -67,7 +67,7 @@ function luux_acf_resolve_cta_strip_db_index(int $post_id, int $row_index, int $
         return $db_indices[$row_nth];
     }
 
-    if (luux_acf_cta_strip_row_layout($post_id, $row_index) === LUUX_CTA_STRIP_LAYOUT) {
+    if (luux_acf_cta_strip_layout_matches(luux_acf_cta_strip_row_layout($post_id, $row_index))) {
         return $row_index;
     }
 
@@ -545,19 +545,9 @@ function luux_acf_save_cta_strip_meta(int $post_id): void {
 }
 
 function luux_acf_is_cta_strip_meta_name(int $post_id, string $name): bool {
-    if (! preg_match('/^page_sections_(\d+)_(.+)$/', $name, $matches)) {
-        return false;
-    }
-
-    $index  = (int) $matches[1];
-    $suffix = $matches[2];
-
-    if (luux_acf_cta_strip_row_layout($post_id, $index) !== LUUX_CTA_STRIP_LAYOUT) {
-        return false;
-    }
-
-    // Block all CTA strip fields — we persist text + links ourselves.
-    return in_array($suffix, ['text', 'primary_link', 'secondary_link'], true);
+    // Do not block ACF writes for this layout.
+    // Blocking without a guaranteed custom write wipes CTA Strip on save (same issue as offer cards).
+    return false;
 }
 
 function luux_acf_ajax_save_cta_strip_fields(): void {
@@ -690,7 +680,7 @@ add_filter('acf/load_value', function ($value, $post_id, $field) {
 
     $full_meta = luux_acf_get_page_section_meta((int) $post_id);
 
-    if (luux_page_section_layout_slug($full_meta, $row_index) !== LUUX_CTA_STRIP_LAYOUT) {
+    if (! luux_acf_cta_strip_layout_matches(luux_page_section_layout_slug($full_meta, $row_index))) {
         return $value;
     }
 
