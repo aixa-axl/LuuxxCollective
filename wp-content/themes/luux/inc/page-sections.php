@@ -1025,3 +1025,4 @@ require get_template_directory() . '/inc/layout-saves/faq.php';
 require get_template_directory() . '/inc/layout-saves/planning-cta.php';
 require get_template_directory() . '/inc/layout-saves/contact-hero.php';
 require get_template_directory() . '/inc/layout-saves/contact-options.php';
+require get_template_directory() . '/inc/layout-saves/general-enquiries.php';

@@ -3,10 +3,10 @@
  * Layout: general-enquiries — Figma 76:5716
  */
 
-$heading    = get_sub_field('heading');
-$text       = get_sub_field('text');
-$email      = get_sub_field('email');
-$section_id = get_sub_field('section_id');
+$heading    = luux_sub_field('heading');
+$text       = luux_sub_field('text');
+$email      = luux_sub_field('email');
+$section_id = luux_sub_field('section_id');
 ?>
 
 <section<?php echo $section_id ? ' id="' . esc_attr($section_id) . '"' : ''; ?> class="general-enquiries section-pad bg-brand-cream-light">
