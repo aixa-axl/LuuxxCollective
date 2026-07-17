@@ -3,11 +3,41 @@
  * Layout: planning-cta
  */
 
-$heading  = get_sub_field('heading');
-$text     = get_sub_field('text');
-$primary  = get_sub_field('primary_cta');
-$links    = get_sub_field('secondary_links');
-$section_id = get_sub_field('section_id');
+$heading    = luux_sub_field('heading');
+$text       = luux_sub_field('text');
+$primary    = get_sub_field('primary_cta');
+$links      = get_sub_field('secondary_links');
+$section_id = luux_sub_field('section_id');
+
+$post_id   = get_the_ID();
+$row_index = function_exists('luux_section_row_index') ? luux_section_row_index() : -1;
+
+if (
+    $post_id
+    && $row_index >= 0
+    && function_exists('luux_page_sections_uses_legacy_storage')
+    && luux_page_sections_uses_legacy_storage($post_id)
+) {
+    if (function_exists('luux_planning_cta_primary_from_meta')) {
+        $primary_from_meta = luux_planning_cta_primary_from_meta((int) $post_id, $row_index);
+
+        if ($primary_from_meta !== null) {
+            $primary = $primary_from_meta;
+        }
+    }
+
+    if (function_exists('luux_planning_cta_secondary_links_from_meta')) {
+        $links_from_meta = luux_planning_cta_secondary_links_from_meta((int) $post_id, $row_index);
+
+        if ($links_from_meta !== []) {
+            $links = $links_from_meta;
+        }
+    }
+}
+
+if (is_array($primary) && ! empty($primary['title'])) {
+    $primary['title'] = str_replace(['\\u2192', 'u2192'], '→', (string) $primary['title']);
+}
 ?>
 
 <section<?php echo $section_id ? ' id="' . esc_attr($section_id) . '"' : ''; ?> class="planning-cta">
@@ -34,8 +64,15 @@ $section_id = get_sub_field('section_id');
         <?php if ($links) : ?>
             <nav class="planning-cta__links" aria-label="<?php esc_attr_e('Contact options', 'luux'); ?>">
                 <?php foreach ($links as $link) :
-                    if (empty($link['link']['url'])) continue;
+                    if (empty($link['link']['url'])) {
+                        continue;
+                    }
+
                     $item = $link['link'];
+
+                    if (! empty($item['title'])) {
+                        $item['title'] = str_replace(['\\u2192', 'u2192'], '→', (string) $item['title']);
+                    }
                     ?>
                     <a class="planning-cta__link"
                        href="<?php echo esc_url($item['url']); ?>"
