@@ -3,12 +3,30 @@
  * Layout: usps
  */
 
-$label            = get_sub_field('section_label');
-$heading          = get_sub_field('heading');
+$label            = luux_sub_field('section_label');
+$heading          = luux_sub_field('heading');
 $items            = get_sub_field('items');
-$light_background = get_sub_field('light_background');
-$section_id       = get_sub_field('section_id');
-$bg_class         = $light_background ? 'bg-brand-white' : 'bg-brand-cream-light';
+$light_background = luux_sub_field('light_background');
+$section_id       = luux_sub_field('section_id');
+
+$post_id   = get_the_ID();
+$row_index = function_exists('luux_section_row_index') ? luux_section_row_index() : -1;
+
+if (
+    $post_id
+    && $row_index >= 0
+    && function_exists('luux_page_sections_uses_legacy_storage')
+    && luux_page_sections_uses_legacy_storage($post_id)
+    && function_exists('luux_usps_items_from_meta')
+) {
+    $from_meta = luux_usps_items_from_meta((int) $post_id, $row_index);
+
+    if ($from_meta !== []) {
+        $items = $from_meta;
+    }
+}
+
+$bg_class = $light_background ? 'bg-brand-white' : 'bg-brand-cream-light';
 ?>
 
 <section<?php echo $section_id ? ' id="' . esc_attr($section_id) . '"' : ''; ?> class="<?php echo esc_attr($bg_class); ?> section-pad">
