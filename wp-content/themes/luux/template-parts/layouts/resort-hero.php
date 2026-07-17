@@ -3,14 +3,35 @@
  * Layout: resort-hero
  */
 
-$eyebrow    = get_sub_field('eyebrow');
-$heading    = get_sub_field('heading');
-$text       = get_sub_field('text');
-$media_type = get_sub_field('media_type') ?: 'image';
-$image_id   = get_sub_field('background_image');
-$video_id   = get_sub_field('background_video');
+$eyebrow    = luux_sub_field('eyebrow');
+$heading    = luux_sub_field('heading');
+$text       = luux_sub_field('text');
+$media_type = luux_sub_field('media_type') ?: 'image';
+$image_id   = luux_sub_field('background_image');
+$video_id   = luux_sub_field('background_video');
 $cta        = get_sub_field('cta');
-$section_id = get_sub_field('section_id');
+$section_id = luux_sub_field('section_id');
+
+$post_id   = get_the_ID();
+$row_index = function_exists('luux_section_row_index') ? luux_section_row_index() : -1;
+
+if (
+    $post_id
+    && $row_index >= 0
+    && function_exists('luux_page_sections_uses_legacy_storage')
+    && luux_page_sections_uses_legacy_storage($post_id)
+    && function_exists('luux_resort_hero_cta_from_meta')
+) {
+    $cta_from_meta = luux_resort_hero_cta_from_meta((int) $post_id, $row_index);
+
+    if ($cta_from_meta !== null) {
+        $cta = $cta_from_meta;
+    }
+}
+
+if (is_array($cta) && ! empty($cta['title'])) {
+    $cta['title'] = str_replace(['\\u2192', 'u2192'], '→', (string) $cta['title']);
+}
 
 $has_video = ($media_type === 'video' && $video_id);
 $has_media = $has_video || $image_id;

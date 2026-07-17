@@ -1807,3 +1807,4 @@ require get_template_directory() . '/inc/layout-saves/usps.php';
 require get_template_directory() . '/inc/layout-saves/group-section.php';
 require get_template_directory() . '/inc/layout-saves/reviews.php';
 require get_template_directory() . '/inc/layout-saves/careers-teaser.php';
+require get_template_directory() . '/inc/layout-saves/resort-hero.php';
