@@ -1798,3 +1798,4 @@ add_action('admin_notices', function (): void {
 });
 
 require get_template_directory() . '/inc/layout-saves/hero.php';
+require get_template_directory() . '/inc/layout-saves/featured-offers.php';

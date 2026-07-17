@@ -3,10 +3,27 @@
  * Layout: featured-offers
  */
 
-$label   = get_sub_field('section_label');
-$heading = get_sub_field('heading');
-$intro   = get_sub_field('intro');
+$label   = luux_sub_field('section_label');
+$heading = luux_sub_field('heading');
+$intro   = luux_sub_field('intro');
 $offers  = get_sub_field('offers');
+
+$post_id   = get_the_ID();
+$row_index = function_exists('luux_section_row_index') ? luux_section_row_index() : -1;
+
+if (
+    $post_id
+    && $row_index >= 0
+    && function_exists('luux_page_sections_uses_legacy_storage')
+    && luux_page_sections_uses_legacy_storage($post_id)
+    && function_exists('luux_featured_offers_offers_from_meta')
+) {
+    $from_meta = luux_featured_offers_offers_from_meta((int) $post_id, $row_index);
+
+    if ($from_meta !== []) {
+        $offers = $from_meta;
+    }
+}
 ?>
 
 <section class="section-pad">
