@@ -1,118 +1,168 @@
 /**
- * Video Tours admin save helpers.
- * Block editor + large resort pages can drop video fields from the save payload.
+ * Video Tours layout admin save helpers.
  */
 (function ($) {
     'use strict';
 
+    var LAYOUT = 'video_tours';
+
     var FIELD_KEYS = {
+        heading: 'field_luux_video_tours_heading',
+        text: 'field_luux_video_tours_text',
         media_type_left: 'field_luux_video_tours_media_type_left',
         media_type_right: 'field_luux_video_tours_media_type_right',
         image_left: 'field_luux_video_tours_image_left',
         image_right: 'field_luux_video_tours_image_right',
         video_left: 'field_luux_video_tours_video_left',
         video_right: 'field_luux_video_tours_video_right',
+        section_id: 'field_luux_video_tours_section_id',
     };
 
     var savingRows = false;
     var initialized = false;
 
     function getAjaxUrl() {
-        if (typeof luuxVideoTours !== 'undefined' && luuxVideoTours.ajaxurl) {
-            return luuxVideoTours.ajaxurl;
+        if (typeof luuxLayoutVideoTours !== 'undefined' && luuxLayoutVideoTours.ajaxurl) {
+            return luuxLayoutVideoTours.ajaxurl;
         }
 
-        if (typeof ajaxurl !== 'undefined') {
-            return ajaxurl;
-        }
-
-        return '';
+        return typeof ajaxurl !== 'undefined' ? ajaxurl : '';
     }
 
     function getPageSectionsFlex() {
         return $('.acf-field[data-key="field_luux_page_sections"] .acf-flexible-content, .acf-field[data-name="page_sections"] .acf-flexible-content').first();
     }
 
-    function getFlexibleLayouts($flex) {
-        var layouts = [];
-        var videoToursNth = 0;
+    function getLayoutRows() {
+        var $flex = getPageSectionsFlex();
+        var rows = [];
+        var nth = 0;
+
+        if (!$flex.length) {
+            return rows;
+        }
 
         $flex.find('> .values > .layout').each(function (domIndex) {
             var $layout = $(this);
             var layout = $layout.attr('data-layout') || '';
-            var item = {
+
+            if (layout !== LAYOUT) {
+                return;
+            }
+
+            rows.push({
                 domIndex: domIndex,
-                rowNth: layout === 'video_tours' ? videoToursNth : -1,
+                rowNth: nth,
                 layout: layout,
                 $el: $layout,
-            };
-
-            if (layout === 'video_tours') {
-                videoToursNth += 1;
-            }
-
-            layouts.push(item);
+            });
+            nth += 1;
         });
 
-        return layouts;
+        return rows;
     }
 
-    function fieldNameForKey(key) {
-        var name = '';
-
-        $.each(FIELD_KEYS, function (fieldName, fieldKey) {
-            if (fieldKey === key) {
-                name = fieldName;
-            }
-        });
-
-        return name;
+    function expandLayout($layout) {
+        if ($layout && $layout.length && $layout.hasClass('-collapsed')) {
+            $layout.removeClass('-collapsed');
+            $layout.find('> .acf-fields, > .acf-fc-layout-body').show();
+        }
     }
 
-    function readFieldValueFromAcf($fieldEl) {
-        if (typeof acf === 'undefined' || typeof acf.getField !== 'function') {
-            return '';
-        }
-
-        var field = acf.getField($fieldEl);
-
-        if (!field || typeof field.val !== 'function') {
-            return '';
-        }
-
-        var value = field.val();
-
+    function normalizeAttachmentId(value) {
         if (value === null || value === undefined || value === '') {
             return '';
         }
 
-        if (typeof value === 'object' && value.id) {
-            return String(value.id);
+        if (typeof value === 'object') {
+            if (value.id) {
+                return String(value.id);
+            }
+
+            if (value.ID) {
+                return String(value.ID);
+            }
         }
 
-        if (typeof value === 'object' && value.ID) {
-            return String(value.ID);
+        if (typeof value === 'number' || (typeof value === 'string' && /^\d+$/.test(value))) {
+            return String(value);
         }
 
-        return String(value);
+        return '';
+    }
+
+    function readWysiwyg($fieldEl) {
+        if (typeof acf !== 'undefined' && typeof acf.getField === 'function') {
+            var field = acf.getField($fieldEl);
+
+            if (field && typeof field.val === 'function') {
+                var value = field.val();
+
+                if (value !== null && value !== undefined && value !== '') {
+                    return String(value);
+                }
+            }
+        }
+
+        var $textarea = $fieldEl.find('textarea').first();
+
+        if ($textarea.length && $textarea.val()) {
+            return String($textarea.val());
+        }
+
+        return '';
     }
 
     function readRowFields($layout) {
+        expandLayout($layout);
+
         var fields = {};
 
-        $layout.find('.acf-field').each(function () {
-            var $fieldEl = $(this);
-            var key = $fieldEl.attr('data-key') || '';
-            var name = fieldNameForKey(key);
+        $.each(FIELD_KEYS, function (name, key) {
+            var $fieldEl = $layout.find('.acf-field[data-key="' + key + '"]').first();
 
-            if (!name) {
+            if (!$fieldEl.length) {
+                $fieldEl = $layout.find('.acf-field[data-name="' + name + '"]').first();
+            }
+
+            if (!$fieldEl.length) {
                 return;
             }
 
-            var value = readFieldValueFromAcf($fieldEl);
+            if (name === 'text') {
+                var html = readWysiwyg($fieldEl);
 
-            if (value !== '') {
-                fields[name] = value;
+                if (html) {
+                    fields.text = html;
+                }
+
+                return;
+            }
+
+            if (typeof acf === 'undefined' || typeof acf.getField !== 'function') {
+                return;
+            }
+
+            var field = acf.getField($fieldEl);
+
+            if (!field || typeof field.val !== 'function') {
+                return;
+            }
+
+            var value = field.val();
+
+            if (name === 'image_left' || name === 'image_right' || name === 'video_left' || name === 'video_right') {
+                var id = normalizeAttachmentId(value);
+
+                if (id !== '') {
+                    fields[name] = id;
+                }
+
+                return;
+            }
+
+            if (value !== null && value !== undefined && value !== '') {
+                fields[name] = String(value);
             }
         });
 
@@ -142,18 +192,6 @@
         return fields;
     }
 
-    function getVideoToursRows() {
-        var $flex = getPageSectionsFlex();
-
-        if (!$flex.length) {
-            return [];
-        }
-
-        return getFlexibleLayouts($flex).filter(function (item) {
-            return item.layout === 'video_tours';
-        });
-    }
-
     function injectEarlyFields() {
         var $form = $('#post');
 
@@ -165,15 +203,24 @@
             return;
         }
 
-        $('#luux-vt-early').remove();
+        $('#luux-video-tours-early').remove();
 
-        var $wrap = $('<div id="luux-vt-early" style="display:none" aria-hidden="true"></div>');
-        var rows = getVideoToursRows();
+        var $wrap = $('<div id="luux-video-tours-early" style="display:none" aria-hidden="true"></div>');
 
-        rows.forEach(function (item) {
+        getLayoutRows().forEach(function (item) {
             var fields = readRowFields(item.$el);
 
             $.each(fields, function (name, value) {
+                if (name === 'text') {
+                    $('<textarea>', {
+                        name: 'luux_video_tours[' + item.domIndex + '][' + name + ']',
+                        'aria-hidden': 'true',
+                    }).css({ position: 'absolute', left: '-9999px', height: '1px', width: '1px' })
+                        .val(value)
+                        .appendTo($wrap);
+                    return;
+                }
+
                 $('<input>', {
                     type: 'hidden',
                     name: 'luux_video_tours[' + item.domIndex + '][' + name + ']',
@@ -195,32 +242,38 @@
             return $.Deferred().resolve().promise();
         }
 
+        var payload = {
+            action: 'luux_save_video_tours_fields',
+            nonce: luuxLayoutVideoTours.nonce,
+            post_id: postId,
+            row_index: rowIndex,
+            row_nth: rowNth,
+            fields: {},
+        };
+
+        $.each(fields, function (name, value) {
+            payload[name] = value;
+            payload.fields[name] = value;
+        });
+
         return $.ajax({
             url: url,
             method: 'POST',
             async: async !== false,
-            data: {
-                action: 'luux_save_video_tours_media',
-                nonce: luuxVideoTours.nonce,
-                post_id: postId,
-                row_index: rowIndex,
-                row_nth: rowNth,
-                fields: fields,
-            },
+            data: payload,
         });
     }
 
-    function stashAllVideoToursRows(async) {
+    function stashAllRows(async) {
         if (savingRows) {
             return $.Deferred().resolve().promise();
         }
 
         savingRows = true;
 
-        var rows = getVideoToursRows();
         var chain = $.Deferred().resolve().promise();
 
-        rows.forEach(function (item) {
+        getLayoutRows().forEach(function (item) {
             var fields = readRowFields(item.$el);
 
             if ($.isEmptyObject(fields)) {
@@ -239,28 +292,102 @@
         return chain;
     }
 
+    function layoutMatches(layout) {
+        return layout === LAYOUT || layout === 'layout_luux_video_tours';
+    }
+
     function mergeRowIntoAcfPayload(fields, acfRow) {
         if (!acfRow || typeof acfRow !== 'object') {
-            acfRow = { acf_fc_layout: 'video_tours' };
+            acfRow = { acf_fc_layout: LAYOUT };
         }
 
         $.each(FIELD_KEYS, function (name, key) {
-            if (fields[name]) {
-                acfRow[key] = fields[name];
-                acfRow[name] = fields[name];
+            if (fields[name] === undefined || fields[name] === null || fields[name] === '') {
+                return;
             }
+
+            if (name === 'image_left' || name === 'image_right' || name === 'video_left' || name === 'video_right') {
+                var id = parseInt(fields[name], 10);
+
+                if (id > 0) {
+                    acfRow[key] = id;
+                    acfRow[name] = id;
+                }
+
+                return;
+            }
+
+            acfRow[key] = fields[name];
+            acfRow[name] = fields[name];
         });
 
         return acfRow;
     }
 
-    function mergeDomVideoToursIntoAcfData(data) {
+    function mergeDomIntoRestPayload(data) {
         if (!data || typeof data !== 'object') {
             return data;
         }
 
+        var rows = getLayoutRows();
+
+        if (!rows.length) {
+            return data;
+        }
+
+        if (!data.meta || typeof data.meta !== 'object') {
+            data.meta = {};
+        }
+
+        if (!data.meta.acf || typeof data.meta.acf !== 'object') {
+            data.meta.acf = {};
+        }
+
         if (!data.acf || typeof data.acf !== 'object') {
             data.acf = {};
+        }
+
+        var fcKey = 'field_luux_page_sections';
+        var fc = data.meta.acf[fcKey] || data.acf[fcKey];
+
+        if (!fc || typeof fc !== 'object') {
+            fc = {};
+        }
+
+        var matched = 0;
+
+        $.each(fc, function (key, row) {
+            if (!row || typeof row !== 'object' || !layoutMatches(row.acf_fc_layout || '')) {
+                return;
+            }
+
+            var domRow = rows[matched];
+
+            if (domRow) {
+                fc[key] = mergeRowIntoAcfPayload(readRowFields(domRow.$el), row);
+            }
+
+            matched += 1;
+        });
+
+        if (matched === 0) {
+            rows.forEach(function (domRow) {
+                fc[String(domRow.domIndex)] = mergeRowIntoAcfPayload(
+                    readRowFields(domRow.$el),
+                    { acf_fc_layout: LAYOUT }
+                );
+            });
+        }
+
+        data.meta.acf[fcKey] = fc;
+        data.acf[fcKey] = fc;
+
+        return data;
+    }
+
+    function mergeDomIntoAcfData(data) {
+        if (!data || typeof data !== 'object' || !data.acf || typeof data.acf !== 'object') {
+            return data;
         }
 
         var fcKey = 'field_luux_page_sections';
@@ -270,17 +397,11 @@
             return data;
         }
 
-        var rows = getVideoToursRows();
+        var rows = getLayoutRows();
         var nth = 0;
 
         $.each(fc, function (key, row) {
-            if (!row || typeof row !== 'object') {
-                return;
-            }
-
-            var layout = row.acf_fc_layout || '';
-
-            if (layout !== 'video_tours' && layout !== 'layout_luux_video_tours') {
+            if (!row || typeof row !== 'object' || !layoutMatches(row.acf_fc_layout || '')) {
                 return;
             }
 
@@ -316,7 +437,7 @@
         var count = 0;
 
         $flex.find('> .values > .layout').each(function (index) {
-            if ($(this).attr('data-layout') === 'video_tours') {
+            if ($(this).attr('data-layout') === LAYOUT) {
                 if (index === domIndex) {
                     rowNth = count;
                 }
@@ -327,7 +448,7 @@
         return { domIndex: domIndex, rowNth: rowNth };
     }
 
-    function isVideoToursField(field) {
+    function isLayoutField(field) {
         if (!field || typeof field.get !== 'function') {
             return false;
         }
@@ -336,7 +457,7 @@
     }
 
     function handleFieldChange(field) {
-        if (!isVideoToursField(field)) {
+        if (!isLayoutField(field)) {
             return;
         }
 
@@ -346,15 +467,30 @@
             return;
         }
 
-        var $layout = field.$el.closest('.layout');
-        var fields = readRowFields($layout);
-
-        saveRowAjax(indices.domIndex, indices.rowNth, fields, true);
+        saveRowAjax(indices.domIndex, indices.rowNth, readRowFields(field.$el.closest('.layout')), true);
     }
 
     function beforeSave() {
         injectEarlyFields();
-        return stashAllVideoToursRows(false);
+        return stashAllRows(false);
+    }
+
+    function bindRestApiSave() {
+        if (!window.wp || !wp.apiFetch || typeof wp.apiFetch.use !== 'function') {
+            return;
+        }
+
+        wp.apiFetch.use(function (options, next) {
+            var path = options.path || '';
+            var method = (options.method || 'GET').toUpperCase();
+            var isPageWrite = /\/wp\/v2\/pages\/\d+/.test(path) && (method === 'POST' || method === 'PUT' || method === 'PATCH');
+
+            if (isPageWrite && options.data) {
+                options.data = mergeDomIntoRestPayload(options.data);
+            }
+
+            return next(options);
+        });
     }
 
     function bindBlockEditorSave() {
@@ -394,7 +530,7 @@
     }
 
     function init() {
-        if (initialized || typeof luuxVideoTours === 'undefined') {
+        if (initialized || typeof luuxLayoutVideoTours === 'undefined') {
             return;
         }
 
@@ -419,11 +555,12 @@
         if (acf.addFilter) {
             acf.addFilter('prepare_for_ajax', function (data) {
                 injectEarlyFields();
-                return mergeDomVideoToursIntoAcfData(data);
+                return mergeDomIntoAcfData(data);
             });
         }
 
         bindBlockEditorSave();
+        bindRestApiSave();
     }
 
     if (typeof acf !== 'undefined' && typeof acf.addAction === 'function') {
