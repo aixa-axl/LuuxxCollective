@@ -3,15 +3,39 @@
  * Layout: hotel-showcase
  */
 
-$heading    = get_sub_field('heading');
-$intro      = get_sub_field('intro');
-$footnote   = get_sub_field('footnote');
+$heading    = luux_sub_field('heading');
+$intro      = luux_sub_field('intro');
+$footnote   = luux_sub_field('footnote');
 $hotels     = get_sub_field('hotels');
-$section_id = get_sub_field('section_id');
+$section_id = luux_sub_field('section_id');
+
+$post_id   = get_the_ID();
+$row_index = function_exists('luux_section_row_index') ? luux_section_row_index() : -1;
+
+if (
+    $post_id
+    && $row_index >= 0
+    && function_exists('luux_page_sections_uses_legacy_storage')
+    && luux_page_sections_uses_legacy_storage($post_id)
+    && function_exists('luux_hotel_showcase_hotels_from_meta')
+) {
+    $from_meta = luux_hotel_showcase_hotels_from_meta((int) $post_id, $row_index);
+
+    if ($from_meta !== []) {
+        $hotels = $from_meta;
+    }
+}
 
 if (! $hotels) {
     return;
 }
+
+foreach ($hotels as &$hotel) {
+    if (is_array($hotel) && ! empty($hotel['cta']['title'])) {
+        $hotel['cta']['title'] = str_replace(['\\u2192', 'u2192'], '→', (string) $hotel['cta']['title']);
+    }
+}
+unset($hotel);
 
 $panel_id = 'hotel-showcase-' . get_row_index();
 ?>
