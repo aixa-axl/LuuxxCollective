@@ -1780,3 +1780,5 @@ add_action('admin_notices', function (): void {
     echo '<div class="notice notice-error"><p><strong>Luux:</strong> Page Sections layouts are missing (site content will not show). ';
     echo '<a href="' . $url . '">Open Tools → Luux Page Sections</a> to repair.</p></div>';
 });
+
+require get_template_directory() . '/inc/layout-saves/hero.php';

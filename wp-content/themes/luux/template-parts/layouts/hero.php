@@ -8,7 +8,24 @@ $subheading     = luux_sub_field('subheading');
 $media_type     = luux_sub_field('media_type') ?: 'image';
 $image_id       = luux_sub_field('background_image');
 $video_id       = luux_sub_field('background_video');
-$ctas           = get_sub_field('ctas'); // Repeater — still via ACF until repeater helper is added.
+$ctas           = get_sub_field('ctas');
+
+$post_id   = get_the_ID();
+$row_index = function_exists('luux_section_row_index') ? luux_section_row_index() : -1;
+
+if (
+    $post_id
+    && $row_index >= 0
+    && function_exists('luux_page_sections_uses_legacy_storage')
+    && luux_page_sections_uses_legacy_storage($post_id)
+    && function_exists('luux_hero_ctas_from_meta')
+) {
+    $from_meta = luux_hero_ctas_from_meta((int) $post_id, $row_index);
+
+    if ($from_meta !== []) {
+        $ctas = $from_meta;
+    }
+}
 
 $has_video = ($media_type === 'video' && $video_id);
 $has_media = $has_video || $image_id;
