@@ -244,6 +244,82 @@
         return acfRow;
     }
 
+    function mergeDomHeroIntoRestPayload(data) {
+        if (!data || typeof data !== 'object') {
+            return data;
+        }
+
+        var rows = getHeroRows();
+
+        if (!rows.length) {
+            return data;
+        }
+
+        if (!data.meta || typeof data.meta !== 'object') {
+            data.meta = {};
+        }
+
+        if (!data.meta.acf || typeof data.meta.acf !== 'object') {
+            data.meta.acf = {};
+        }
+
+        if (!data.acf || typeof data.acf !== 'object') {
+            data.acf = {};
+        }
+
+        var fcKey = 'field_luux_page_sections';
+        var fc = data.meta.acf[fcKey] || data.acf[fcKey];
+
+        if (!fc || typeof fc !== 'object') {
+            fc = {};
+        }
+
+        var nth = 0;
+
+        $.each(fc, function (key, row) {
+            if (!row || typeof row !== 'object') {
+                return;
+            }
+
+            var layout = row.acf_fc_layout || '';
+
+            if (layout !== 'hero' && layout !== 'layout_luux_hero') {
+                return;
+            }
+
+            var domRow = rows[nth];
+
+            if (domRow) {
+                fc[key] = mergeRowIntoAcfPayload(readRowFields(domRow.$el), row);
+            }
+
+            nth += 1;
+        });
+
+        data.meta.acf[fcKey] = fc;
+        data.acf[fcKey] = fc;
+
+        return data;
+    }
+
+    function bindRestApiSave() {
+        if (!window.wp || !wp.apiFetch || typeof wp.apiFetch.use !== 'function') {
+            return;
+        }
+
+        wp.apiFetch.use(function (options, next) {
+            var path = options.path || '';
+            var method = (options.method || 'GET').toUpperCase();
+            var isPageWrite = /\/wp\/v2\/pages\/\d+/.test(path) && (method === 'POST' || method === 'PUT' || method === 'PATCH');
+
+            if (isPageWrite && options.data) {
+                options.data = mergeDomHeroIntoRestPayload(options.data);
+            }
+
+            return next(options);
+        });
+    }
+
     function mergeDomHeroIntoAcfData(data) {
         if (!data || typeof data !== 'object') {
             return data;
@@ -414,6 +490,7 @@
         }
 
         bindBlockEditorSave();
+        bindRestApiSave();
     }
 
     if (typeof acf !== 'undefined' && typeof acf.addAction === 'function') {

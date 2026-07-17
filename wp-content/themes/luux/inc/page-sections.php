@@ -864,6 +864,22 @@ function luux_read_section_meta(int $post_id, int $row_index, string $name): mix
 }
 
 /**
+ * Replace a postmeta key entirely (removes duplicate import rows before writing).
+ */
+function luux_acf_replace_section_meta(int $post_id, string $meta_key, mixed $value, string $ref): void {
+    while (delete_post_meta($post_id, $meta_key)) {
+        // Remove all duplicate rows left by legacy imports.
+    }
+
+    while (delete_post_meta($post_id, '_' . $meta_key)) {
+        // Remove duplicate reference rows.
+    }
+
+    update_post_meta($post_id, $meta_key, $value);
+    update_post_meta($post_id, '_' . $meta_key, $ref);
+}
+
+/**
  * Find the DB row index for a layout slug on a page.
  */
 function luux_find_section_row_index(int $post_id, string $layout_name): ?int {
@@ -897,10 +913,10 @@ function luux_sub_field(string $name) {
         $row_index = luux_section_row_index();
 
         if ($row_index >= 0) {
-            $direct = luux_read_section_meta((int) $post_id, $row_index, $name);
+            $raw = get_metadata('post', (int) $post_id, 'page_sections_' . $row_index . '_' . $name, false);
 
-            if ($direct !== null) {
-                return $direct;
+            if (is_array($raw) && $raw !== []) {
+                return luux_acf_resolve_meta_storage_value($raw);
             }
         }
     }

@@ -55,6 +55,12 @@ function luux_acf_hero_row_layout(int $post_id, int $index): string {
 }
 
 function luux_acf_resolve_hero_db_index(int $post_id, int $row_index, int $row_nth = 0): int {
+    $resolved = luux_find_section_row_index($post_id, 'hero');
+
+    if ($resolved !== null) {
+        return $resolved;
+    }
+
     $db_indices = luux_acf_hero_db_row_indices($post_id);
 
     if (isset($db_indices[$row_nth])) {
@@ -66,6 +72,83 @@ function luux_acf_resolve_hero_db_index(int $post_id, int $row_index, int $row_n
     }
 
     return $row_index;
+}
+
+/** @return array<string, mixed>|null */
+function luux_acf_hero_rest_payload(?array $set = null, bool $reset = false): ?array {
+    static $payload = null;
+
+    if ($reset) {
+        $payload = null;
+
+        return null;
+    }
+
+    if ($set !== null) {
+        $payload = $set;
+    }
+
+    return $payload;
+}
+
+function luux_acf_hero_capture_rest_request(WP_REST_Request $request): void {
+    $params = $request->get_json_params();
+
+    if (! is_array($params)) {
+        return;
+    }
+
+    if (! empty($params['acf']) && is_array($params['acf'])) {
+        luux_acf_hero_rest_payload($params['acf']);
+
+        return;
+    }
+
+    if (! empty($params['meta']['acf']) && is_array($params['meta']['acf'])) {
+        luux_acf_hero_rest_payload($params['meta']['acf']);
+    }
+}
+
+/** @return list<array{index: int, row: array<string, mixed>}> */
+function luux_acf_hero_post_rows_from_payload(array $payload): array {
+    if (! empty($payload['field_luux_page_sections']) && is_array($payload['field_luux_page_sections'])) {
+        return luux_acf_hero_post_rows_from_acf_array($payload['field_luux_page_sections']);
+    }
+
+    return luux_acf_hero_find_rows_in_array($payload);
+}
+
+/** @return list<array{index: int, row: array<string, mixed>}> */
+function luux_acf_hero_post_rows_from_acf_array(array $fc): array {
+    $rows       = [];
+    $form_index = 0;
+
+    foreach ($fc as $key => $row) {
+        if (! is_array($row) || empty($row['acf_fc_layout'])) {
+            continue;
+        }
+
+        $layout = (string) $row['acf_fc_layout'];
+
+        if ($layout === 'hero' || $layout === 'layout_luux_hero') {
+            $index = $form_index;
+
+            if (is_numeric($key)) {
+                $index = (int) $key;
+            } elseif (preg_match('/^row-(\d+)$/', (string) $key, $matches)) {
+                $index = (int) $matches[1];
+            }
+
+            $rows[] = [
+                'index' => $index,
+                'row'   => $row,
+            ];
+        }
+
+        $form_index++;
+    }
+
+    return $rows;
 }
 
 function luux_acf_hero_attachment_id(mixed $value): int {
@@ -270,7 +353,19 @@ function luux_acf_hero_post_rows_with_indices(): array {
         return $early;
     }
 
-    return luux_acf_hero_post_rows_from_acf();
+    $acf = luux_acf_hero_post_rows_from_acf();
+
+    if ($acf !== []) {
+        return $acf;
+    }
+
+    $payload = luux_acf_hero_rest_payload();
+
+    if (is_array($payload) && $payload !== []) {
+        return luux_acf_hero_post_rows_from_payload($payload);
+    }
+
+    return [];
 }
 
 /**
@@ -292,14 +387,12 @@ function luux_acf_persist_hero_ctas(int $post_id, int $db_index, array $ctas): v
         }
 
         $meta_key = $prefix . 'ctas_' . (int) $i . '_link';
-        update_post_meta($post_id, $meta_key, $link);
-        update_post_meta($post_id, '_' . $meta_key, 'field_luux_hero_cta_link');
+        luux_acf_replace_section_meta($post_id, $meta_key, $link, 'field_luux_hero_cta_link');
         $count = (int) $i + 1;
     }
 
     if ($count > 0) {
-        update_post_meta($post_id, $prefix . 'ctas', $count);
-        update_post_meta($post_id, '_' . $prefix . 'ctas', 'field_luux_hero_ctas');
+        luux_acf_replace_section_meta($post_id, $prefix . 'ctas', $count, 'field_luux_hero_ctas');
     }
 }
 
@@ -319,8 +412,7 @@ function luux_acf_persist_hero_row(int $post_id, int $db_index, array $row): voi
         $meta_key = $prefix . $name;
 
         if ($name === 'show_group_tag') {
-            update_post_meta($post_id, $meta_key, $value ? 1 : 0);
-            update_post_meta($post_id, '_' . $meta_key, $ref);
+            luux_acf_replace_section_meta($post_id, $meta_key, $value ? 1 : 0, $ref);
             continue;
         }
 
@@ -330,15 +422,16 @@ function luux_acf_persist_hero_row(int $post_id, int $db_index, array $row): voi
 
         if ($value === '' || $value === null || $value === 0) {
             if (in_array($name, ['background_image', 'background_video', 'group_tag_logo'], true)) {
-                delete_post_meta($post_id, $meta_key);
-                delete_post_meta($post_id, '_' . $meta_key);
+                while (delete_post_meta($post_id, $meta_key)) {
+                }
+                while (delete_post_meta($post_id, '_' . $meta_key)) {
+                }
             }
 
             continue;
         }
 
-        update_post_meta($post_id, $meta_key, $value);
-        update_post_meta($post_id, '_' . $meta_key, $ref);
+        luux_acf_replace_section_meta($post_id, $meta_key, $value, $ref);
     }
 
     $media_type = get_post_meta($post_id, $prefix . 'media_type', true) ?: 'image';
@@ -379,7 +472,6 @@ function luux_acf_restore_hero_from_stash(int $post_id): void {
         return;
     }
 
-    $db_indices = luux_acf_hero_db_row_indices($post_id);
     $field_map  = luux_acf_hero_field_map();
     $nth        = 0;
 
@@ -388,7 +480,7 @@ function luux_acf_restore_hero_from_stash(int $post_id): void {
             continue;
         }
 
-        $db_index = $db_indices[$nth] ?? (int) $row_key;
+        $db_index = luux_acf_resolve_hero_db_index($post_id, (int) $row_key, $nth);
         $row      = ['acf_fc_layout' => 'hero'];
 
         foreach ($fields as $name => $value) {
@@ -421,15 +513,10 @@ function luux_acf_persist_hero_from_request(int $post_id): void {
         return;
     }
 
-    $db_indices = luux_acf_hero_db_row_indices($post_id);
-    $field_map  = luux_acf_hero_field_map();
+    $field_map = luux_acf_hero_field_map();
 
     foreach ($post_rows as $n => $item) {
-        $db_index = $db_indices[$n] ?? $item['index'] ?? null;
-
-        if ($db_index === null) {
-            continue;
-        }
+        $db_index = luux_acf_resolve_hero_db_index($post_id, (int) ($item['index'] ?? 0), $n);
 
         $stash = [];
 
@@ -458,6 +545,7 @@ function luux_acf_persist_hero_from_request(int $post_id): void {
 function luux_acf_save_hero_meta(int $post_id): void {
     luux_acf_persist_hero_from_request($post_id);
     luux_acf_restore_hero_from_stash($post_id);
+    luux_acf_hero_rest_payload(null, true);
 }
 
 function luux_acf_is_hero_meta_name(int $post_id, string $name): bool {
@@ -605,10 +693,6 @@ add_filter('acf/load_value', function ($value, $post_id, $field) {
         return $value;
     }
 
-    if ($value !== null && $value !== false && $value !== '') {
-        return $value;
-    }
-
     if (! is_numeric($post_id) || get_post_type((int) $post_id) !== 'page' || ! function_exists('acf_get_loop')) {
         return $value;
     }
@@ -627,6 +711,21 @@ add_filter('acf/load_value', function ($value, $post_id, $field) {
 
     $full_meta = luux_acf_get_page_section_meta((int) $post_id);
     if (luux_page_section_layout_slug($full_meta, $row_index) !== 'hero') {
+        return $value;
+    }
+
+    if (
+        function_exists('luux_page_sections_uses_legacy_storage')
+        && luux_page_sections_uses_legacy_storage((int) $post_id)
+    ) {
+        $direct = luux_read_section_meta((int) $post_id, $row_index, $name);
+
+        if ($direct !== null) {
+            return $direct;
+        }
+    }
+
+    if ($value !== null && $value !== false && $value !== '') {
         return $value;
     }
 
@@ -657,6 +756,18 @@ add_filter('acf/load_value', function ($value, $post_id, $field) {
     return $direct;
 }, 21, 3);
 
+add_filter('rest_pre_insert_page', function ($prepared_post, WP_REST_Request $request) {
+    luux_acf_hero_capture_rest_request($request);
+
+    return $prepared_post;
+}, 5, 2);
+
+add_filter('rest_pre_update_page', function ($prepared_post, WP_REST_Request $request) {
+    luux_acf_hero_capture_rest_request($request);
+
+    return $prepared_post;
+}, 5, 2);
+
 add_action('acf/save_post', function ($post_id): void {
     if (! is_numeric($post_id) || get_post_type((int) $post_id) !== 'page') {
         return;
@@ -673,13 +784,14 @@ add_action('save_post_page', function (int $post_id): void {
     luux_acf_save_hero_meta($post_id);
 }, 99999);
 
-add_action('rest_after_insert_page', function (\WP_Post $post): void {
+add_action('rest_after_insert_page', function (\WP_Post $post, WP_REST_Request $request): void {
     if ($post->post_type !== 'page') {
         return;
     }
 
+    luux_acf_hero_capture_rest_request($request);
     luux_acf_save_hero_meta((int) $post->ID);
-}, 99999, 1);
+}, 99999, 2);
 
 add_action('wp_ajax_luux_save_hero_fields', 'luux_acf_ajax_save_hero_fields');
 
@@ -703,7 +815,7 @@ add_action('admin_enqueue_scripts', function (string $hook): void {
     wp_enqueue_script(
         'luux-admin-layout-hero',
         get_template_directory_uri() . '/assets/js/admin-layout-hero.js',
-        ['jquery', 'acf-input'],
+        ['jquery', 'acf-input', 'wp-api-fetch', 'wp-data'],
         (string) filemtime($path),
         true
     );
