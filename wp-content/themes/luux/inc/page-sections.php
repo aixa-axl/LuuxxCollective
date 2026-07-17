@@ -1018,3 +1018,4 @@ require get_template_directory() . '/inc/layout-saves/resort-hero.php';
 require get_template_directory() . '/inc/layout-saves/trust-strip.php';
 require get_template_directory() . '/inc/layout-saves/hotel-showcase.php';
 require get_template_directory() . '/inc/layout-saves/video-tours.php';
+require get_template_directory() . '/inc/layout-saves/suite-grid.php';

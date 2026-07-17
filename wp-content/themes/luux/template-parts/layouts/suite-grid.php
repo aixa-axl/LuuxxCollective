@@ -3,16 +3,49 @@
  * Layout: suite-grid
  */
 
-$section_label = get_sub_field('section_label');
-$heading       = get_sub_field('heading');
-$filter_label  = get_sub_field('filter_label');
+$section_label = luux_sub_field('section_label');
+$heading       = luux_sub_field('heading');
+$filter_label  = luux_sub_field('filter_label');
 $categories    = get_sub_field('categories');
 $suites        = get_sub_field('suites');
-$section_id    = get_sub_field('section_id');
+$section_id    = luux_sub_field('section_id');
+
+$post_id   = get_the_ID();
+$row_index = function_exists('luux_section_row_index') ? luux_section_row_index() : -1;
+
+if (
+    $post_id
+    && $row_index >= 0
+    && function_exists('luux_page_sections_uses_legacy_storage')
+    && luux_page_sections_uses_legacy_storage($post_id)
+) {
+    if (function_exists('luux_suite_grid_categories_from_meta')) {
+        $categories_from_meta = luux_suite_grid_categories_from_meta((int) $post_id, $row_index);
+
+        if ($categories_from_meta !== []) {
+            $categories = $categories_from_meta;
+        }
+    }
+
+    if (function_exists('luux_suite_grid_suites_from_meta')) {
+        $suites_from_meta = luux_suite_grid_suites_from_meta((int) $post_id, $row_index);
+
+        if ($suites_from_meta !== []) {
+            $suites = $suites_from_meta;
+        }
+    }
+}
 
 if (! $suites) {
     return;
 }
+
+foreach ($suites as &$suite) {
+    if (is_array($suite) && ! empty($suite['link']['title'])) {
+        $suite['link']['title'] = str_replace(['\\u2192', 'u2192'], '→', (string) $suite['link']['title']);
+    }
+}
+unset($suite);
 ?>
 
 <section<?php echo $section_id ? ' id="' . esc_attr($section_id) . '"' : ''; ?> class="suite-grid section-pad" data-suite-grid>
