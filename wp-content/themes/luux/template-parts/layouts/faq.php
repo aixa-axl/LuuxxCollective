@@ -3,9 +3,26 @@
  * Layout: faq
  */
 
-$heading    = get_sub_field('heading');
+$heading    = luux_sub_field('heading');
+$section_id = luux_sub_field('section_id');
 $items      = get_sub_field('items');
-$section_id = get_sub_field('section_id');
+
+$post_id   = get_the_ID();
+$row_index = function_exists('luux_section_row_index') ? luux_section_row_index() : -1;
+
+if (
+    $post_id
+    && $row_index >= 0
+    && function_exists('luux_page_sections_uses_legacy_storage')
+    && luux_page_sections_uses_legacy_storage($post_id)
+    && function_exists('luux_faq_items_from_meta')
+) {
+    $from_meta = luux_faq_items_from_meta((int) $post_id, $row_index);
+
+    if ($from_meta !== []) {
+        $items = $from_meta;
+    }
+}
 
 if (! $items) {
     return;
