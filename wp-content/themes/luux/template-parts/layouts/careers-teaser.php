@@ -3,9 +3,9 @@
  * Layout: careers-teaser
  */
 
-$heading = get_sub_field('heading');
-$text    = get_sub_field('text');
-$cta     = get_sub_field('cta');
+$heading = luux_sub_field('heading');
+$text    = luux_sub_field('text');
+$cta     = luux_sub_field_link('cta');
 ?>
 
 <section class="border-y border-brand-cream bg-brand-cream-light section-pad">

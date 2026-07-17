@@ -1797,4 +1797,6 @@ add_action('admin_notices', function (): void {
     echo '<a href="' . $url . '">Open Tools → Luux Page Sections</a> to repair.</p></div>';
 });
 
+require get_template_directory() . '/inc/layout-saves/shared.php';
+require get_template_directory() . '/inc/layout-saves/homepage-layouts.php';
 require get_template_directory() . '/inc/layout-saves/hero.php';

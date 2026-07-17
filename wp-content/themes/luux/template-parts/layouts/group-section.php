@@ -3,12 +3,14 @@
  * Layout: group-section
  */
 
-$heading       = get_sub_field('heading');
-$heading_lead  = get_sub_field('heading_lead');
-$heading_logo  = get_sub_field('heading_logo');
-$heading_trail = get_sub_field('heading_trail');
-$text          = get_sub_field('text');
-$logos         = get_sub_field('logos');
+$heading       = luux_sub_field('heading');
+$heading_lead  = luux_sub_field('heading_lead');
+$heading_logo  = luux_sub_field('heading_logo');
+$heading_trail = luux_sub_field('heading_trail');
+$text          = luux_sub_field('text');
+$logos         = luux_sub_field_repeater('logos', [
+    ['name' => 'image', 'key' => 'field_luux_group_section_logo_image', 'type' => 'image'],
+]);
 
 $has_heading = $heading_logo || $heading;
 ?>

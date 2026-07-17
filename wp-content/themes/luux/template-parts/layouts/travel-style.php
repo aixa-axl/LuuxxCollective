@@ -3,11 +3,14 @@
  * Layout: travel-style
  */
 
-$label          = get_sub_field('section_label');
-$heading        = get_sub_field('heading');
-$categories     = get_sub_field('categories');
-$footer_heading = get_sub_field('footer_heading');
-$cta            = get_sub_field('cta');
+$label          = luux_sub_field('section_label');
+$heading        = luux_sub_field('heading');
+$categories     = luux_sub_field_repeater('categories', [
+    ['name' => 'image', 'key' => 'field_luux_travel_style_image', 'type' => 'image'],
+    ['name' => 'title', 'key' => 'field_luux_travel_style_title', 'type' => 'scalar'],
+]);
+$footer_heading = luux_sub_field('footer_heading');
+$cta            = luux_sub_field_link('cta');
 $slide_count    = is_array($categories) ? count($categories) : 0;
 ?>
 

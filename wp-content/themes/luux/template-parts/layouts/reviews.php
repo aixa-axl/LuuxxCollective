@@ -3,9 +3,14 @@
  * Layout: reviews
  */
 
-$heading      = get_sub_field('heading');
-$view_all     = get_sub_field('view_all_link');
-$testimonials = get_sub_field('testimonials');
+$heading      = luux_sub_field('heading');
+$view_all     = luux_sub_field_link('view_all_link');
+$testimonials = luux_sub_field_repeater('testimonials', [
+    ['name' => 'rating', 'key' => 'field_luux_reviews_rating', 'type' => 'number'],
+    ['name' => 'quote', 'key' => 'field_luux_reviews_quote', 'type' => 'scalar'],
+    ['name' => 'name', 'key' => 'field_luux_reviews_name', 'type' => 'scalar'],
+    ['name' => 'date', 'key' => 'field_luux_reviews_date', 'type' => 'scalar'],
+]);
 ?>
 
 <section class="bg-brand-dark section-pad">
