@@ -3,9 +3,30 @@
  * Layout: careers-teaser
  */
 
-$heading = get_sub_field('heading');
-$text    = get_sub_field('text');
+$heading = luux_sub_field('heading');
+$text    = luux_sub_field('text');
 $cta     = get_sub_field('cta');
+
+$post_id   = get_the_ID();
+$row_index = function_exists('luux_section_row_index') ? luux_section_row_index() : -1;
+
+if (
+    $post_id
+    && $row_index >= 0
+    && function_exists('luux_page_sections_uses_legacy_storage')
+    && luux_page_sections_uses_legacy_storage($post_id)
+    && function_exists('luux_careers_teaser_cta_from_meta')
+) {
+    $cta_from_meta = luux_careers_teaser_cta_from_meta((int) $post_id, $row_index);
+
+    if ($cta_from_meta !== null) {
+        $cta = $cta_from_meta;
+    }
+}
+
+if (is_array($cta) && ! empty($cta['title'])) {
+    $cta['title'] = str_replace(['\\u2192', 'u2192'], '→', (string) $cta['title']);
+}
 ?>
 
 <section class="border-y border-brand-cream bg-brand-cream-light section-pad">
