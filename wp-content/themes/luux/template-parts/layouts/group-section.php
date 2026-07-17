@@ -3,12 +3,29 @@
  * Layout: group-section
  */
 
-$heading       = get_sub_field('heading');
-$heading_lead  = get_sub_field('heading_lead');
-$heading_logo  = get_sub_field('heading_logo');
-$heading_trail = get_sub_field('heading_trail');
-$text          = get_sub_field('text');
+$heading       = luux_sub_field('heading');
+$heading_lead  = luux_sub_field('heading_lead');
+$heading_logo  = luux_sub_field('heading_logo');
+$heading_trail = luux_sub_field('heading_trail');
+$text          = luux_sub_field('text');
 $logos         = get_sub_field('logos');
+
+$post_id   = get_the_ID();
+$row_index = function_exists('luux_section_row_index') ? luux_section_row_index() : -1;
+
+if (
+    $post_id
+    && $row_index >= 0
+    && function_exists('luux_page_sections_uses_legacy_storage')
+    && luux_page_sections_uses_legacy_storage($post_id)
+    && function_exists('luux_group_section_logos_from_meta')
+) {
+    $from_meta = luux_group_section_logos_from_meta((int) $post_id, $row_index);
+
+    if ($from_meta !== []) {
+        $logos = $from_meta;
+    }
+}
 
 $has_heading = $heading_logo || $heading;
 ?>
