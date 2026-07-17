@@ -3,13 +3,9 @@
  * Layout: destinations
  */
 
-$label        = luux_sub_field('section_label');
-$heading      = luux_sub_field('heading');
-$destinations = luux_sub_field_repeater('destinations', [
-    ['name' => 'image', 'key' => 'field_luux_destinations_image', 'type' => 'image'],
-    ['name' => 'title', 'key' => 'field_luux_destinations_title', 'type' => 'scalar'],
-    ['name' => 'link', 'key' => 'field_luux_destinations_link', 'type' => 'link'],
-]);
+$label        = get_sub_field('section_label');
+$heading      = get_sub_field('heading');
+$destinations = get_sub_field('destinations');
 ?>
 
 <section class="section-pad">

@@ -3,16 +3,10 @@
  * Layout: featured-offers
  */
 
-$label   = luux_sub_field('section_label');
-$heading = luux_sub_field('heading');
-$intro   = luux_sub_field('intro');
-$offers  = luux_sub_field_repeater('offers', [
-    ['name' => 'image', 'key' => 'field_luux_featured_offers_image', 'type' => 'image'],
-    ['name' => 'title', 'key' => 'field_luux_featured_offers_title', 'type' => 'scalar'],
-    ['name' => 'description', 'key' => 'field_luux_featured_offers_description', 'type' => 'scalar'],
-    ['name' => 'price', 'key' => 'field_luux_featured_offers_price', 'type' => 'scalar'],
-    ['name' => 'link', 'key' => 'field_luux_featured_offers_link', 'type' => 'link'],
-]);
+$label   = get_sub_field('section_label');
+$heading = get_sub_field('heading');
+$intro   = get_sub_field('intro');
+$offers  = get_sub_field('offers');
 ?>
 
 <section class="section-pad">

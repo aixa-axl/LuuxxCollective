@@ -3,10 +3,10 @@
  * Layout: contact-strip
  */
 
-$caption        = luux_sub_field('caption');
-$text           = luux_sub_field('text');
-$primary_link   = luux_sub_field_link('primary_link');
-$secondary_link = luux_sub_field_link('secondary_link');
+$caption        = get_sub_field('caption');
+$text           = get_sub_field('text');
+$primary_link   = get_sub_field('primary_link');
+$secondary_link = get_sub_field('secondary_link');
 ?>
 
 <section class="bg-brand-navy p-10 lg:section-pad">

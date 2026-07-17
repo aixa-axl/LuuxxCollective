@@ -3,9 +3,9 @@
  * Layout: cta-strip
  */
 
-$text           = luux_sub_field('text');
-$primary_link   = luux_sub_field_link('primary_link');
-$secondary_link = luux_sub_field_link('secondary_link');
+$text           = get_sub_field('text');
+$primary_link   = get_sub_field('primary_link');
+$secondary_link = get_sub_field('secondary_link');
 ?>
 
 <section class="bg-brand-dark p-10 lg:section-pad">

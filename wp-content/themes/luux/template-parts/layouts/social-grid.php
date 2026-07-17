@@ -6,7 +6,7 @@
  */
 
 $heading     = __('Join us on social', 'luux');
-$post_count  = (int) luux_sub_field('post_count');
+$post_count  = (int) get_sub_field('post_count');
 $posts       = luux_get_instagram_posts($post_count > 0 ? $post_count : null);
 $profile_url = luux_instagram_profile_url();
 ?>

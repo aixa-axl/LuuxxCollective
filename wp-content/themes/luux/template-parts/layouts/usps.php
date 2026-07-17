@@ -3,15 +3,11 @@
  * Layout: usps
  */
 
-$label            = luux_sub_field('section_label');
-$heading          = luux_sub_field('heading');
-$items            = luux_sub_field_repeater('items', [
-    ['name' => 'icon', 'key' => 'field_luux_usps_icon', 'type' => 'image'],
-    ['name' => 'title', 'key' => 'field_luux_usps_title', 'type' => 'scalar'],
-    ['name' => 'description', 'key' => 'field_luux_usps_description', 'type' => 'scalar'],
-]);
-$light_background = luux_sub_field('light_background');
-$section_id       = luux_sub_field('section_id');
+$label            = get_sub_field('section_label');
+$heading          = get_sub_field('heading');
+$items            = get_sub_field('items');
+$light_background = get_sub_field('light_background');
+$section_id       = get_sub_field('section_id');
 $bg_class         = $light_background ? 'bg-brand-white' : 'bg-brand-cream-light';
 ?>
 
