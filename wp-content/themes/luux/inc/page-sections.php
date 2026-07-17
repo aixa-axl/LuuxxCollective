@@ -1214,6 +1214,17 @@ function luux_acf_sync_video_tours_media_meta(int $post_id): void {
     }
 }
 
+/**
+ * Prefer the newest stored value when imported pages have duplicate meta rows.
+ */
+function luux_acf_meta_storage_value(array $values): mixed {
+    if ($values === []) {
+        return '';
+    }
+
+    return $values[count($values) - 1];
+}
+
 /** @return array<string, mixed> */
 function luux_acf_get_page_section_meta(int $post_id): array {
     $meta = [];
@@ -1224,9 +1235,11 @@ function luux_acf_get_page_section_meta(int $post_id): array {
     }
 
     foreach ($raw as $key => $values) {
-        if (luux_acf_is_page_section_meta_key($key)) {
-            $meta[$key] = $values[0];
+        if (! is_array($values) || ! luux_acf_is_page_section_meta_key($key)) {
+            continue;
         }
+
+        $meta[$key] = luux_acf_meta_storage_value($values);
     }
 
     return luux_acf_fix_section_meta_refs($meta);
@@ -1274,7 +1287,11 @@ function luux_acf_merged_page_meta(int $post_id): ?array {
 
     if (is_array($raw)) {
         foreach ($raw as $key => $values) {
-            $all[$key] = $values[0];
+            if (! is_array($values)) {
+                continue;
+            }
+
+            $all[$key] = luux_acf_meta_storage_value($values);
         }
     }
 
@@ -1357,11 +1374,6 @@ function luux_render_page_sections_by_row(int $post_id): bool {
         return false;
     }
 
-    // Legacy imports store layouts as a serialized array — render via full meta instead.
-    if (luux_page_sections_uses_legacy_storage($post_id)) {
-        return false;
-    }
-
     $indices = luux_get_page_section_row_indices($post_id);
     if ($indices === []) {
         return false;
@@ -1393,6 +1405,46 @@ function luux_render_page_sections_by_row(int $post_id): bool {
     }
 
     return $rendered;
+}
+
+/**
+ * Hero group tag from postmeta (legacy imports — bypasses stale flexible-content reads).
+ *
+ * @return array{show: bool, logo: int}
+ */
+function luux_get_hero_group_tag_from_meta(int $post_id): array {
+    $show = true;
+    $logo = 0;
+
+    $full_meta = luux_acf_get_page_section_meta($post_id);
+    if ($full_meta === []) {
+        return ['show' => $show, 'logo' => $logo];
+    }
+
+    $hero_layouts = ['hero', 'resort_hero', 'contact_hero'];
+
+    foreach (luux_get_page_section_row_indices($post_id) as $row_index) {
+        $layout = luux_page_section_layout_slug($full_meta, $row_index);
+        if (! in_array($layout, $hero_layouts, true)) {
+            continue;
+        }
+
+        if ($layout === 'hero') {
+            $prefix   = 'page_sections_' . (int) $row_index . '_';
+            $show_val = $full_meta[$prefix . 'show_group_tag'] ?? true;
+
+            if ($show_val === null || $show_val === '') {
+                $show_val = true;
+            }
+
+            $show = (bool) $show_val;
+            $logo = (int) ($full_meta[$prefix . 'group_tag_logo'] ?? 0);
+        }
+
+        break;
+    }
+
+    return ['show' => $show, 'logo' => $logo];
 }
 
 function luux_acf_is_page_edit_screen(): bool {

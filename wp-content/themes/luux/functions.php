@@ -116,6 +116,14 @@ function luux_get_hero_group_tag(): array {
         return ['show' => $show, 'logo' => $logo];
     }
 
+    if (
+        function_exists('luux_page_sections_uses_legacy_storage')
+        && luux_page_sections_uses_legacy_storage($post_id)
+        && function_exists('luux_get_hero_group_tag_from_meta')
+    ) {
+        return luux_get_hero_group_tag_from_meta($post_id);
+    }
+
     $sections = get_field('page_sections', $post_id);
     if (empty($sections) || ! is_array($sections)) {
         return ['show' => $show, 'logo' => $logo];
@@ -158,8 +166,12 @@ function luux_render_sections(): void {
     $legacy = function_exists('luux_page_sections_uses_legacy_storage')
         && luux_page_sections_uses_legacy_storage($post_id);
 
-    // Staging imports store layouts as a serialized array — ACF reads that directly from postmeta.
+    // Legacy imports: row-by-row postmeta render so editor saves reach the frontend.
     if ($legacy) {
+        if (function_exists('luux_render_page_sections_by_row') && luux_render_page_sections_by_row($post_id)) {
+            return;
+        }
+
         if (function_exists('have_rows') && luux_loop_page_sections($post_id)) {
             return;
         }
