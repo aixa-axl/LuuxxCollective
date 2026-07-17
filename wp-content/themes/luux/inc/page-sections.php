@@ -1808,3 +1808,4 @@ require get_template_directory() . '/inc/layout-saves/group-section.php';
 require get_template_directory() . '/inc/layout-saves/reviews.php';
 require get_template_directory() . '/inc/layout-saves/careers-teaser.php';
 require get_template_directory() . '/inc/layout-saves/resort-hero.php';
+require get_template_directory() . '/inc/layout-saves/trust-strip.php';

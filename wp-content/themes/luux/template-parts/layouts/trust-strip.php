@@ -3,9 +3,26 @@
  * Layout: trust-strip
  */
 
-$rating      = get_sub_field('rating');
+$rating      = luux_sub_field('rating');
 $press_logos = get_sub_field('press_logos');
-$award       = get_sub_field('award');
+$award       = luux_sub_field('award');
+
+$post_id   = get_the_ID();
+$row_index = function_exists('luux_section_row_index') ? luux_section_row_index() : -1;
+
+if (
+    $post_id
+    && $row_index >= 0
+    && function_exists('luux_page_sections_uses_legacy_storage')
+    && luux_page_sections_uses_legacy_storage($post_id)
+    && function_exists('luux_trust_strip_press_logos_from_meta')
+) {
+    $from_meta = luux_trust_strip_press_logos_from_meta((int) $post_id, $row_index);
+
+    if ($from_meta !== []) {
+        $press_logos = $from_meta;
+    }
+}
 ?>
 
 <section class="trust-strip bg-brand-white">
