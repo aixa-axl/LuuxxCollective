@@ -190,35 +190,58 @@
         return String(value);
     }
 
-    function readRowWithOffers($layout) {
-        var row = readRowFields($layout);
-        var offers = readOffersRepeater($layout);
+    function offerFromBucket(raw) {
+        var offer = {};
 
-        if (offers.length) {
-            row.offers_json = JSON.stringify(offers);
+        if (raw.image) {
+            var imageId = normalizeAttachmentId(raw.image);
+
+            if (imageId !== '') {
+                offer.image = parseInt(imageId, 10);
+                offer.field_luux_featured_offers_image = offer.image;
+            }
         }
 
-        return row;
+        ['title', 'description', 'price'].forEach(function (name) {
+            if (raw[name] !== undefined && raw[name] !== null && String(raw[name]) !== '') {
+                offer[name] = String(raw[name]);
+                offer['field_luux_featured_offers_' + name] = offer[name];
+            }
+        });
+
+        if (raw.link && raw.link.url) {
+            offer.link = {
+                url: String(raw.link.url || ''),
+                title: String(raw.link.title || ''),
+                target: String(raw.link.target || ''),
+            };
+            offer.field_luux_featured_offers_link = offer.link;
+        }
+
+        return offer;
     }
 
-    function readOffersRepeater($layout) {
+    function readOffersFromAcfApi($layout) {
         var offers = [];
-        var $repeater = $layout.find('.acf-field[data-key="field_luux_featured_offers_offers"]').first();
+        var $repeater = $layout.find('.acf-field[data-key="field_luux_featured_offers_offers"], .acf-field[data-name="offers"]').first();
 
-        if (!$repeater.length) {
+        if (!$repeater.length || typeof acf === 'undefined' || typeof acf.getField !== 'function') {
             return offers;
         }
 
-        var $rows = $repeater.find('.acf-repeater > .acf-table > tbody > .acf-row, .acf-repeater > .acf-list > .acf-row')
-            .not('.acf-clone');
+        var repeaterField = acf.getField($repeater);
 
-        if (!$rows.length) {
-            $rows = $repeater.find('.acf-row').not('.acf-clone');
+        if (!repeaterField) {
+            return offers;
         }
+
+        var $rows = typeof repeaterField.$rows === 'function'
+            ? repeaterField.$rows()
+            : $repeater.find('.acf-row').not('.acf-clone');
 
         $rows.each(function () {
             var $row = $(this);
-            var offer = {};
+            var raw = {};
 
             $.each(OFFER_SUB_KEYS, function (name, key) {
                 var $fieldEl = $row.find('.acf-field[data-key="' + key + '"]').first();
@@ -229,13 +252,12 @@
 
                 var value = readSubFieldValue($fieldEl, name);
 
-                if (value === null || value === '') {
-                    return;
+                if (value !== null && value !== '') {
+                    raw[name] = value;
                 }
-
-                offer[key] = value;
-                offer[name] = value;
             });
+
+            var offer = offerFromBucket(raw);
 
             if (!$.isEmptyObject(offer)) {
                 offers.push(offer);
@@ -243,6 +265,96 @@
         });
 
         return offers;
+    }
+
+    function readOffersFromInputs($layout) {
+        var bucket = {};
+        var pattern = /\[(?:field_luux_featured_offers_offers|offers)\]\[(?:row-)?(\d+)\]\[(?:field_luux_featured_offers_)?(image|title|description|price|link)\](?:\[(url|title|target)\])?/;
+
+        $layout.find('input, textarea, select').each(function () {
+            var name = this.name || '';
+            var match = name.match(pattern);
+
+            if (!match) {
+                return;
+            }
+
+            var idx = match[1];
+            var field = match[2];
+            var linkPart = match[3] || '';
+            var value = $(this).val();
+
+            if (value === null || value === undefined) {
+                return;
+            }
+
+            if (!bucket[idx]) {
+                bucket[idx] = { link: { url: '', title: '', target: '' } };
+            }
+
+            if (field === 'link') {
+                if (linkPart) {
+                    bucket[idx].link[linkPart] = String(value);
+                }
+
+                return;
+            }
+
+            if (String(value) === '') {
+                return;
+            }
+
+            bucket[idx][field] = value;
+        });
+
+        var offers = [];
+        var keys = Object.keys(bucket).sort(function (a, b) {
+            return parseInt(a, 10) - parseInt(b, 10);
+        });
+
+        keys.forEach(function (key) {
+            var offer = offerFromBucket(bucket[key]);
+
+            if (!$.isEmptyObject(offer)) {
+                offers.push(offer);
+            }
+        });
+
+        return offers;
+    }
+
+    function readOffersRepeater($layout) {
+        var offers = readOffersFromAcfApi($layout);
+
+        if (offers.length) {
+            return offers;
+        }
+
+        return readOffersFromInputs($layout);
+    }
+
+    function expandLayout($layout) {
+        if (!$layout || !$layout.length) {
+            return;
+        }
+
+        if ($layout.hasClass('-collapsed')) {
+            $layout.removeClass('-collapsed');
+            $layout.find('> .acf-fields, > .acf-fc-layout-body').show();
+        }
+    }
+
+    function readRowWithOffers($layout) {
+        expandLayout($layout);
+
+        var row = readRowFields($layout);
+        var offers = readOffersRepeater($layout);
+
+        if (offers.length) {
+            row.offers_json = JSON.stringify(offers);
+        }
+
+        return row;
     }
 
     function getLayoutRows() {
@@ -277,6 +389,16 @@
             var fields = readRowWithOffers(item.$el);
 
             $.each(fields, function (name, value) {
+                if (name === 'offers_json') {
+                    $('<textarea>', {
+                        name: 'luux_featured_offers[' + item.domIndex + '][offers_json]',
+                        'aria-hidden': 'true',
+                    }).css({ position: 'absolute', left: '-9999px', height: '1px', width: '1px' })
+                        .val(value)
+                        .appendTo($wrap);
+                    return;
+                }
+
                 $('<input>', {
                     type: 'hidden',
                     name: 'luux_featured_offers[' + item.domIndex + '][' + name + ']',
@@ -416,7 +538,7 @@
             fc = {};
         }
 
-        var nth = 0;
+        var matched = 0;
 
         $.each(fc, function (key, row) {
             if (!row || typeof row !== 'object') {
@@ -427,14 +549,24 @@
                 return;
             }
 
-            var domRow = rows[nth];
+            var domRow = rows[matched];
 
             if (domRow) {
                 fc[key] = mergeRowIntoAcfPayload(readRowWithOffers(domRow.$el), row);
             }
 
-            nth += 1;
+            matched += 1;
         });
+
+        // Block editor sometimes omits flexible rows — inject from DOM.
+        if (matched === 0) {
+            rows.forEach(function (domRow, index) {
+                fc[String(domRow.domIndex)] = mergeRowIntoAcfPayload(
+                    readRowWithOffers(domRow.$el),
+                    { acf_fc_layout: LAYOUT }
+                );
+            });
+        }
 
         data.meta.acf[fcKey] = fc;
         data.acf[fcKey] = fc;

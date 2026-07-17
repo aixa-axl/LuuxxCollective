@@ -212,7 +212,108 @@ function luux_acf_featured_offers_decode_offers_json(mixed $json): array {
 
     $decoded = json_decode(wp_unslash($json), true);
 
-    return is_array($decoded) ? $decoded : [];
+    if (! is_array($decoded)) {
+        return [];
+    }
+
+    return luux_acf_featured_offers_normalize_offers_list($decoded);
+}
+
+/**
+ * Re-index offers to 0..n (ACF often uses row-0 / row-1 keys which cast to int 0).
+ *
+ * @param array<string|int, mixed> $offers
+ * @return list<array<string, mixed>>
+ */
+function luux_acf_featured_offers_normalize_offers_list(array $offers): array {
+    $normalized = [];
+
+    foreach ($offers as $offer) {
+        if (! is_array($offer)) {
+            continue;
+        }
+
+        $normalized[] = $offer;
+    }
+
+    return $normalized;
+}
+
+/**
+ * @param array<string, mixed> $row
+ * @return list<array<string, mixed>>
+ */
+function luux_acf_featured_offers_row_offers(array $row): array {
+    $offers = $row['field_luux_featured_offers_offers'] ?? $row['offers'] ?? null;
+
+    if (! is_array($offers) || $offers === []) {
+        return [];
+    }
+
+    return luux_acf_featured_offers_normalize_offers_list($offers);
+}
+
+/**
+ * @param list<array{index: int, row: array<string, mixed>}> $primary
+ * @param list<array{index: int, row: array<string, mixed>}> ...$sources
+ * @return list<array{index: int, row: array<string, mixed>}>
+ */
+function luux_acf_featured_offers_enrich_rows_with_offers(array $primary, array ...$sources): array {
+    foreach ($primary as $i => &$item) {
+        if (! is_array($item['row'] ?? null)) {
+            continue;
+        }
+
+        if (luux_acf_featured_offers_row_offers($item['row']) !== []) {
+            $item['row']['offers']                            = luux_acf_featured_offers_row_offers($item['row']);
+            $item['row']['field_luux_featured_offers_offers'] = $item['row']['offers'];
+            continue;
+        }
+
+        foreach ($sources as $source) {
+            foreach ($source as $candidate) {
+                $offers = luux_acf_featured_offers_row_offers($candidate['row'] ?? []);
+
+                if ($offers === []) {
+                    continue;
+                }
+
+                $item['row']['offers']                            = $offers;
+                $item['row']['field_luux_featured_offers_offers'] = $offers;
+                break 2;
+            }
+        }
+    }
+    unset($item);
+
+    return $primary;
+}
+
+/** @return list<array{index: int, row: array<string, mixed>}> */
+function luux_acf_featured_offers_post_rows_with_indices(): array {
+    $early = luux_acf_featured_offers_early_post_rows();
+    $acf   = luux_acf_featured_offers_post_rows_from_acf();
+    $rest  = [];
+
+    $payload = luux_acf_featured_offers_rest_payload();
+
+    if (is_array($payload) && $payload !== []) {
+        $rest = luux_acf_featured_offers_post_rows_from_payload($payload);
+    }
+
+    if ($early !== []) {
+        return luux_acf_featured_offers_enrich_rows_with_offers($early, $acf, $rest);
+    }
+
+    if ($acf !== []) {
+        return luux_acf_featured_offers_enrich_rows_with_offers($acf, $rest);
+    }
+
+    if ($rest !== []) {
+        return luux_acf_featured_offers_enrich_rows_with_offers($rest);
+    }
+
+    return [];
 }
 
 /** @return list<array{index: int, row: array<string, mixed>}> */
@@ -331,34 +432,12 @@ function luux_acf_featured_offers_post_rows_from_acf(): array {
     return luux_acf_featured_offers_post_rows_from_acf_array($fc);
 }
 
-/** @return list<array{index: int, row: array<string, mixed>}> */
-function luux_acf_featured_offers_post_rows_with_indices(): array {
-    $early = luux_acf_featured_offers_early_post_rows();
-
-    if ($early !== []) {
-        return $early;
-    }
-
-    $acf = luux_acf_featured_offers_post_rows_from_acf();
-
-    if ($acf !== []) {
-        return $acf;
-    }
-
-    $payload = luux_acf_featured_offers_rest_payload();
-
-    if (is_array($payload) && $payload !== []) {
-        return luux_acf_featured_offers_post_rows_from_payload($payload);
-    }
-
-    return [];
-}
-
 /**
  * @param array<int, array<string, mixed>> $offers
  */
 function luux_acf_persist_featured_offers_items(int $post_id, int $db_index, array $offers): void {
     $prefix = 'page_sections_' . (int) $db_index . '_';
+    $offers = luux_acf_featured_offers_normalize_offers_list($offers);
     $count  = 0;
 
     foreach ($offers as $i => $offer) {
@@ -366,6 +445,7 @@ function luux_acf_persist_featured_offers_items(int $post_id, int $db_index, arr
             continue;
         }
 
+        $i         = (int) $i;
         $has_value = false;
 
         $image = $offer['field_luux_featured_offers_image'] ?? $offer['image'] ?? null;
@@ -376,7 +456,7 @@ function luux_acf_persist_featured_offers_items(int $post_id, int $db_index, arr
             if ($image_id > 0) {
                 luux_acf_replace_section_meta(
                     $post_id,
-                    $prefix . 'offers_' . (int) $i . '_image',
+                    $prefix . 'offers_' . $i . '_image',
                     $image_id,
                     'field_luux_featured_offers_image'
                 );
@@ -389,7 +469,7 @@ function luux_acf_persist_featured_offers_items(int $post_id, int $db_index, arr
         if ($title !== null && $title !== '') {
             luux_acf_replace_section_meta(
                 $post_id,
-                $prefix . 'offers_' . (int) $i . '_title',
+                $prefix . 'offers_' . $i . '_title',
                 (string) $title,
                 'field_luux_featured_offers_title'
             );
@@ -401,7 +481,7 @@ function luux_acf_persist_featured_offers_items(int $post_id, int $db_index, arr
         if ($description !== null && $description !== '') {
             luux_acf_replace_section_meta(
                 $post_id,
-                $prefix . 'offers_' . (int) $i . '_description',
+                $prefix . 'offers_' . $i . '_description',
                 (string) $description,
                 'field_luux_featured_offers_description'
             );
@@ -413,7 +493,7 @@ function luux_acf_persist_featured_offers_items(int $post_id, int $db_index, arr
         if ($price !== null && $price !== '') {
             luux_acf_replace_section_meta(
                 $post_id,
-                $prefix . 'offers_' . (int) $i . '_price',
+                $prefix . 'offers_' . $i . '_price',
                 (string) $price,
                 'field_luux_featured_offers_price'
             );
@@ -430,7 +510,7 @@ function luux_acf_persist_featured_offers_items(int $post_id, int $db_index, arr
         if (is_array($link) && ! empty($link['url'])) {
             luux_acf_replace_section_meta(
                 $post_id,
-                $prefix . 'offers_' . (int) $i . '_link',
+                $prefix . 'offers_' . $i . '_link',
                 $link,
                 'field_luux_featured_offers_link'
             );
@@ -438,7 +518,7 @@ function luux_acf_persist_featured_offers_items(int $post_id, int $db_index, arr
         }
 
         if ($has_value) {
-            $count = (int) $i + 1;
+            $count = $i + 1;
         }
     }
 
@@ -513,6 +593,17 @@ function luux_acf_restore_featured_offers_from_stash(int $post_id): void {
                 continue;
             }
 
+            if ($name === '_offers_json') {
+                $offers = luux_acf_featured_offers_decode_offers_json($value);
+
+                if ($offers !== []) {
+                    $row['field_luux_featured_offers_offers'] = $offers;
+                    $row['offers']                            = $offers;
+                }
+
+                continue;
+            }
+
             foreach ($field_map as $key => [$map_name]) {
                 if ($map_name !== $name) {
                     continue;
@@ -556,6 +647,14 @@ function luux_acf_persist_featured_offers_from_request(int $post_id): void {
             }
 
             $stash[$name] = is_scalar($value) ? (string) $value : '';
+        }
+
+        $offers = luux_acf_featured_offers_row_offers($item['row']);
+
+        if ($offers !== []) {
+            $stash['_offers_json'] = wp_json_encode($offers);
+            $item['row']['offers']                            = $offers;
+            $item['row']['field_luux_featured_offers_offers'] = $offers;
         }
 
         if ($stash !== []) {
@@ -629,14 +728,17 @@ function luux_acf_ajax_save_featured_offers_fields(): void {
             if ($offers !== []) {
                 $row['field_luux_featured_offers_offers'] = $offers;
                 $row['offers']                            = $offers;
+                $stash['_offers_json']                    = is_string($value) ? wp_unslash($value) : wp_json_encode($offers);
             }
 
             continue;
         }
 
         if ($name === 'offers' && is_array($value)) {
-            $row['field_luux_featured_offers_offers'] = $value;
-            $row['offers']                            = $value;
+            $offers = luux_acf_featured_offers_normalize_offers_list($value);
+            $row['field_luux_featured_offers_offers'] = $offers;
+            $row['offers']                            = $offers;
+            $stash['_offers_json']                    = wp_json_encode($offers);
             continue;
         }
 
@@ -668,15 +770,69 @@ function luux_acf_ajax_save_featured_offers_fields(): void {
  * @return list<array<string, mixed>>
  */
 function luux_featured_offers_offers_from_meta(int $post_id, int $row_index): array {
-    $count = luux_read_section_meta($post_id, $row_index, 'offers');
+    $count_raw = luux_read_section_meta($post_id, $row_index, 'offers');
 
-    if ($count === null || ! is_numeric($count) || (int) $count < 1) {
+    // Legacy imports sometimes store the whole repeater as a serialized array.
+    if (is_array($count_raw)) {
+        $rows = [];
+
+        foreach (luux_acf_featured_offers_normalize_offers_list($count_raw) as $offer) {
+            $mapped = [];
+
+            if (! empty($offer['image']) || ! empty($offer['field_luux_featured_offers_image'])) {
+                $mapped['image'] = (int) ($offer['image'] ?? $offer['field_luux_featured_offers_image']);
+            }
+
+            foreach (['title', 'description', 'price'] as $name) {
+                $value = $offer[$name] ?? $offer['field_luux_featured_offers_' . $name] ?? null;
+
+                if ($value !== null && $value !== '') {
+                    $mapped[$name] = (string) $value;
+                }
+            }
+
+            $link = $offer['link'] ?? $offer['field_luux_featured_offers_link'] ?? null;
+
+            if (is_string($link)) {
+                $link = maybe_unserialize($link);
+            }
+
+            if (is_array($link) && ! empty($link['url'])) {
+                $mapped['link'] = $link;
+            }
+
+            if ($mapped !== []) {
+                $rows[] = $mapped;
+            }
+        }
+
+        return $rows;
+    }
+
+    $count = is_numeric($count_raw) ? (int) $count_raw : 0;
+
+    // If count meta is missing/stale, probe for offer rows written by our save path.
+    if ($count < 1) {
+        for ($i = 0; $i < 20; $i++) {
+            $title = luux_read_section_meta($post_id, $row_index, 'offers_' . $i . '_title');
+            $image = luux_read_section_meta($post_id, $row_index, 'offers_' . $i . '_image');
+
+            if (($title !== null && $title !== '') || ($image !== null && $image !== '' && $image !== 0)) {
+                $count = $i + 1;
+                continue;
+            }
+
+            break;
+        }
+    }
+
+    if ($count < 1) {
         return [];
     }
 
     $rows = [];
 
-    for ($i = 0; $i < (int) $count; $i++) {
+    for ($i = 0; $i < $count; $i++) {
         $offer = [];
 
         $image = luux_read_section_meta($post_id, $row_index, 'offers_' . $i . '_image');
