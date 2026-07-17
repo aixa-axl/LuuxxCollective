@@ -1215,18 +1215,29 @@ function luux_acf_sync_video_tours_media_meta(int $post_id): void {
 }
 
 /**
- * Prefer the newest stored value when imported pages have duplicate meta rows.
+ * Resolve a postmeta value when imports left duplicate rows for the same key.
+ * Editor saves often append a newer row — prefer that unless it is empty.
  */
-function luux_acf_meta_storage_value(array $values): mixed {
+function luux_acf_resolve_meta_storage_value(array $values): mixed {
     if ($values === []) {
         return '';
     }
 
-    return $values[count($values) - 1];
+    if (count($values) === 1) {
+        return $values[0];
+    }
+
+    $last = $values[count($values) - 1];
+
+    if ($last === '' || $last === null) {
+        return $values[0];
+    }
+
+    return $last;
 }
 
 /** @return array<string, mixed> */
-function luux_acf_get_page_section_meta(int $post_id): array {
+function luux_acf_get_page_section_meta(int $post_id, bool $for_display = false): array {
     $meta = [];
     $raw  = get_metadata('post', $post_id);
 
@@ -1239,7 +1250,9 @@ function luux_acf_get_page_section_meta(int $post_id): array {
             continue;
         }
 
-        $meta[$key] = luux_acf_meta_storage_value($values);
+        $meta[$key] = $for_display
+            ? luux_acf_resolve_meta_storage_value($values)
+            : $values[0];
     }
 
     return luux_acf_fix_section_meta_refs($meta);
@@ -1275,8 +1288,8 @@ function luux_acf_relink_page_section_meta_keys(): void {
 }
 
 /** @return array<string, mixed>|null */
-function luux_acf_merged_page_meta(int $post_id): ?array {
-    $section_meta = luux_acf_get_page_section_meta($post_id);
+function luux_acf_merged_page_meta(int $post_id, bool $for_display = false): ?array {
+    $section_meta = luux_acf_get_page_section_meta($post_id, $for_display);
 
     if ($section_meta === [] || luux_page_section_count_from_meta($section_meta) < 1) {
         return null;
@@ -1291,7 +1304,9 @@ function luux_acf_merged_page_meta(int $post_id): ?array {
                 continue;
             }
 
-            $all[$key] = luux_acf_meta_storage_value($values);
+            $all[$key] = $for_display
+                ? luux_acf_resolve_meta_storage_value($values)
+                : $values[0];
         }
     }
 
@@ -1374,6 +1389,11 @@ function luux_render_page_sections_by_row(int $post_id): bool {
         return false;
     }
 
+    // Legacy imports store layouts as a serialized array — render via full meta instead.
+    if (luux_page_sections_uses_legacy_storage($post_id)) {
+        return false;
+    }
+
     $indices = luux_get_page_section_row_indices($post_id);
     if ($indices === []) {
         return false;
@@ -1405,46 +1425,6 @@ function luux_render_page_sections_by_row(int $post_id): bool {
     }
 
     return $rendered;
-}
-
-/**
- * Hero group tag from postmeta (legacy imports — bypasses stale flexible-content reads).
- *
- * @return array{show: bool, logo: int}
- */
-function luux_get_hero_group_tag_from_meta(int $post_id): array {
-    $show = true;
-    $logo = 0;
-
-    $full_meta = luux_acf_get_page_section_meta($post_id);
-    if ($full_meta === []) {
-        return ['show' => $show, 'logo' => $logo];
-    }
-
-    $hero_layouts = ['hero', 'resort_hero', 'contact_hero'];
-
-    foreach (luux_get_page_section_row_indices($post_id) as $row_index) {
-        $layout = luux_page_section_layout_slug($full_meta, $row_index);
-        if (! in_array($layout, $hero_layouts, true)) {
-            continue;
-        }
-
-        if ($layout === 'hero') {
-            $prefix   = 'page_sections_' . (int) $row_index . '_';
-            $show_val = $full_meta[$prefix . 'show_group_tag'] ?? true;
-
-            if ($show_val === null || $show_val === '') {
-                $show_val = true;
-            }
-
-            $show = (bool) $show_val;
-            $logo = (int) ($full_meta[$prefix . 'group_tag_logo'] ?? 0);
-        }
-
-        break;
-    }
-
-    return ['show' => $show, 'logo' => $logo];
 }
 
 function luux_acf_is_page_edit_screen(): bool {
@@ -1503,9 +1483,27 @@ add_filter('acf/pre_load_meta', function ($null, $post_id) {
         return $null;
     }
 
-    // Imported resort pages store a serialized layout list — merged meta breaks ACF saves.
+    // Legacy imports: on the frontend only, inject merged meta so editor saves are read.
+    // Admin (including the page editor) must stay on raw meta so ACF saves are not broken.
     if (luux_page_sections_uses_legacy_storage($post_id)) {
-        return $null;
+        if (is_admin()) {
+            return $null;
+        }
+
+        $loading[$post_id] = true;
+        $meta              = luux_acf_merged_page_meta($post_id, true);
+        unset($loading[$post_id]);
+
+        if (! is_array($meta)) {
+            return $meta;
+        }
+
+        $raw_page_sections = get_post_meta($post_id, 'page_sections', true);
+        if ($raw_page_sections !== '' && $raw_page_sections !== false) {
+            $meta['page_sections'] = $raw_page_sections;
+        }
+
+        return $meta;
     }
 
     $loading[$post_id] = true;
