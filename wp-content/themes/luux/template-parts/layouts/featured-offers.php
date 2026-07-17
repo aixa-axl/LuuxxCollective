@@ -66,11 +66,17 @@ if (
                                 <?php if (! empty($offer['price'])) : ?>
                                     <p class="font-body text-body text-brand-primary"><?php echo esc_html($offer['price']); ?></p>
                                 <?php endif; ?>
-                                <?php if (! empty($offer['link']['url'])) : ?>
+                                <?php if (! empty($offer['link']['url'])) :
+                                    $link_title = (string) ($offer['link']['title'] ?? '');
+                                    $link_title = str_replace(['\\u2192', 'u2192'], '→', $link_title);
+                                    if ($link_title === '') {
+                                        $link_title = __('Discover This Offer →', 'luux');
+                                    }
+                                    ?>
                                     <a class="w-fit text-brand-gold"
                                        href="<?php echo esc_url($offer['link']['url']); ?>"
                                        <?php echo ! empty($offer['link']['target']) ? 'target="_blank" rel="noopener"' : ''; ?>>
-                                        <?php echo esc_html($offer['link']['title'] ?: __('Discover This Offer →', 'luux')); ?>
+                                        <?php echo esc_html($link_title); ?>
                                     </a>
                                 <?php endif; ?>
                             </div>

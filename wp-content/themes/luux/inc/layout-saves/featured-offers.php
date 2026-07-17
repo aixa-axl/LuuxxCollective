@@ -508,6 +508,10 @@ function luux_acf_persist_featured_offers_items(int $post_id, int $db_index, arr
         }
 
         if (is_array($link) && ! empty($link['url'])) {
+            if (! empty($link['title']) && is_string($link['title'])) {
+                $link['title'] = str_replace(['\\u2192', 'u2192'], '→', $link['title']);
+            }
+
             luux_acf_replace_section_meta(
                 $post_id,
                 $prefix . 'offers_' . $i . '_link',

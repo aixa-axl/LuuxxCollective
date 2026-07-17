@@ -153,9 +153,12 @@
             return null;
         }
 
+        var title = String(value.title || '');
+        title = title.replace(/\\u2192/g, '→').replace(/u2192/g, '→');
+
         return {
             url: String(value.url || ''),
-            title: String(value.title || ''),
+            title: title,
             target: String(value.target || ''),
         };
     }
