@@ -3,9 +3,39 @@
  * Layout: reviews
  */
 
-$heading      = get_sub_field('heading');
+$heading      = luux_sub_field('heading');
 $view_all     = get_sub_field('view_all_link');
 $testimonials = get_sub_field('testimonials');
+
+$post_id   = get_the_ID();
+$row_index = function_exists('luux_section_row_index') ? luux_section_row_index() : -1;
+
+if (
+    $post_id
+    && $row_index >= 0
+    && function_exists('luux_page_sections_uses_legacy_storage')
+    && luux_page_sections_uses_legacy_storage($post_id)
+) {
+    if (function_exists('luux_reviews_link_from_meta')) {
+        $link_from_meta = luux_reviews_link_from_meta((int) $post_id, $row_index);
+
+        if ($link_from_meta !== null) {
+            $view_all = $link_from_meta;
+        }
+    }
+
+    if (function_exists('luux_reviews_testimonials_from_meta')) {
+        $from_meta = luux_reviews_testimonials_from_meta((int) $post_id, $row_index);
+
+        if ($from_meta !== []) {
+            $testimonials = $from_meta;
+        }
+    }
+}
+
+if (is_array($view_all) && ! empty($view_all['title'])) {
+    $view_all['title'] = str_replace(['\\u2192', 'u2192'], '→', (string) $view_all['title']);
+}
 ?>
 
 <section class="bg-brand-dark section-pad">

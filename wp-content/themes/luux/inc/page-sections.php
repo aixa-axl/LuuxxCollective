@@ -1805,3 +1805,4 @@ require get_template_directory() . '/inc/layout-saves/destinations.php';
 require get_template_directory() . '/inc/layout-saves/contact-strip.php';
 require get_template_directory() . '/inc/layout-saves/usps.php';
 require get_template_directory() . '/inc/layout-saves/group-section.php';
+require get_template_directory() . '/inc/layout-saves/reviews.php';
