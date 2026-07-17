@@ -683,13 +683,11 @@ function luux_acf_is_featured_offers_meta_name(int $post_id, string $name): bool
         return false;
     }
 
-    $scalar = ['section_label', 'heading', 'intro', 'offers'];
+    $scalar = ['section_label', 'heading', 'intro'];
 
-    if (in_array($suffix, $scalar, true)) {
-        return true;
-    }
-
-    return (bool) preg_match('/^offers_\d+_(image|title|description|price|link)$/', $suffix);
+    // Only block scalars we persist ourselves. Never block the offers repeater —
+    // blocking it without a successful custom write means cards never save in ACF.
+    return in_array($suffix, $scalar, true);
 }
 
 function luux_acf_ajax_save_featured_offers_fields(): void {
@@ -704,6 +702,11 @@ function luux_acf_ajax_save_featured_offers_fields(): void {
     $row_nth   = isset($_POST['row_nth']) ? (int) $_POST['row_nth'] : 0;
     $fields    = isset($_POST['fields']) && is_array($_POST['fields']) ? wp_unslash($_POST['fields']) : [];
 
+    // Prefer a top-level offers_json string (avoids nested field serialization issues).
+    if (! empty($_POST['offers_json']) && is_string($_POST['offers_json'])) {
+        $fields['offers_json'] = wp_unslash($_POST['offers_json']);
+    }
+
     if ($post_id < 1 || get_post_type($post_id) !== 'page' || $row_index < 0 || $fields === []) {
         wp_send_json_error(['message' => 'Invalid request'], 400);
     }
@@ -716,6 +719,7 @@ function luux_acf_ajax_save_featured_offers_fields(): void {
     $field_map = luux_acf_featured_offers_field_map();
     $row       = ['acf_fc_layout' => LUUX_FEATURED_OFFERS_LAYOUT];
     $stash     = [];
+    $offers    = [];
 
     foreach ($fields as $name => $value) {
         if (! is_string($name)) {
@@ -758,10 +762,16 @@ function luux_acf_ajax_save_featured_offers_fields(): void {
         }
     }
 
-    luux_acf_stash_featured_offers_row($post_id, $db_index, $stash);
+    if ($stash !== []) {
+        luux_acf_stash_featured_offers_row($post_id, $db_index, $stash);
+    }
+
     luux_acf_persist_featured_offers_row($post_id, $db_index, $row);
 
-    wp_send_json_success(['row_index' => $db_index]);
+    wp_send_json_success([
+        'row_index'    => $db_index,
+        'offers_count' => count($offers),
+    ]);
 }
 
 /**
@@ -896,7 +906,41 @@ add_filter('acf/load_value', function ($value, $post_id, $field) {
         return $value;
     }
 
-    $name    = $field['name'] ?? '';
+    $name = $field['name'] ?? '';
+
+    // Load offers repeater from postmeta so the editor reflects our direct saves.
+    if ($name === 'offers' && ($field['key'] ?? '') === 'field_luux_featured_offers_offers') {
+        if (! is_numeric($post_id) || get_post_type((int) $post_id) !== 'page' || ! function_exists('acf_get_loop')) {
+            return $value;
+        }
+
+        $loop = acf_get_loop('active');
+
+        if (! is_array($loop) || ($loop['selector'] ?? '') !== 'page_sections') {
+            return $value;
+        }
+
+        $row_index = (int) ($loop['i'] ?? -1);
+
+        if ($row_index < 0) {
+            return $value;
+        }
+
+        $full_meta = luux_acf_get_page_section_meta((int) $post_id);
+
+        if (luux_page_section_layout_slug($full_meta, $row_index) !== LUUX_FEATURED_OFFERS_LAYOUT) {
+            return $value;
+        }
+
+        $from_meta = luux_featured_offers_offers_from_meta((int) $post_id, $row_index);
+
+        if ($from_meta !== []) {
+            return $from_meta;
+        }
+
+        return $value;
+    }
+
     $allowed = ['section_label', 'heading', 'intro'];
 
     if (! in_array($name, $allowed, true)) {

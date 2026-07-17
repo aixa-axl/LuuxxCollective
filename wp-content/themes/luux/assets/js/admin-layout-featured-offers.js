@@ -323,8 +323,92 @@
         return offers;
     }
 
+    function readOffersFromSerialize($layout) {
+        var offers = [];
+        var $repeater = $layout.find('.acf-field[data-key="field_luux_featured_offers_offers"], .acf-field[data-name="offers"]').first();
+
+        if (!$repeater.length || typeof acf === 'undefined' || typeof acf.serialize !== 'function') {
+            return offers;
+        }
+
+        var serialized = acf.serialize($repeater);
+
+        if (!serialized || typeof serialized !== 'object') {
+            return offers;
+        }
+
+        // Walk serialized tree for the offers repeater values.
+        var found = null;
+
+        function walk(node) {
+            if (!node || typeof node !== 'object' || found) {
+                return;
+            }
+
+            if (Object.prototype.hasOwnProperty.call(node, 'field_luux_featured_offers_offers')) {
+                found = node.field_luux_featured_offers_offers;
+                return;
+            }
+
+            if (Object.prototype.hasOwnProperty.call(node, 'offers') && typeof node.offers === 'object') {
+                // Prefer field-key version when both exist.
+                found = node.offers;
+            }
+
+            $.each(node, function (key, child) {
+                if (child && typeof child === 'object') {
+                    walk(child);
+                }
+            });
+        }
+
+        walk(serialized);
+
+        if (!found || typeof found !== 'object') {
+            // Maybe serialize returned the repeater value directly as a list.
+            if ($.isArray(serialized)) {
+                found = serialized;
+            } else {
+                return offers;
+            }
+        }
+
+        $.each(found, function (key, item) {
+            if (!item || typeof item !== 'object') {
+                return;
+            }
+
+            // Skip ACF clone placeholders.
+            if (String(key).indexOf('acfclone') !== -1) {
+                return;
+            }
+
+            var raw = {
+                image: item.field_luux_featured_offers_image || item.image || '',
+                title: item.field_luux_featured_offers_title || item.title || '',
+                description: item.field_luux_featured_offers_description || item.description || '',
+                price: item.field_luux_featured_offers_price || item.price || '',
+                link: item.field_luux_featured_offers_link || item.link || null,
+            };
+
+            var offer = offerFromBucket(raw);
+
+            if (!$.isEmptyObject(offer)) {
+                offers.push(offer);
+            }
+        });
+
+        return offers;
+    }
+
     function readOffersRepeater($layout) {
-        var offers = readOffersFromAcfApi($layout);
+        var offers = readOffersFromSerialize($layout);
+
+        if (offers.length) {
+            return offers;
+        }
+
+        offers = readOffersFromAcfApi($layout);
 
         if (offers.length) {
             return offers;
@@ -420,18 +504,29 @@
             return $.Deferred().resolve().promise();
         }
 
+        var payload = {
+            action: 'luux_save_featured_offers_fields',
+            nonce: luuxLayoutFeaturedOffers.nonce,
+            post_id: postId,
+            row_index: rowIndex,
+            row_nth: rowNth,
+            fields: {},
+        };
+
+        $.each(fields, function (name, value) {
+            if (name === 'offers_json') {
+                payload.offers_json = value;
+                return;
+            }
+
+            payload.fields[name] = value;
+        });
+
         return $.ajax({
             url: url,
             method: 'POST',
             async: async !== false,
-            data: {
-                action: 'luux_save_featured_offers_fields',
-                nonce: luuxLayoutFeaturedOffers.nonce,
-                post_id: postId,
-                row_index: rowIndex,
-                row_nth: rowNth,
-                fields: fields,
-            },
+            data: payload,
         });
     }
 
