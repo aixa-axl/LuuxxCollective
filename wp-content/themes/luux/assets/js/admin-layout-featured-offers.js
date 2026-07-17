@@ -118,12 +118,84 @@
         return fields;
     }
 
+    var OFFER_SUB_KEYS = {
+        image: 'field_luux_featured_offers_image',
+        title: 'field_luux_featured_offers_title',
+        description: 'field_luux_featured_offers_description',
+        price: 'field_luux_featured_offers_price',
+        link: 'field_luux_featured_offers_link',
+    };
+
+    function normalizeAttachmentId(value) {
+        if (value === null || value === undefined || value === '') {
+            return '';
+        }
+
+        if (typeof value === 'object') {
+            if (value.id) {
+                return String(value.id);
+            }
+
+            if (value.ID) {
+                return String(value.ID);
+            }
+        }
+
+        if (typeof value === 'number' || (typeof value === 'string' && /^\d+$/.test(value))) {
+            return String(value);
+        }
+
+        return '';
+    }
+
+    function normalizeLink(value) {
+        if (!value || typeof value !== 'object' || !value.url) {
+            return null;
+        }
+
+        return {
+            url: String(value.url || ''),
+            title: String(value.title || ''),
+            target: String(value.target || ''),
+        };
+    }
+
+    function readSubFieldValue($fieldEl, name) {
+        if (typeof acf === 'undefined' || typeof acf.getField !== 'function') {
+            return null;
+        }
+
+        var field = acf.getField($fieldEl);
+
+        if (!field || typeof field.val !== 'function') {
+            return null;
+        }
+
+        var value = field.val();
+
+        if (value === null || value === undefined || value === '') {
+            return null;
+        }
+
+        if (name === 'image') {
+            var imageId = normalizeAttachmentId(value);
+
+            return imageId !== '' ? parseInt(imageId, 10) : null;
+        }
+
+        if (name === 'link') {
+            return normalizeLink(value);
+        }
+
+        return String(value);
+    }
+
     function readRowWithOffers($layout) {
         var row = readRowFields($layout);
         var offers = readOffersRepeater($layout);
 
         if (offers.length) {
-            row.offers = offers;
+            row.offers_json = JSON.stringify(offers);
         }
 
         return row;
@@ -131,50 +203,39 @@
 
     function readOffersRepeater($layout) {
         var offers = [];
-        var $repeater = $layout.find('.acf-field[data-key="field_luux_featured_offers_offers"]');
+        var $repeater = $layout.find('.acf-field[data-key="field_luux_featured_offers_offers"]').first();
 
-        if (!$repeater.length || typeof acf === 'undefined' || typeof acf.getField !== 'function') {
+        if (!$repeater.length) {
             return offers;
         }
 
-        var repeaterField = acf.getField($repeater);
+        var $rows = $repeater.find('.acf-repeater > .acf-table > tbody > .acf-row, .acf-repeater > .acf-list > .acf-row')
+            .not('.acf-clone');
 
-        if (!repeaterField || typeof repeaterField.val !== 'function') {
-            return offers;
+        if (!$rows.length) {
+            $rows = $repeater.find('.acf-row').not('.acf-clone');
         }
 
-        var value = repeaterField.val();
-
-        if (!value || !$.isArray(value)) {
-            return offers;
-        }
-
-        value.forEach(function (item) {
-            if (!item || typeof item !== 'object') {
-                return;
-            }
-
+        $rows.each(function () {
+            var $row = $(this);
             var offer = {};
 
-            if (item.field_luux_featured_offers_image || item.image) {
-                offer.field_luux_featured_offers_image = item.field_luux_featured_offers_image || item.image;
-            }
+            $.each(OFFER_SUB_KEYS, function (name, key) {
+                var $fieldEl = $row.find('.acf-field[data-key="' + key + '"]').first();
 
-            if (item.field_luux_featured_offers_title || item.title) {
-                offer.field_luux_featured_offers_title = item.field_luux_featured_offers_title || item.title;
-            }
+                if (!$fieldEl.length) {
+                    return;
+                }
 
-            if (item.field_luux_featured_offers_description || item.description) {
-                offer.field_luux_featured_offers_description = item.field_luux_featured_offers_description || item.description;
-            }
+                var value = readSubFieldValue($fieldEl, name);
 
-            if (item.field_luux_featured_offers_price || item.price) {
-                offer.field_luux_featured_offers_price = item.field_luux_featured_offers_price || item.price;
-            }
+                if (value === null || value === '') {
+                    return;
+                }
 
-            if (item.field_luux_featured_offers_link || item.link) {
-                offer.field_luux_featured_offers_link = item.field_luux_featured_offers_link || item.link;
-            }
+                offer[key] = value;
+                offer[name] = value;
+            });
 
             if (!$.isEmptyObject(offer)) {
                 offers.push(offer);
@@ -213,7 +274,7 @@
         var rows = getLayoutRows();
 
         rows.forEach(function (item) {
-            var fields = readRowFields(item.$el);
+            var fields = readRowWithOffers(item.$el);
 
             $.each(fields, function (name, value) {
                 $('<input>', {
@@ -281,6 +342,24 @@
         return chain;
     }
 
+    function offersFromFields(fields) {
+        if (!fields) {
+            return [];
+        }
+
+        if (fields.offers_json) {
+            try {
+                var decoded = JSON.parse(fields.offers_json);
+
+                return $.isArray(decoded) ? decoded : [];
+            } catch (e) {
+                return [];
+            }
+        }
+
+        return $.isArray(fields.offers) ? fields.offers : [];
+    }
+
     function mergeRowIntoAcfPayload(fields, acfRow) {
         if (!acfRow || typeof acfRow !== 'object') {
             acfRow = { acf_fc_layout: LAYOUT };
@@ -293,9 +372,11 @@
             }
         });
 
-        if (fields.offers && $.isArray(fields.offers) && fields.offers.length) {
-            acfRow.field_luux_featured_offers_offers = fields.offers;
-            acfRow.offers = fields.offers;
+        var offers = offersFromFields(fields);
+
+        if (offers.length) {
+            acfRow.field_luux_featured_offers_offers = offers;
+            acfRow.offers = offers;
         }
 
         return acfRow;

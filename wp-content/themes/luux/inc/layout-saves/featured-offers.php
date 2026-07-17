@@ -204,6 +204,17 @@ function luux_acf_featured_offers_row_value(array $row, string $field_key, strin
     return null;
 }
 
+/** @return list<array<string, mixed>> */
+function luux_acf_featured_offers_decode_offers_json(mixed $json): array {
+    if (! is_string($json) || $json === '') {
+        return [];
+    }
+
+    $decoded = json_decode(wp_unslash($json), true);
+
+    return is_array($decoded) ? $decoded : [];
+}
+
 /** @return list<array{index: int, row: array<string, mixed>}> */
 function luux_acf_featured_offers_early_post_rows(): array {
     if (empty($_POST['luux_featured_offers']) || ! is_array($_POST['luux_featured_offers'])) {
@@ -227,7 +238,22 @@ function luux_acf_featured_offers_early_post_rows(): array {
         $row = ['acf_fc_layout' => LUUX_FEATURED_OFFERS_LAYOUT];
 
         foreach ($fields as $name => $value) {
-            if (! is_string($name) || ! array_key_exists($name, $name_to_key)) {
+            if (! is_string($name)) {
+                continue;
+            }
+
+            if ($name === 'offers_json') {
+                $offers = luux_acf_featured_offers_decode_offers_json($value);
+
+                if ($offers !== []) {
+                    $row['field_luux_featured_offers_offers'] = $offers;
+                    $row['offers']                            = $offers;
+                }
+
+                continue;
+            }
+
+            if (! array_key_exists($name, $name_to_key)) {
                 continue;
             }
 
@@ -360,11 +386,11 @@ function luux_acf_persist_featured_offers_items(int $post_id, int $db_index, arr
 
         $title = $offer['field_luux_featured_offers_title'] ?? $offer['title'] ?? null;
 
-        if (is_string($title) && $title !== '') {
+        if ($title !== null && $title !== '') {
             luux_acf_replace_section_meta(
                 $post_id,
                 $prefix . 'offers_' . (int) $i . '_title',
-                $title,
+                (string) $title,
                 'field_luux_featured_offers_title'
             );
             $has_value = true;
@@ -372,11 +398,11 @@ function luux_acf_persist_featured_offers_items(int $post_id, int $db_index, arr
 
         $description = $offer['field_luux_featured_offers_description'] ?? $offer['description'] ?? null;
 
-        if (is_string($description) && $description !== '') {
+        if ($description !== null && $description !== '') {
             luux_acf_replace_section_meta(
                 $post_id,
                 $prefix . 'offers_' . (int) $i . '_description',
-                $description,
+                (string) $description,
                 'field_luux_featured_offers_description'
             );
             $has_value = true;
@@ -384,17 +410,22 @@ function luux_acf_persist_featured_offers_items(int $post_id, int $db_index, arr
 
         $price = $offer['field_luux_featured_offers_price'] ?? $offer['price'] ?? null;
 
-        if (is_string($price) && $price !== '') {
+        if ($price !== null && $price !== '') {
             luux_acf_replace_section_meta(
                 $post_id,
                 $prefix . 'offers_' . (int) $i . '_price',
-                $price,
+                (string) $price,
                 'field_luux_featured_offers_price'
             );
             $has_value = true;
         }
 
         $link = $offer['field_luux_featured_offers_link'] ?? $offer['link'] ?? null;
+
+        if (is_string($link)) {
+            $decoded_link = json_decode($link, true);
+            $link         = is_array($decoded_link) ? $decoded_link : maybe_unserialize($link);
+        }
 
         if (is_array($link) && ! empty($link['url'])) {
             luux_acf_replace_section_meta(
@@ -592,9 +623,20 @@ function luux_acf_ajax_save_featured_offers_fields(): void {
             continue;
         }
 
+        if ($name === 'offers_json') {
+            $offers = luux_acf_featured_offers_decode_offers_json($value);
+
+            if ($offers !== []) {
+                $row['field_luux_featured_offers_offers'] = $offers;
+                $row['offers']                            = $offers;
+            }
+
+            continue;
+        }
+
         if ($name === 'offers' && is_array($value)) {
             $row['field_luux_featured_offers_offers'] = $value;
-            $row['offers']                        = $value;
+            $row['offers']                            = $value;
             continue;
         }
 
