@@ -3,12 +3,39 @@
  * Layout: travel-style
  */
 
-$label          = get_sub_field('section_label');
-$heading        = get_sub_field('heading');
+$label          = luux_sub_field('section_label');
+$heading        = luux_sub_field('heading');
 $categories     = get_sub_field('categories');
-$footer_heading = get_sub_field('footer_heading');
+$footer_heading = luux_sub_field('footer_heading');
 $cta            = get_sub_field('cta');
-$slide_count    = is_array($categories) ? count($categories) : 0;
+
+$post_id   = get_the_ID();
+$row_index = function_exists('luux_section_row_index') ? luux_section_row_index() : -1;
+
+if (
+    $post_id
+    && $row_index >= 0
+    && function_exists('luux_page_sections_uses_legacy_storage')
+    && luux_page_sections_uses_legacy_storage($post_id)
+) {
+    if (function_exists('luux_travel_style_categories_from_meta')) {
+        $from_meta = luux_travel_style_categories_from_meta((int) $post_id, $row_index);
+
+        if ($from_meta !== []) {
+            $categories = $from_meta;
+        }
+    }
+
+    if (function_exists('luux_travel_style_cta_from_meta')) {
+        $cta_from_meta = luux_travel_style_cta_from_meta((int) $post_id, $row_index);
+
+        if ($cta_from_meta !== null) {
+            $cta = $cta_from_meta;
+        }
+    }
+}
+
+$slide_count = is_array($categories) ? count($categories) : 0;
 ?>
 
 <section class="bg-brand-cream-light section-pad">
@@ -70,11 +97,13 @@ $slide_count    = is_array($categories) ? count($categories) : 0;
                 <?php if ($footer_heading) : ?>
                     <p class="font-display text-h3 text-brand-dark lg:max-w-xl"><?php echo esc_html($footer_heading); ?></p>
                 <?php endif; ?>
-                <?php if (! empty($cta['url'])) : ?>
+                <?php if (! empty($cta['url'])) :
+                    $cta_title = str_replace(['\\u2192', 'u2192'], '→', (string) ($cta['title'] ?? ''));
+                    ?>
                     <a class="link-underline-block link-underline-block--ruled w-full text-brand-dark lg:w-fit"
                        href="<?php echo esc_url($cta['url']); ?>"
                        <?php echo ! empty($cta['target']) ? 'target="_blank" rel="noopener"' : ''; ?>>
-                        <?php echo esc_html($cta['title']); ?>
+                        <?php echo esc_html($cta_title); ?>
                     </a>
                 <?php endif; ?>
             </div>
