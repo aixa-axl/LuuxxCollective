@@ -3,12 +3,12 @@
  * Layout: hero
  */
 
-$heading        = get_sub_field('heading');
-$subheading     = get_sub_field('subheading');
-$media_type     = get_sub_field('media_type') ?: 'image';
-$image_id       = get_sub_field('background_image');
-$video_id       = get_sub_field('background_video');
-$ctas           = get_sub_field('ctas');
+$heading        = luux_sub_field('heading');
+$subheading     = luux_sub_field('subheading');
+$media_type     = luux_sub_field('media_type') ?: 'image';
+$image_id       = luux_sub_field('background_image');
+$video_id       = luux_sub_field('background_video');
+$ctas           = get_sub_field('ctas'); // Repeater — still via ACF until repeater helper is added.
 
 $has_video = ($media_type === 'video' && $video_id);
 $has_media = $has_video || $image_id;

@@ -116,6 +116,14 @@ function luux_get_hero_group_tag(): array {
         return ['show' => $show, 'logo' => $logo];
     }
 
+    if (
+        function_exists('luux_page_sections_uses_legacy_storage')
+        && luux_page_sections_uses_legacy_storage($post_id)
+        && function_exists('luux_get_hero_group_tag_from_meta')
+    ) {
+        return luux_get_hero_group_tag_from_meta($post_id);
+    }
+
     $sections = get_field('page_sections', $post_id);
     if (empty($sections) || ! is_array($sections)) {
         return ['show' => $show, 'logo' => $logo];

@@ -839,6 +839,103 @@ function luux_acf_video_tours_attachment_id(mixed $value): int {
 }
 
 /**
+ * Current flexible-content row index (0-based) while looping page_sections.
+ */
+function luux_section_row_index(): int {
+    if (! function_exists('get_row_index')) {
+        return -1;
+    }
+
+    return (int) get_row_index() - 1;
+}
+
+/**
+ * Read a page_sections sub-field directly from postmeta (newest duplicate row wins).
+ */
+function luux_read_section_meta(int $post_id, int $row_index, string $name): mixed {
+    $meta_key = 'page_sections_' . (int) $row_index . '_' . $name;
+    $raw      = get_metadata('post', $post_id, $meta_key, false);
+
+    if (! is_array($raw) || $raw === []) {
+        return null;
+    }
+
+    return luux_acf_resolve_meta_storage_value($raw);
+}
+
+/**
+ * Find the DB row index for a layout slug on a page.
+ */
+function luux_find_section_row_index(int $post_id, string $layout_name): ?int {
+    $full_meta = luux_acf_get_page_section_meta($post_id);
+
+    if ($full_meta === []) {
+        return null;
+    }
+
+    foreach (luux_get_page_section_row_indices($post_id) as $row_index) {
+        if (luux_page_section_layout_slug($full_meta, $row_index) === $layout_name) {
+            return $row_index;
+        }
+    }
+
+    return null;
+}
+
+/**
+ * Read a page_sections sub-field on legacy imports (direct postmeta, bypasses stale ACF reads).
+ * Modern pages fall through to get_sub_field().
+ */
+function luux_sub_field(string $name) {
+    $post_id = get_the_ID();
+
+    if (
+        $post_id
+        && function_exists('luux_page_sections_uses_legacy_storage')
+        && luux_page_sections_uses_legacy_storage((int) $post_id)
+    ) {
+        $row_index = luux_section_row_index();
+
+        if ($row_index >= 0) {
+            $direct = luux_read_section_meta((int) $post_id, $row_index, $name);
+
+            if ($direct !== null) {
+                return $direct;
+            }
+        }
+    }
+
+    return get_sub_field($name);
+}
+
+/**
+ * Hero group tag from postmeta (legacy imports).
+ *
+ * @return array{show: bool, logo: int}
+ */
+function luux_get_hero_group_tag_from_meta(int $post_id): array {
+    $show = true;
+    $logo = 0;
+
+    $row_index = luux_find_section_row_index($post_id, 'hero');
+    if ($row_index === null) {
+        return ['show' => $show, 'logo' => $logo];
+    }
+
+    $show_val = luux_read_section_meta($post_id, $row_index, 'show_group_tag');
+    if ($show_val !== null) {
+        $show = ($show_val === '' || $show_val === null) ? true : (bool) $show_val;
+    }
+
+    $logo_val = luux_read_section_meta($post_id, $row_index, 'group_tag_logo');
+    if ($logo_val !== null) {
+        $logo = (int) $logo_val;
+    }
+
+    return ['show' => $show, 'logo' => $logo];
+}
+
+/**
  * Read a video_tours sub-field from the current flexible row, with direct postmeta fallback.
  */
 function luux_video_tours_sub_field(string $name) {
