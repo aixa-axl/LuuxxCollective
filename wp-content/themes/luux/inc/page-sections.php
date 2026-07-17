@@ -1802,3 +1802,4 @@ require get_template_directory() . '/inc/layout-saves/featured-offers.php';
 require get_template_directory() . '/inc/layout-saves/cta-strip.php';
 require get_template_directory() . '/inc/layout-saves/travel-style.php';
 require get_template_directory() . '/inc/layout-saves/destinations.php';
+require get_template_directory() . '/inc/layout-saves/contact-strip.php';
