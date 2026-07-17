@@ -3,18 +3,35 @@
  * Layout: dining — Figma 76:3353
  */
 
-$section_label       = get_sub_field('section_label');
-$heading             = get_sub_field('heading');
-$text                = get_sub_field('text');
+$section_label       = luux_sub_field('section_label');
+$heading             = luux_sub_field('heading');
+$text                = luux_sub_field('text');
 $highlights          = get_sub_field('highlights');
-$hero_media_type     = get_sub_field('hero_media_type') ?: 'image';
-$image_hero          = get_sub_field('image_hero');
-$hero_video_id       = get_sub_field('hero_video');
-$image_top_left      = get_sub_field('image_top_left') ?: get_sub_field('image_left');
-$image_bottom_left   = get_sub_field('image_bottom_left');
-$image_top           = get_sub_field('image_top');
-$image_bottom        = get_sub_field('image_bottom');
-$section_id          = get_sub_field('section_id');
+$hero_media_type     = luux_sub_field('hero_media_type') ?: 'image';
+$image_hero          = luux_sub_field('image_hero');
+$hero_video_id       = luux_sub_field('hero_video');
+$image_top_left      = luux_sub_field('image_top_left') ?: luux_sub_field('image_left');
+$image_bottom_left   = luux_sub_field('image_bottom_left');
+$image_top           = luux_sub_field('image_top');
+$image_bottom        = luux_sub_field('image_bottom');
+$section_id          = luux_sub_field('section_id');
+
+$post_id   = get_the_ID();
+$row_index = function_exists('luux_section_row_index') ? luux_section_row_index() : -1;
+
+if (
+    $post_id
+    && $row_index >= 0
+    && function_exists('luux_page_sections_uses_legacy_storage')
+    && luux_page_sections_uses_legacy_storage($post_id)
+    && function_exists('luux_dining_highlights_from_meta')
+) {
+    $from_meta = luux_dining_highlights_from_meta((int) $post_id, $row_index);
+
+    if ($from_meta !== []) {
+        $highlights = $from_meta;
+    }
+}
 
 $has_hero = ($hero_media_type === 'video' && $hero_video_id) || ($hero_media_type !== 'video' && $image_hero);
 $has_mosaic = $image_top_left || $image_bottom_left || $image_top || $image_bottom;
