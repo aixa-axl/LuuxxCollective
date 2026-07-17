@@ -1020,3 +1020,4 @@ require get_template_directory() . '/inc/layout-saves/hotel-showcase.php';
 require get_template_directory() . '/inc/layout-saves/video-tours.php';
 require get_template_directory() . '/inc/layout-saves/suite-grid.php';
 require get_template_directory() . '/inc/layout-saves/dining.php';
+require get_template_directory() . '/inc/layout-saves/property-gallery.php';
