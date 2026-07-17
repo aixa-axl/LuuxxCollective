@@ -3,25 +3,46 @@
  * Layout: contact-options — Figma 76:5686
  */
 
-$heading    = get_sub_field('heading');
-$subheading = get_sub_field('subheading');
-$section_id = get_sub_field('section_id');
+$heading    = luux_sub_field('heading');
+$subheading = luux_sub_field('subheading');
+$section_id = luux_sub_field('section_id');
 
 // WhatsApp column
-$wa_title  = get_sub_field('whatsapp_title');
-$wa_text   = get_sub_field('whatsapp_text');
-$wa_link   = get_sub_field('whatsapp_link');
+$wa_title = luux_sub_field('whatsapp_title');
+$wa_text  = luux_sub_field('whatsapp_text');
+$wa_link  = get_sub_field('whatsapp_link');
+
+$post_id   = get_the_ID();
+$row_index = function_exists('luux_section_row_index') ? luux_section_row_index() : -1;
+
+if (
+    $post_id
+    && $row_index >= 0
+    && function_exists('luux_page_sections_uses_legacy_storage')
+    && luux_page_sections_uses_legacy_storage($post_id)
+    && function_exists('luux_contact_options_whatsapp_link_from_meta')
+) {
+    $wa_from_meta = luux_contact_options_whatsapp_link_from_meta((int) $post_id, $row_index);
+
+    if ($wa_from_meta !== null) {
+        $wa_link = $wa_from_meta;
+    }
+}
+
+if (is_array($wa_link) && ! empty($wa_link['title'])) {
+    $wa_link['title'] = str_replace(['\\u2192', 'u2192'], '→', (string) $wa_link['title']);
+}
 
 // Call column
-$call_title = get_sub_field('call_title');
-$call_text  = get_sub_field('call_text');
-$call_phone = get_sub_field('call_phone');
-$call_label = get_sub_field('call_button_label') ?: __('Call Now', 'luux');
+$call_title = luux_sub_field('call_title');
+$call_text  = luux_sub_field('call_text');
+$call_phone = luux_sub_field('call_phone');
+$call_label = luux_sub_field('call_button_label') ?: __('Call Now', 'luux');
 
 // Paper Trail column
-$form_title  = get_sub_field('form_title');
-$form_text   = get_sub_field('form_text');
-$form_id     = get_sub_field('form_id');
+$form_title = luux_sub_field('form_title');
+$form_text  = luux_sub_field('form_text');
+$form_id    = luux_sub_field('form_id');
 ?>
 
 <section<?php echo $section_id ? ' id="' . esc_attr($section_id) . '"' : ''; ?> class="contact-options section-pad bg-brand-white">
