@@ -3,11 +3,14 @@
  * Layout: contact-hero — Figma 76:5683
  */
 
-$heading    = get_sub_field('heading');
-$media_type = get_sub_field('media_type') ?: 'image';
-$image_id   = get_sub_field('background_image');
-$video_id   = get_sub_field('background_video');
-$section_id = get_sub_field('section_id');
+$heading    = luux_sub_field('heading');
+$media_type = luux_sub_field('media_type') ?: 'image';
+$image_id   = luux_sub_field('background_image');
+$video_id   = luux_sub_field('background_video');
+$section_id = luux_sub_field('section_id');
+
+$image_id = $image_id ? (int) $image_id : 0;
+$video_id = $video_id ? (int) $video_id : 0;
 
 $has_video = ($media_type === 'video' && $video_id);
 $has_media = $has_video || $image_id;

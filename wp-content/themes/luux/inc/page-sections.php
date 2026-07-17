@@ -1023,3 +1023,4 @@ require get_template_directory() . '/inc/layout-saves/dining.php';
 require get_template_directory() . '/inc/layout-saves/property-gallery.php';
 require get_template_directory() . '/inc/layout-saves/faq.php';
 require get_template_directory() . '/inc/layout-saves/planning-cta.php';
+require get_template_directory() . '/inc/layout-saves/contact-hero.php';
