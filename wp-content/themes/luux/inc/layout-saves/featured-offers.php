@@ -164,6 +164,20 @@ function luux_acf_featured_offers_attachment_id(mixed $value): int {
     return 0;
 }
 
+function luux_acf_featured_offers_normalize_text(mixed $value): string {
+    if ($value === null) {
+        return '';
+    }
+
+    $text = (string) $value;
+
+    return str_replace(
+        ['\\u2192', 'u2192', '\\u00a3', 'u00a3'],
+        ['→', '→', '£', '£'],
+        $text
+    );
+}
+
 function luux_acf_featured_offers_row_has_field(array $row, string $field_key, string $name): bool {
     if (array_key_exists($field_key, $row) || array_key_exists($name, $row)) {
         return true;
@@ -494,7 +508,7 @@ function luux_acf_persist_featured_offers_items(int $post_id, int $db_index, arr
             luux_acf_replace_section_meta(
                 $post_id,
                 $prefix . 'offers_' . $i . '_price',
-                (string) $price,
+                luux_acf_featured_offers_normalize_text($price),
                 'field_luux_featured_offers_price'
             );
             $has_value = true;
@@ -509,7 +523,7 @@ function luux_acf_persist_featured_offers_items(int $post_id, int $db_index, arr
 
         if (is_array($link) && ! empty($link['url'])) {
             if (! empty($link['title']) && is_string($link['title'])) {
-                $link['title'] = str_replace(['\\u2192', 'u2192'], '→', $link['title']);
+                $link['title'] = luux_acf_featured_offers_normalize_text($link['title']);
             }
 
             luux_acf_replace_section_meta(
@@ -801,7 +815,7 @@ function luux_featured_offers_offers_from_meta(int $post_id, int $row_index): ar
                 $value = $offer[$name] ?? $offer['field_luux_featured_offers_' . $name] ?? null;
 
                 if ($value !== null && $value !== '') {
-                    $mapped[$name] = (string) $value;
+                    $mapped[$name] = luux_acf_featured_offers_normalize_text($value);
                 }
             }
 
@@ -858,19 +872,19 @@ function luux_featured_offers_offers_from_meta(int $post_id, int $row_index): ar
         $title = luux_read_section_meta($post_id, $row_index, 'offers_' . $i . '_title');
 
         if ($title !== null && $title !== '') {
-            $offer['title'] = (string) $title;
+            $offer['title'] = luux_acf_featured_offers_normalize_text($title);
         }
 
         $description = luux_read_section_meta($post_id, $row_index, 'offers_' . $i . '_description');
 
         if ($description !== null && $description !== '') {
-            $offer['description'] = (string) $description;
+            $offer['description'] = luux_acf_featured_offers_normalize_text($description);
         }
 
         $price = luux_read_section_meta($post_id, $row_index, 'offers_' . $i . '_price');
 
         if ($price !== null && $price !== '') {
-            $offer['price'] = (string) $price;
+            $offer['price'] = luux_acf_featured_offers_normalize_text($price);
         }
 
         $link = luux_read_section_meta($post_id, $row_index, 'offers_' . $i . '_link');
@@ -881,6 +895,10 @@ function luux_featured_offers_offers_from_meta(int $post_id, int $row_index): ar
             }
 
             if (is_array($link) && ! empty($link['url'])) {
+                if (! empty($link['title']) && is_string($link['title'])) {
+                    $link['title'] = luux_acf_featured_offers_normalize_text($link['title']);
+                }
+
                 $offer['link'] = $link;
             }
         }

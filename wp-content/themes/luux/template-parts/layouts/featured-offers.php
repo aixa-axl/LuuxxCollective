@@ -45,6 +45,10 @@ if (
         <?php if ($offers) : ?>
             <div class="flex flex-col gap-12 lg:grid lg:grid-cols-3 lg:gap-8">
                 <?php foreach ($offers as $offer) : ?>
+                    <?php
+                    $price = (string) ($offer['price'] ?? '');
+                    $price = str_replace(['\\u00a3', 'u00a3'], '£', $price);
+                    ?>
                     <article class="flex flex-col gap-4 lg:gap-6">
                         <?php if (! empty($offer['image'])) : ?>
                             <div class="relative h-60 overflow-hidden rounded bg-brand-cream-light lg:aspect-[405/505] lg:h-auto">
@@ -63,8 +67,8 @@ if (
                                 <p class="font-body text-body text-brand-primary-muted"><?php echo esc_html($offer['description']); ?></p>
                             <?php endif; ?>
                             <div class="flex flex-col gap-3 pt-2 lg:flex-row lg:items-end lg:justify-between lg:gap-4 lg:pt-0">
-                                <?php if (! empty($offer['price'])) : ?>
-                                    <p class="font-body text-body text-brand-primary"><?php echo esc_html($offer['price']); ?></p>
+                                <?php if ($price !== '') : ?>
+                                    <p class="font-body text-body text-brand-primary"><?php echo esc_html($price); ?></p>
                                 <?php endif; ?>
                                 <?php if (! empty($offer['link']['url'])) :
                                     $link_title = (string) ($offer['link']['title'] ?? '');

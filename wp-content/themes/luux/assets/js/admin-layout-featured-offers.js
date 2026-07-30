@@ -163,6 +163,14 @@
         };
     }
 
+    function normalizeText(value) {
+        return String(value || '')
+            .replace(/\\u2192/g, '→')
+            .replace(/u2192/g, '→')
+            .replace(/\\u00a3/g, '£')
+            .replace(/u00a3/g, '£');
+    }
+
     function readSubFieldValue($fieldEl, name) {
         if (typeof acf === 'undefined' || typeof acf.getField !== 'function') {
             return null;
@@ -190,7 +198,7 @@
             return normalizeLink(value);
         }
 
-        return String(value);
+        return normalizeText(value);
     }
 
     function offerFromBucket(raw) {
@@ -207,7 +215,7 @@
 
         ['title', 'description', 'price'].forEach(function (name) {
             if (raw[name] !== undefined && raw[name] !== null && String(raw[name]) !== '') {
-                offer[name] = String(raw[name]);
+                offer[name] = normalizeText(raw[name]);
                 offer['field_luux_featured_offers_' + name] = offer[name];
             }
         });
@@ -215,7 +223,7 @@
         if (raw.link && raw.link.url) {
             offer.link = {
                 url: String(raw.link.url || ''),
-                title: String(raw.link.title || ''),
+                title: normalizeText(raw.link.title || ''),
                 target: String(raw.link.target || ''),
             };
             offer.field_luux_featured_offers_link = offer.link;
