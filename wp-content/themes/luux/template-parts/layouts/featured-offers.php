@@ -66,9 +66,9 @@ if (
                             <?php if (! empty($offer['description'])) : ?>
                                 <p class="font-body text-body text-brand-primary-muted"><?php echo esc_html($offer['description']); ?></p>
                             <?php endif; ?>
-                            <div class="mt-auto flex flex-col gap-3 pt-2 lg:flex-row lg:items-end lg:justify-between lg:gap-4 lg:pt-0">
+                            <div class="mt-auto flex flex-row flex-nowrap items-end justify-between gap-3 pt-2 lg:gap-4 lg:pt-0">
                                 <?php if ($price !== '') : ?>
-                                    <p class="font-body text-body text-brand-primary"><?php echo esc_html($price); ?></p>
+                                    <p class="whitespace-nowrap font-body text-body text-brand-primary"><?php echo esc_html($price); ?></p>
                                 <?php endif; ?>
                                 <?php if (! empty($offer['link']['url'])) :
                                     $link_title = (string) ($offer['link']['title'] ?? '');
@@ -77,7 +77,7 @@ if (
                                         $link_title = __('Discover This Offer →', 'luux');
                                     }
                                     ?>
-                                    <a class="w-fit text-brand-gold"
+                                    <a class="shrink-0 whitespace-nowrap text-brand-gold"
                                        href="<?php echo esc_url($offer['link']['url']); ?>"
                                        <?php echo ! empty($offer['link']['target']) ? 'target="_blank" rel="noopener"' : ''; ?>>
                                         <?php echo esc_html($link_title); ?>
