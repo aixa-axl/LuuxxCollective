@@ -49,7 +49,7 @@ if (
                     $price = (string) ($offer['price'] ?? '');
                     $price = str_replace(['\\u00a3', 'u00a3'], '£', $price);
                     ?>
-                    <article class="flex flex-col gap-4 lg:gap-6">
+                    <article class="flex h-full flex-col gap-4 lg:gap-6">
                         <?php if (! empty($offer['image'])) : ?>
                             <div class="relative h-60 overflow-hidden rounded bg-brand-cream-light lg:aspect-[405/505] lg:h-auto">
                                 <?php echo wp_get_attachment_image($offer['image'], 'large', false, [
@@ -59,14 +59,14 @@ if (
                             </div>
                         <?php endif; ?>
 
-                        <div class="flex flex-col gap-2 lg:gap-3">
+                        <div class="flex flex-1 flex-col gap-2 lg:gap-3">
                             <?php if (! empty($offer['title'])) : ?>
                                 <h3 class="font-display text-quote text-brand-primary lg:text-h3"><?php echo esc_html($offer['title']); ?></h3>
                             <?php endif; ?>
                             <?php if (! empty($offer['description'])) : ?>
                                 <p class="font-body text-body text-brand-primary-muted"><?php echo esc_html($offer['description']); ?></p>
                             <?php endif; ?>
-                            <div class="flex flex-col gap-3 pt-2 lg:flex-row lg:items-end lg:justify-between lg:gap-4 lg:pt-0">
+                            <div class="mt-auto flex flex-col gap-3 pt-2 lg:flex-row lg:items-end lg:justify-between lg:gap-4 lg:pt-0">
                                 <?php if ($price !== '') : ?>
                                     <p class="font-body text-body text-brand-primary"><?php echo esc_html($price); ?></p>
                                 <?php endif; ?>
