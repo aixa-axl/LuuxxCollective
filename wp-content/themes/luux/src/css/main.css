@@ -2011,4 +2011,81 @@
       display: none;
     }
   }
+
+  /* Legal pages — Terms / Privacy / Cookies body copy */
+  .legal-content {
+    color: var(--color-brand-primary-muted);
+    font-family: var(--font-body);
+    font-size: var(--text-body);
+    line-height: 1.6;
+  }
+
+  .legal-content > * + * {
+    margin-top: 1rem;
+  }
+
+  .legal-content p,
+  .legal-content li {
+    color: var(--color-brand-primary-muted);
+  }
+
+  .legal-content strong,
+  .legal-content b {
+    color: var(--color-brand-primary);
+    font-weight: 600;
+  }
+
+  .legal-content a {
+    color: var(--color-brand-gold);
+    text-decoration: underline;
+    text-underline-offset: 0.15em;
+    transition: opacity 150ms ease;
+  }
+
+  .legal-content a:hover,
+  .legal-content a:focus-visible {
+    opacity: 0.75;
+  }
+
+  .legal-content ul,
+  .legal-content ol {
+    padding-left: 1.25rem;
+  }
+
+  .legal-content ul {
+    list-style: disc;
+  }
+
+  .legal-content ol {
+    list-style: decimal;
+  }
+
+  .legal-content li + li {
+    margin-top: 0.5rem;
+  }
+
+  .legal-content table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--text-body-sm);
+    line-height: 1.4;
+  }
+
+  .legal-content th,
+  .legal-content td {
+    border: 1px solid var(--color-brand-cream);
+    padding: 0.75rem 1rem;
+    text-align: left;
+    vertical-align: top;
+  }
+
+  .legal-content th {
+    background: var(--color-brand-cream-light);
+    color: var(--color-brand-primary);
+    font-weight: 600;
+  }
+
+  .legal-content td {
+    color: var(--color-brand-primary-muted);
+  }
 }

@@ -1628,6 +1628,100 @@
               "return_format": "array"
             }
           ]
+        },
+        "layout_luux_legal_header": {
+          "key": "layout_luux_legal_header",
+          "name": "legal_header",
+          "label": "Legal Header",
+          "display": "block",
+          "sub_fields": [
+            {
+              "key": "field_luux_legal_header_heading",
+              "label": "Heading",
+              "name": "heading",
+              "type": "text",
+              "default_value": "Terms & Conditions",
+              "instructions": "Page title (h1). Use once at the top of Terms, Privacy, or Cookie pages."
+            },
+            {
+              "key": "field_luux_legal_header_intro",
+              "label": "Intro",
+              "name": "intro",
+              "type": "wysiwyg",
+              "tabs": "all",
+              "toolbar": "basic",
+              "media_upload": 0,
+              "delay": 0,
+              "instructions": "Opening paragraphs before the numbered sections."
+            },
+            {
+              "key": "field_luux_legal_header_section_id",
+              "label": "Section ID",
+              "name": "section_id",
+              "type": "text"
+            }
+          ]
+        },
+        "layout_luux_legal_section": {
+          "key": "layout_luux_legal_section",
+          "name": "legal_section",
+          "label": "Legal Section",
+          "display": "block",
+          "sub_fields": [
+            {
+              "key": "field_luux_legal_section_heading",
+              "label": "Section Heading",
+              "name": "heading",
+              "type": "text",
+              "instructions": "e.g. SECTION A. Our Service as an Agent of the Supplier of Travel Arrangements"
+            },
+            {
+              "key": "field_luux_legal_section_intro",
+              "label": "Section Intro",
+              "name": "intro",
+              "type": "wysiwyg",
+              "tabs": "all",
+              "toolbar": "basic",
+              "media_upload": 0,
+              "delay": 0,
+              "instructions": "Optional lead-in under the section heading, before individual clauses."
+            },
+            {
+              "key": "field_luux_legal_section_clauses",
+              "label": "Clauses",
+              "name": "clauses",
+              "type": "repeater",
+              "layout": "block",
+              "button_label": "Add Clause",
+              "sub_fields": [
+                {
+                  "key": "field_luux_legal_section_clause_title",
+                  "label": "Clause Title",
+                  "name": "title",
+                  "type": "text",
+                  "instructions": "e.g. A1. Your Contract"
+                },
+                {
+                  "key": "field_luux_legal_section_clause_body",
+                  "label": "Body",
+                  "name": "body",
+                  "type": "wysiwyg",
+                  "tabs": "all",
+                  "toolbar": "full",
+                  "media_upload": 0,
+                  "delay": 0,
+                  "instructions": "Paste clause text. Use lists and tables where needed (e.g. cancellation charges)."
+                }
+              ]
+            },
+            {
+              "key": "field_luux_legal_section_section_id",
+              "label": "Section ID",
+              "name": "section_id",
+              "type": "text",
+              "instructions": "Optional anchor, e.g. section-a"
+            }
+          ]
         }
       }
     }
@@ -1645,5 +1739,5 @@
   "style": "seamless",
   "active": true,
   "show_in_rest": 0,
-  "modified": 1784196000
+  "modified": 1789920000
 }
