@@ -750,7 +750,7 @@ add_filter('acf/pre_update_metadata', function ($check, $post_id, $name, $value,
 }, 10, 5);
 
 add_filter('acf/load_value', function ($value, $post_id, $field) {
-    if (! is_admin() || ! is_array($field)) {
+    if (! is_array($field)) {
         return $value;
     }
 
@@ -789,15 +789,11 @@ add_filter('acf/load_value', function ($value, $post_id, $field) {
         return $value;
     }
 
-    if (
-        function_exists('luux_page_sections_uses_legacy_storage')
-        && luux_page_sections_uses_legacy_storage((int) $post_id)
-    ) {
-        $direct = luux_read_section_meta((int) $post_id, $row_index, $name);
+    // Prefer custom-saved postmeta on front + admin (blocked ACF writes leave empty values).
+    $direct = luux_read_section_meta((int) $post_id, $row_index, $name);
 
-        if ($direct !== null && $direct !== '') {
-            return $direct;
-        }
+    if ($direct !== null && $direct !== '') {
+        return $direct;
     }
 
     if ($value !== null && $value !== false && $value !== '') {
@@ -810,13 +806,7 @@ add_filter('acf/load_value', function ($value, $post_id, $field) {
         return $stash[(string) $row_index][$name];
     }
 
-    $direct = luux_read_section_meta((int) $post_id, $row_index, $name);
-
-    if ($direct === null || $direct === '') {
-        return $value;
-    }
-
-    return $direct;
+    return $value;
 }, 26, 3);
 
 add_filter('rest_pre_insert_page', function ($prepared_post, WP_REST_Request $request) {
