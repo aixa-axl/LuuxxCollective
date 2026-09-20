@@ -157,6 +157,58 @@ function luux_get_hero_group_tag(): array {
     return ['show' => (bool) $show, 'logo' => $logo];
 }
 
+/**
+ * Run the normal page_sections loop and return captured HTML (empty string if none).
+ */
+function luux_capture_page_sections_loop(int $post_id): string {
+    if (! function_exists('have_rows') || ! have_rows('page_sections', $post_id)) {
+        return '';
+    }
+
+    ob_start();
+
+    while (have_rows('page_sections', $post_id)) {
+        the_row();
+        $layout = str_replace('_', '-', (string) get_row_layout());
+        get_template_part('template-parts/layouts/' . $layout);
+    }
+
+    return (string) ob_get_clean();
+}
+
+/**
+ * True when this page has legal layout rows we may need to recover from meta/stash.
+ */
+function luux_page_has_legal_section_rows(int $post_id): bool {
+    return function_exists('luux_acf_discover_legal_row_layouts')
+        && luux_acf_discover_legal_row_layouts($post_id) !== [];
+}
+
+/**
+ * For pages with legal layouts: run the ACF loop, but if it outputs nothing
+ * (empty shells after save), recover via legal meta/stash renderer.
+ */
+function luux_render_legal_aware_page_sections(int $post_id): bool {
+    if (! luux_page_has_legal_section_rows($post_id)) {
+        return false;
+    }
+
+    $html = '';
+
+    if (function_exists('have_rows') && have_rows('page_sections', $post_id)) {
+        $html = luux_capture_page_sections_loop($post_id);
+    }
+
+    if (trim($html) !== '') {
+        echo $html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- template HTML
+
+        return true;
+    }
+
+    return function_exists('luux_render_legal_sections_from_meta')
+        && luux_render_legal_sections_from_meta($post_id);
+}
+
 function luux_render_sections(): void {
     $post_id = get_the_ID();
     if (! $post_id) {
@@ -166,13 +218,42 @@ function luux_render_sections(): void {
     $legacy = function_exists('luux_page_sections_uses_legacy_storage')
         && luux_page_sections_uses_legacy_storage($post_id);
 
-    // Staging imports store layouts as a serialized array — ACF reads that directly from postmeta.
-    if ($legacy) {
-        if (function_exists('have_rows') && luux_loop_page_sections($post_id)) {
+    // Legal pages: detect empty ACF shells after save and recover from meta/stash.
+    // Other pages never enter this branch.
+    if (luux_page_has_legal_section_rows((int) $post_id)) {
+        if ($legacy) {
+            if (luux_render_legal_aware_page_sections((int) $post_id)) {
+                return;
+            }
+
             return;
         }
 
-        if (function_exists('luux_render_legal_sections_from_meta') && luux_render_legal_sections_from_meta($post_id)) {
+        if (function_exists('luux_acf_merged_page_meta') && function_exists('acf_setup_meta')) {
+            $meta = luux_acf_merged_page_meta((int) $post_id);
+
+            if (is_array($meta)) {
+                acf_setup_meta($meta, $post_id, true);
+                $ok = luux_render_legal_aware_page_sections((int) $post_id);
+
+                if (function_exists('acf_reset_meta')) {
+                    acf_reset_meta($post_id);
+                }
+
+                if ($ok) {
+                    return;
+                }
+            }
+        }
+
+        if (luux_render_legal_aware_page_sections((int) $post_id)) {
+            return;
+        }
+    }
+
+    // Staging imports store layouts as a serialized array — ACF reads that directly from postmeta.
+    if ($legacy) {
+        if (function_exists('have_rows') && luux_loop_page_sections($post_id)) {
             return;
         }
 
@@ -188,10 +269,6 @@ function luux_render_sections(): void {
     }
 
     if (function_exists('luux_render_page_sections_by_row') && luux_render_page_sections_by_row($post_id)) {
-        return;
-    }
-
-    if (function_exists('luux_render_legal_sections_from_meta') && luux_render_legal_sections_from_meta($post_id)) {
         return;
     }
 }

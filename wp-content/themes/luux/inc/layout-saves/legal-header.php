@@ -324,8 +324,23 @@ function luux_acf_stash_legal_header_row(int $post_id, int $row_index, array $fi
         $stash = [];
     }
 
-    $stash[(string) $row_index] = $fields;
-    update_post_meta($post_id, LUUX_LEGAL_HEADER_STASH_META, $stash);
+    $existing = isset($stash[(string) $row_index]) && is_array($stash[(string) $row_index])
+        ? $stash[(string) $row_index]
+        : [];
+
+    // Merge — never wipe previously saved values with an incomplete/empty save payload.
+    foreach ($fields as $name => $value) {
+        if (! is_string($name) || $value === '' || $value === null) {
+            continue;
+        }
+
+        $existing[$name] = is_scalar($value) ? (string) $value : $value;
+    }
+
+    if ($existing !== []) {
+        $stash[(string) $row_index] = $existing;
+        update_post_meta($post_id, LUUX_LEGAL_HEADER_STASH_META, $stash);
+    }
 }
 
 function luux_acf_restore_legal_header_from_stash(int $post_id): void {

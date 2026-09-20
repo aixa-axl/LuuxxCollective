@@ -10,13 +10,28 @@ $section_id = luux_sub_field('section_id');
 $post_id   = get_the_ID();
 $row_index = function_exists('luux_section_row_index') ? luux_section_row_index() : -1;
 
-// Always prefer direct postmeta when present — legal scalars are custom-saved.
+// Prefer direct postmeta when present — legal scalars are custom-saved.
 if ($post_id && $row_index >= 0 && function_exists('luux_read_section_meta')) {
     foreach (['heading', 'intro', 'section_id'] as $name) {
         $from_meta = luux_read_section_meta((int) $post_id, $row_index, $name);
 
         if ($from_meta !== null && $from_meta !== '') {
             ${$name} = $from_meta;
+        }
+    }
+}
+
+// Fall back to stash when postmeta is empty (e.g. after a save that wrote layout shells only).
+if ($post_id && $row_index >= 0) {
+    $stash = get_post_meta((int) $post_id, '_luux_legal_header_stash', true);
+
+    if (is_array($stash) && isset($stash[(string) $row_index]) && is_array($stash[(string) $row_index])) {
+        $row_stash = $stash[(string) $row_index];
+
+        foreach (['heading', 'intro', 'section_id'] as $name) {
+            if ((${$name} === '' || ${$name} === null || ${$name} === false) && ! empty($row_stash[$name])) {
+                ${$name} = $row_stash[$name];
+            }
         }
     }
 }

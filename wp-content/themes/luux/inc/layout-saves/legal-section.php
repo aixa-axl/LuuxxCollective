@@ -474,8 +474,31 @@ function luux_acf_stash_legal_section_row(int $post_id, int $row_index, array $f
         $stash = [];
     }
 
-    $stash[(string) $row_index] = $fields;
-    update_post_meta($post_id, LUUX_LEGAL_SECTION_STASH_META, $stash);
+    $existing = isset($stash[(string) $row_index]) && is_array($stash[(string) $row_index])
+        ? $stash[(string) $row_index]
+        : [];
+
+    // Merge — never wipe previously saved values with an incomplete/empty save payload.
+    foreach ($fields as $name => $value) {
+        if (! is_string($name) || $value === '' || $value === null) {
+            continue;
+        }
+
+        if ($name === '_clauses_json' && is_string($value)) {
+            $decoded = luux_acf_legal_section_decode_clauses_json($value);
+
+            if ($decoded === []) {
+                continue;
+            }
+        }
+
+        $existing[$name] = is_scalar($value) ? (string) $value : $value;
+    }
+
+    if ($existing !== []) {
+        $stash[(string) $row_index] = $existing;
+        update_post_meta($post_id, LUUX_LEGAL_SECTION_STASH_META, $stash);
+    }
 }
 
 function luux_acf_restore_legal_section_from_stash(int $post_id): void {
@@ -744,7 +767,33 @@ add_filter('acf/pre_update_metadata', function ($check, $post_id, $name, $value,
         return $check;
     }
 
-    if (! is_string($name) || ! luux_acf_is_legal_section_meta_name((int) $post_id, $name)) {
+    if (! is_string($name)) {
+        return $check;
+    }
+
+    // Block empty clause wipes — ACF can clear the repeater on incomplete block-editor saves.
+    if (preg_match('/^page_sections_(\d+)_clauses$/', $name, $matches)) {
+        $index = (int) $matches[1];
+
+        if (! luux_acf_legal_section_layout_matches(luux_acf_legal_section_row_layout((int) $post_id, $index))) {
+            return $check;
+        }
+
+        $incoming_empty = $value === '' || $value === null || $value === 0 || $value === '0'
+            || (is_array($value) && $value === []);
+
+        if ($incoming_empty) {
+            $existing = luux_legal_section_clauses_from_meta((int) $post_id, $index);
+
+            if ($existing !== []) {
+                return true;
+            }
+        }
+
+        return $check;
+    }
+
+    if (! luux_acf_is_legal_section_meta_name((int) $post_id, $name)) {
         return $check;
     }
 
