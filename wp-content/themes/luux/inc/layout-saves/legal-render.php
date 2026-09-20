@@ -57,6 +57,50 @@ function luux_acf_normalize_section_layout_slug(string $layout): string {
 }
 
 /**
+ * Layouts currently declared by the editor (page_sections list or integer count).
+ * Does NOT invent rows from stash / orphan field keys — empty editor = empty list.
+ *
+ * @return array<int, string> db_index => short layout name
+ */
+function luux_acf_authoritative_section_row_layouts(int $post_id): array {
+    $layouts = [];
+    $stored  = get_post_meta($post_id, 'page_sections', true);
+    $list    = function_exists('luux_acf_parse_page_sections_layout_list')
+        ? luux_acf_parse_page_sections_layout_list($stored)
+        : [];
+
+    if ($list !== []) {
+        foreach ($list as $i => $layout) {
+            if (! is_string($layout) || $layout === '') {
+                continue;
+            }
+
+            $layouts[(int) $i] = luux_acf_normalize_section_layout_slug($layout);
+        }
+
+        return array_filter($layouts, static fn ($layout) => is_string($layout) && $layout !== '');
+    }
+
+    $count = is_numeric($stored) ? (int) $stored : 0;
+
+    if ($count < 1) {
+        return [];
+    }
+
+    for ($i = 0; $i < $count; $i++) {
+        $layout = get_post_meta($post_id, 'page_sections_' . $i . '_acf_fc_layout', true);
+
+        if (! is_string($layout) || $layout === '') {
+            continue;
+        }
+
+        $layouts[$i] = luux_acf_normalize_section_layout_slug($layout);
+    }
+
+    return array_filter($layouts, static fn ($layout) => is_string($layout) && $layout !== '');
+}
+
+/**
  * @return array<int, string> db_index => short layout name
  */
 function luux_acf_discover_legal_row_layouts(int $post_id): array {
@@ -74,64 +118,57 @@ function luux_acf_discover_legal_row_layouts(int $post_id): array {
 
 /**
  * Discover every page_sections row on a page (all layout types).
+ * Authoritative editor list only — stash hydrates content, it does not create rows.
  *
  * @return array<int, string> db_index => short layout name
  */
 function luux_acf_discover_all_section_row_layouts(int $post_id): array {
-    $layouts = [];
-    $raw     = get_metadata('post', $post_id);
+    return luux_acf_authoritative_section_row_layouts($post_id);
+}
 
-    if (! is_array($raw)) {
-        $raw = [];
+/**
+ * Drop legal stash + orphan legal field meta for rows no longer in the editor list.
+ * Scoped to legal_header / legal_section only — other layouts untouched.
+ */
+function luux_acf_prune_orphaned_legal_meta(int $post_id): void {
+    if ($post_id < 1 || get_post_type($post_id) !== 'page') {
+        return;
     }
 
-    foreach (array_keys($raw) as $key) {
-        if (! preg_match('/^page_sections_(\d+)_acf_fc_layout$/', $key, $matches)) {
-            continue;
+    $layouts      = luux_acf_authoritative_section_row_layouts($post_id);
+    $keep_header  = [];
+    $keep_section = [];
+
+    foreach ($layouts as $index => $layout) {
+        $short = luux_acf_legal_layout_to_short_name((string) $layout);
+
+        if ($short === 'legal_header') {
+            $keep_header[(int) $index] = true;
         }
 
-        $index  = (int) $matches[1];
-        $layout = luux_acf_resolve_meta_storage_value($raw[$key]);
-
-        if (! is_string($layout) || $layout === '') {
-            continue;
-        }
-
-        $layouts[$index] = luux_acf_normalize_section_layout_slug($layout);
-    }
-
-    $layout_list = luux_acf_parse_page_sections_layout_list($raw['page_sections'][0] ?? null);
-
-    foreach ($layout_list as $i => $layout) {
-        if (! is_string($layout) || $layout === '') {
-            continue;
-        }
-
-        $index = (int) $i;
-
-        if (! isset($layouts[$index])) {
-            $layouts[$index] = luux_acf_normalize_section_layout_slug($layout);
-        }
-    }
-
-    foreach (array_keys($raw) as $key) {
-        if (preg_match('/^page_sections_(\d+)_clauses(?:_\d+_|$)/', $key, $matches)) {
-            $index = (int) $matches[1];
-
-            if (! isset($layouts[$index])) {
-                $layouts[$index] = 'legal_section';
-            }
+        if ($short === 'legal_section') {
+            $keep_section[(int) $index] = true;
         }
     }
 
     $header_stash = get_post_meta($post_id, '_luux_legal_header_stash', true);
 
     if (is_array($header_stash)) {
-        foreach (array_keys($header_stash) as $row_key) {
-            $index = (int) $row_key;
+        if ($keep_header === []) {
+            delete_post_meta($post_id, '_luux_legal_header_stash');
+        } else {
+            $next = [];
 
-            if (! isset($layouts[$index])) {
-                $layouts[$index] = 'legal_header';
+            foreach ($header_stash as $row_key => $fields) {
+                if (isset($keep_header[(int) $row_key])) {
+                    $next[(string) (int) $row_key] = $fields;
+                }
+            }
+
+            if ($next === []) {
+                delete_post_meta($post_id, '_luux_legal_header_stash');
+            } elseif ($next !== $header_stash) {
+                update_post_meta($post_id, '_luux_legal_header_stash', $next);
             }
         }
     }
@@ -139,19 +176,142 @@ function luux_acf_discover_all_section_row_layouts(int $post_id): array {
     $section_stash = get_post_meta($post_id, '_luux_legal_section_stash', true);
 
     if (is_array($section_stash)) {
-        foreach (array_keys($section_stash) as $row_key) {
-            $index = (int) $row_key;
+        if ($keep_section === []) {
+            delete_post_meta($post_id, '_luux_legal_section_stash');
+        } else {
+            $next = [];
 
-            if (! isset($layouts[$index])) {
-                $layouts[$index] = 'legal_section';
+            foreach ($section_stash as $row_key => $fields) {
+                if (isset($keep_section[(int) $row_key])) {
+                    $next[(string) (int) $row_key] = $fields;
+                }
+            }
+
+            if ($next === []) {
+                delete_post_meta($post_id, '_luux_legal_section_stash');
+            } elseif ($next !== $section_stash) {
+                update_post_meta($post_id, '_luux_legal_section_stash', $next);
             }
         }
     }
 
-    ksort($layouts);
+    // Remove leftover legal-only field keys for indices no longer declared as legal.
+    $raw = get_metadata('post', $post_id);
 
-    return array_filter($layouts, static fn ($layout) => is_string($layout) && $layout !== '');
+    if (! is_array($raw)) {
+        return;
+    }
+
+    foreach (array_keys($raw) as $key) {
+        if (! is_string($key)) {
+            continue;
+        }
+
+        // Clauses only exist on legal_section — safe to drop when that row is gone.
+        if (preg_match('/^_?page_sections_(\d+)_clauses(?:_.*)?$/', $key, $matches)) {
+            $index = (int) $matches[1];
+
+            if (! isset($keep_section[$index])) {
+                delete_post_meta($post_id, $key);
+            }
+
+            continue;
+        }
+
+        // Shared names (heading/intro/section_id): only remove when the row index
+        // is no longer in the editor list at all (orphan), never when another layout owns it.
+        if (preg_match('/^_?page_sections_(\d+)_(?:heading|intro|section_id)$/', $key, $matches)) {
+            $index = (int) $matches[1];
+
+            if (! isset($layouts[$index])) {
+                delete_post_meta($post_id, $key);
+            }
+        }
+    }
+
+    foreach (array_keys($raw) as $key) {
+        if (! is_string($key) || ! preg_match('/^_?page_sections_(\d+)_acf_fc_layout$/', $key, $matches)) {
+            continue;
+        }
+
+        $index = (int) $matches[1];
+
+        if (isset($layouts[$index])) {
+            continue;
+        }
+
+        $layout_val = luux_acf_resolve_meta_storage_value($raw[$key] ?? []);
+
+        if (! is_string($layout_val) || ! luux_acf_legal_layout_matches_slug($layout_val)) {
+            continue;
+        }
+
+        delete_post_meta($post_id, $key);
+    }
 }
+
+/**
+ * One-shot: prune orphaned legal stash/meta on pages that no longer declare legal layouts.
+ * Runs once after deploy so Terms goes blank when layouts were already deleted.
+ */
+function luux_acf_maybe_prune_orphaned_legal_sitewide(): void {
+    if (get_option('luux_legal_orphan_prune_v1')) {
+        return;
+    }
+
+    $page_ids = get_posts([
+        'post_type'              => 'page',
+        'post_status'            => 'any',
+        'posts_per_page'         => -1,
+        'fields'                 => 'ids',
+        'no_found_rows'          => true,
+        'update_post_meta_cache' => false,
+        'update_post_term_cache' => false,
+        'meta_query'             => [
+            'relation' => 'OR',
+            [
+                'key'     => '_luux_legal_header_stash',
+                'compare' => 'EXISTS',
+            ],
+            [
+                'key'     => '_luux_legal_section_stash',
+                'compare' => 'EXISTS',
+            ],
+        ],
+    ]);
+
+    foreach ($page_ids as $page_id) {
+        luux_acf_prune_orphaned_legal_meta((int) $page_id);
+    }
+
+    update_option('luux_legal_orphan_prune_v1', 1, false);
+}
+
+add_action('init', 'luux_acf_maybe_prune_orphaned_legal_sitewide', 20);
+
+add_action('acf/save_post', function ($post_id): void {
+    if (! is_numeric($post_id) || get_post_type((int) $post_id) !== 'page') {
+        return;
+    }
+
+    luux_acf_prune_orphaned_legal_meta((int) $post_id);
+}, 100000);
+
+add_action('save_post_page', function (int $post_id): void {
+    if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) {
+        return;
+    }
+
+    luux_acf_prune_orphaned_legal_meta($post_id);
+}, 100000);
+
+add_action('rest_after_insert_page', function (\WP_Post $post): void {
+    if ($post->post_type !== 'page') {
+        return;
+    }
+
+    luux_acf_prune_orphaned_legal_meta((int) $post->ID);
+}, 100000);
 
 /**
  * Ensure ACF layout keys exist for a legal row (does not migrate legacy list to integer count).
