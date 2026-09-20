@@ -293,6 +293,8 @@ function luux_acf_legal_header_post_rows_with_indices(): array {
  * @param array<string, mixed> $row
  */
 function luux_acf_persist_legal_header_row(int $post_id, int $db_index, array $row): void {
+    luux_acf_ensure_legal_layout_meta($post_id, $db_index, 'legal_header');
+
     $prefix    = 'page_sections_' . (int) $db_index . '_';
     $field_map = luux_acf_legal_header_field_map();
 

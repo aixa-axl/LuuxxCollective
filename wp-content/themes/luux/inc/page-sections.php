@@ -1028,3 +1028,4 @@ require get_template_directory() . '/inc/layout-saves/contact-options.php';
 require get_template_directory() . '/inc/layout-saves/general-enquiries.php';
 require get_template_directory() . '/inc/layout-saves/legal-header.php';
 require get_template_directory() . '/inc/layout-saves/legal-section.php';
+require get_template_directory() . '/inc/layout-saves/legal-render.php';

@@ -172,6 +172,10 @@ function luux_render_sections(): void {
             return;
         }
 
+        if (function_exists('luux_render_legal_sections_from_meta') && luux_render_legal_sections_from_meta($post_id)) {
+            return;
+        }
+
         return;
     }
 
@@ -184,6 +188,10 @@ function luux_render_sections(): void {
     }
 
     if (function_exists('luux_render_page_sections_by_row') && luux_render_page_sections_by_row($post_id)) {
+        return;
+    }
+
+    if (function_exists('luux_render_legal_sections_from_meta') && luux_render_legal_sections_from_meta($post_id)) {
         return;
     }
 }

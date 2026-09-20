@@ -437,6 +437,8 @@ function luux_acf_persist_legal_section_clauses(int $post_id, int $db_index, arr
  * @param array<string, mixed> $row
  */
 function luux_acf_persist_legal_section_row(int $post_id, int $db_index, array $row): void {
+    luux_acf_ensure_legal_layout_meta($post_id, $db_index, 'legal_section');
+
     $prefix    = 'page_sections_' . (int) $db_index . '_';
     $field_map = luux_acf_legal_section_field_map();
 
