@@ -10,6 +10,18 @@ $section_id = luux_sub_field('section_id');
 $post_id   = get_the_ID();
 $row_index = function_exists('luux_section_row_index') ? luux_section_row_index() : -1;
 
+// Prevent the same legal header row rendering twice in one request.
+static $luux_legal_header_rendered = [];
+$render_key = (int) $post_id . ':' . (int) $row_index;
+
+if ($post_id && $row_index >= 0 && isset($luux_legal_header_rendered[$render_key])) {
+    return;
+}
+
+if ($post_id && $row_index >= 0) {
+    $luux_legal_header_rendered[$render_key] = true;
+}
+
 // Prefer direct postmeta when present — legal scalars are custom-saved.
 if ($post_id && $row_index >= 0 && function_exists('luux_read_section_meta')) {
     foreach (['heading', 'intro', 'section_id'] as $name) {

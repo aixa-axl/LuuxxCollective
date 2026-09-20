@@ -530,9 +530,26 @@ function luux_acf_array_is_sequential_list(array $array): bool {
 }
 
 /**
+ * Override the current page_sections db index during isolated single-row renders.
+ */
+function luux_set_section_row_index_override(?int $index): void {
+    if ($index === null) {
+        unset($GLOBALS['luux_section_row_index_override']);
+
+        return;
+    }
+
+    $GLOBALS['luux_section_row_index_override'] = $index;
+}
+
+/**
  * Current flexible-content row index (0-based) while looping page_sections.
  */
 function luux_section_row_index(): int {
+    if (isset($GLOBALS['luux_section_row_index_override']) && is_int($GLOBALS['luux_section_row_index_override'])) {
+        return (int) $GLOBALS['luux_section_row_index_override'];
+    }
+
     if (! function_exists('get_row_index')) {
         return -1;
     }
@@ -861,16 +878,28 @@ function luux_render_page_sections_by_row(int $post_id): bool {
             continue;
         }
 
+        $layout = function_exists('luux_acf_normalize_section_layout_slug')
+            ? luux_acf_normalize_section_layout_slug($layout)
+            : $layout;
+
         $row_meta = luux_build_single_row_meta($full_meta, $row_index);
+        $row_meta['page_sections']                 = 1;
+        $row_meta['page_sections_0_acf_fc_layout'] = $layout;
+
         acf_setup_meta($row_meta, $post_id, true);
+        luux_set_section_row_index_override((int) $row_index);
 
         if (have_rows('page_sections', $post_id)) {
+            the_row();
+            get_template_part('template-parts/layouts/' . str_replace('_', '-', $layout));
+            $rendered = true;
+
             while (have_rows('page_sections', $post_id)) {
                 the_row();
-                get_template_part('template-parts/layouts/' . str_replace('_', '-', $layout));
-                $rendered = true;
             }
         }
+
+        luux_set_section_row_index_override(null);
 
         if (function_exists('acf_reset_meta')) {
             acf_reset_meta($post_id);

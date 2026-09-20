@@ -168,14 +168,24 @@ function luux_render_sections(): void {
 
     // Staging imports store layouts as a serialized array — ACF reads that directly from postmeta.
     if ($legacy) {
+        // Legal pages often keep Hero + legal in postmeta while the ACF loop only
+        // surfaces legal (or doubles it). Prefer one pass per saved row.
+        $has_legal = function_exists('luux_acf_discover_legal_row_layouts')
+            && luux_acf_discover_legal_row_layouts($post_id) !== [];
+
+        if (
+            $has_legal
+            && function_exists('luux_render_sections_from_direct_meta')
+            && luux_render_sections_from_direct_meta($post_id)
+        ) {
+            return;
+        }
+
         if (function_exists('have_rows') && luux_loop_page_sections($post_id)) {
             return;
         }
 
-        // Last resort for Terms-style pages when the ACF loop finds no rows at all.
-        // Legal templates already hydrate from meta/stash during a normal loop — do not
-        // run this when the loop already ran, or legal blocks will double and Hero is skipped.
-        if (function_exists('luux_render_legal_sections_from_meta') && luux_render_legal_sections_from_meta($post_id)) {
+        if (function_exists('luux_render_sections_from_direct_meta') && luux_render_sections_from_direct_meta($post_id)) {
             return;
         }
 
@@ -194,7 +204,7 @@ function luux_render_sections(): void {
         return;
     }
 
-    if (function_exists('luux_render_legal_sections_from_meta') && luux_render_legal_sections_from_meta($post_id)) {
+    if (function_exists('luux_render_sections_from_direct_meta') && luux_render_sections_from_direct_meta($post_id)) {
         return;
     }
 }
