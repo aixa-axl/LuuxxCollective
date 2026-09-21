@@ -509,11 +509,10 @@ function luux_acf_restore_legal_section_from_stash(int $post_id): void {
     }
 
     // Never re-create layouts the editor removed — only refill existing legal_section rows.
+    // Do not delete the stash here when indices are empty; prune handles orphans after save.
     $db_indices = luux_acf_legal_section_db_row_indices($post_id);
 
     if ($db_indices === []) {
-        delete_post_meta($post_id, LUUX_LEGAL_SECTION_STASH_META);
-
         return;
     }
 

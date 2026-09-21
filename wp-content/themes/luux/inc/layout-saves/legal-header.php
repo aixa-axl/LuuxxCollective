@@ -351,11 +351,11 @@ function luux_acf_restore_legal_header_from_stash(int $post_id): void {
     }
 
     // Never re-create layouts the editor removed — only refill existing legal_header rows.
+    // Do not delete the stash here when indices are empty (layout shell may not be written yet);
+    // luux_acf_prune_orphaned_legal_meta() clears orphans after the editor list is authoritative.
     $db_indices = luux_acf_legal_header_db_row_indices($post_id);
 
     if ($db_indices === []) {
-        delete_post_meta($post_id, LUUX_LEGAL_HEADER_STASH_META);
-
         return;
     }
 
