@@ -607,24 +607,22 @@ function luux_find_section_row_index(int $post_id, string $layout_name): ?int {
 }
 
 /**
- * Read a page_sections sub-field on legacy imports (direct postmeta, bypasses stale ACF reads).
- * Modern pages fall through to get_sub_field().
+ * Read a page_sections sub-field.
+ * Prefer direct postmeta when present — custom layout saves (hero, legal, etc.)
+ * block ACF from writing those keys, so get_sub_field() alone is empty on modern pages.
  */
 function luux_sub_field(string $name) {
-    $post_id = get_the_ID();
+    $post_id   = get_the_ID();
+    $row_index = function_exists('luux_section_row_index') ? luux_section_row_index() : -1;
 
-    if (
-        $post_id
-        && function_exists('luux_page_sections_uses_legacy_storage')
-        && luux_page_sections_uses_legacy_storage((int) $post_id)
-    ) {
-        $row_index = luux_section_row_index();
+    if ($post_id && $row_index >= 0) {
+        $raw = get_metadata('post', (int) $post_id, 'page_sections_' . $row_index . '_' . $name, false);
 
-        if ($row_index >= 0) {
-            $raw = get_metadata('post', (int) $post_id, 'page_sections_' . $row_index . '_' . $name, false);
+        if (is_array($raw) && $raw !== []) {
+            $resolved = luux_acf_resolve_meta_storage_value($raw);
 
-            if (is_array($raw) && $raw !== []) {
-                return luux_acf_resolve_meta_storage_value($raw);
+            if ($resolved !== null && $resolved !== '' && $resolved !== false) {
+                return $resolved;
             }
         }
     }

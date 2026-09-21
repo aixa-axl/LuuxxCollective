@@ -3,21 +3,59 @@
  * Layout: hero
  */
 
-$heading        = luux_sub_field('heading');
-$subheading     = luux_sub_field('subheading');
-$media_type     = luux_sub_field('media_type') ?: 'image';
-$image_id       = luux_sub_field('background_image');
-$video_id       = luux_sub_field('background_video');
-$ctas           = get_sub_field('ctas');
+$heading    = luux_sub_field('heading');
+$subheading = luux_sub_field('subheading');
+$media_type = luux_sub_field('media_type') ?: 'image';
+$image_id   = luux_sub_field('background_image');
+$video_id   = luux_sub_field('background_video');
+$ctas       = get_sub_field('ctas');
 
 $post_id   = get_the_ID();
 $row_index = function_exists('luux_section_row_index') ? luux_section_row_index() : -1;
 
+// Prefer direct postmeta / stash — hero scalars are custom-saved and ACF-blocked.
+if ($post_id && $row_index >= 0 && function_exists('luux_read_section_meta')) {
+    foreach (['heading', 'subheading', 'media_type', 'background_image', 'background_video'] as $name) {
+        $from_meta = luux_read_section_meta((int) $post_id, $row_index, $name);
+
+        if ($from_meta === null || $from_meta === '') {
+            continue;
+        }
+
+        if (in_array($name, ['background_image', 'background_video'], true)) {
+            ${$name === 'background_image' ? 'image_id' : 'video_id'} = (int) $from_meta;
+            continue;
+        }
+
+        ${$name} = $from_meta;
+    }
+}
+
+if ($post_id && $row_index >= 0) {
+    $stash = get_post_meta((int) $post_id, '_luux_hero_stash', true);
+
+    if (is_array($stash) && isset($stash[(string) $row_index]) && is_array($stash[(string) $row_index])) {
+        $row_stash = $stash[(string) $row_index];
+
+        foreach (['heading', 'subheading', 'media_type'] as $name) {
+            if ((${$name} === '' || ${$name} === null || ${$name} === false) && ! empty($row_stash[$name])) {
+                ${$name} = $row_stash[$name];
+            }
+        }
+
+        if (empty($image_id) && ! empty($row_stash['background_image'])) {
+            $image_id = (int) $row_stash['background_image'];
+        }
+
+        if (empty($video_id) && ! empty($row_stash['background_video'])) {
+            $video_id = (int) $row_stash['background_video'];
+        }
+    }
+}
+
 if (
     $post_id
     && $row_index >= 0
-    && function_exists('luux_page_sections_uses_legacy_storage')
-    && luux_page_sections_uses_legacy_storage($post_id)
     && function_exists('luux_hero_ctas_from_meta')
 ) {
     $from_meta = luux_hero_ctas_from_meta((int) $post_id, $row_index);
@@ -27,11 +65,12 @@ if (
     }
 }
 
-$has_video = ($media_type === 'video' && $video_id);
-$has_media = $has_video || $image_id;
+$media_type = $media_type ?: 'image';
+$has_video  = ($media_type === 'video' && $video_id);
+$has_media  = $has_video || $image_id;
 ?>
 
-<section class="hero<?php echo is_front_page() ? ' hero--home-bleed' : ''; ?> relative h-[640px] overflow-hidden lg:h-[700px]">
+<section class="hero<?php echo is_front_page() ? ' hero--home-bleed' : ''; ?> relative h-[640px] overflow-hidden lg:h-[700px]<?php echo $has_media ? '' : ' bg-brand-dark'; ?>">
     <?php if ($has_video) :
         $video_url  = wp_get_attachment_url($video_id);
         $video_mime = get_post_mime_type($video_id);
