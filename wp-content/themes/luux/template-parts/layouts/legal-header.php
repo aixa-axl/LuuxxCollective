@@ -70,10 +70,10 @@ if ($post_id && $row_index >= 0) {
 $heading_tag = (function_exists('luux_uses_hero_header') && luux_uses_hero_header()) ? 'h2' : 'h1';
 ?>
 
-<section<?php echo $section_id ? ' id="' . esc_attr($section_id) . '"' : ''; ?> class="legal-header section-pad bg-brand-white">
-    <div class="container-site flex flex-col items-start gap-6 lg:gap-8">
+<section<?php echo $section_id ? ' id="' . esc_attr($section_id) . '"' : ''; ?> class="legal-header bg-brand-white py-8 lg:py-10">
+    <div class="container-site flex flex-col items-start gap-4 lg:gap-5">
         <?php if ($heading) : ?>
-            <<?php echo $heading_tag; ?> class="w-full font-display text-h3 text-brand-primary lg:text-h2"><?php echo esc_html($heading); ?></<?php echo $heading_tag; ?>>
+            <<?php echo $heading_tag; ?> class="w-full font-display text-h3 text-brand-primary"><?php echo esc_html($heading); ?></<?php echo $heading_tag; ?>>
         <?php endif; ?>
         <?php if ($intro) : ?>
             <div class="legal-content w-full">

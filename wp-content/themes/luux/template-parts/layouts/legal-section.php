@@ -74,12 +74,12 @@ if (! $heading && ! $intro && empty($clauses)) {
 }
 ?>
 
-<section<?php echo $section_id ? ' id="' . esc_attr($section_id) . '"' : ''; ?> class="legal-section section-pad bg-brand-white">
-    <div class="container-site flex flex-col gap-10 lg:gap-12">
+<section<?php echo $section_id ? ' id="' . esc_attr($section_id) . '"' : ''; ?> class="legal-section bg-brand-white py-6 lg:py-8">
+    <div class="container-site flex flex-col gap-5 lg:gap-6">
         <?php if ($heading || $intro) : ?>
-            <div class="flex w-full flex-col gap-4 lg:gap-6">
+            <div class="flex w-full flex-col gap-3 lg:gap-4">
                 <?php if ($heading) : ?>
-                    <h2 class="font-display text-h3 text-brand-primary lg:text-h2"><?php echo esc_html($heading); ?></h2>
+                    <h2 class="font-display text-h3 text-brand-primary"><?php echo esc_html($heading); ?></h2>
                 <?php endif; ?>
                 <?php if ($intro) : ?>
                     <div class="legal-content w-full">
@@ -90,7 +90,7 @@ if (! $heading && ! $intro && empty($clauses)) {
         <?php endif; ?>
 
         <?php if ($clauses) : ?>
-            <div class="flex w-full flex-col gap-10 lg:gap-12">
+            <div class="flex w-full flex-col gap-6 lg:gap-8">
                 <?php foreach ($clauses as $clause) :
                     $title = isset($clause['title']) ? (string) $clause['title'] : '';
                     $body  = isset($clause['body']) ? (string) $clause['body'] : '';
@@ -99,7 +99,7 @@ if (! $heading && ! $intro && empty($clauses)) {
                         continue;
                     }
                     ?>
-                    <article class="flex flex-col gap-3 lg:gap-4">
+                    <article class="flex flex-col gap-2 lg:gap-3">
                         <?php if ($title !== '') : ?>
                             <h3 class="font-display text-quote text-brand-primary"><?php echo esc_html($title); ?></h3>
                         <?php endif; ?>
