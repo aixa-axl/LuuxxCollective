@@ -95,7 +95,14 @@ if (! $heading && ! $intro && empty($clauses)) {
                     $title = isset($clause['title']) ? (string) $clause['title'] : '';
                     $body  = isset($clause['body']) ? (string) $clause['body'] : '';
 
-                    if ($title === '' && $body === '') {
+                    $show_table = ! empty($clause['show_table']);
+                    $header_1   = isset($clause['table_header_col_1']) ? (string) $clause['table_header_col_1'] : '';
+                    $header_2   = isset($clause['table_header_col_2']) ? (string) $clause['table_header_col_2'] : '';
+                    $header_2_sub = isset($clause['table_header_col_2_sub']) ? (string) $clause['table_header_col_2_sub'] : '';
+                    $table_rows = (isset($clause['table_rows']) && is_array($clause['table_rows'])) ? $clause['table_rows'] : [];
+                    $has_table  = $show_table && ($header_1 !== '' || $header_2 !== '' || $table_rows !== []);
+
+                    if ($title === '' && $body === '' && ! $has_table) {
                         continue;
                     }
                     ?>
@@ -106,6 +113,51 @@ if (! $heading && ! $intro && empty($clauses)) {
                         <?php if ($body !== '') : ?>
                             <div class="legal-content w-full">
                                 <?php echo function_exists('luux_format_legal_html') ? luux_format_legal_html((string) $body) : wp_kses_post($body); ?>
+                            </div>
+                        <?php endif; ?>
+                        <?php if ($has_table) : ?>
+                            <div class="legal-content w-full overflow-x-auto">
+                                <table class="legal-schedule-table">
+                                    <?php if ($header_1 !== '' || $header_2 !== '' || $header_2_sub !== '') : ?>
+                                        <thead>
+                                            <?php if ($header_2_sub !== '') : ?>
+                                                <tr>
+                                                    <th scope="col" rowspan="2"><?php echo esc_html($header_1); ?></th>
+                                                    <th scope="col"><?php echo esc_html($header_2); ?></th>
+                                                </tr>
+                                                <tr>
+                                                    <th scope="col"><?php echo esc_html($header_2_sub); ?></th>
+                                                </tr>
+                                            <?php else : ?>
+                                                <tr>
+                                                    <th scope="col"><?php echo esc_html($header_1); ?></th>
+                                                    <th scope="col"><?php echo esc_html($header_2); ?></th>
+                                                </tr>
+                                            <?php endif; ?>
+                                        </thead>
+                                    <?php endif; ?>
+                                    <?php if ($table_rows !== []) : ?>
+                                        <tbody>
+                                            <?php foreach ($table_rows as $table_row) :
+                                                if (! is_array($table_row)) {
+                                                    continue;
+                                                }
+
+                                                $col_1 = isset($table_row['col_1']) ? (string) $table_row['col_1'] : '';
+                                                $col_2 = isset($table_row['col_2']) ? (string) $table_row['col_2'] : '';
+
+                                                if ($col_1 === '' && $col_2 === '') {
+                                                    continue;
+                                                }
+                                                ?>
+                                                <tr>
+                                                    <td><?php echo esc_html($col_1); ?></td>
+                                                    <td><?php echo esc_html($col_2); ?></td>
+                                                </tr>
+                                            <?php endforeach; ?>
+                                        </tbody>
+                                    <?php endif; ?>
+                                </table>
                             </div>
                         <?php endif; ?>
                     </article>

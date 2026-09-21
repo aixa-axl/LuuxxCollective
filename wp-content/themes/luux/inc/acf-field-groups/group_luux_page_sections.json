@@ -1710,7 +1710,95 @@
                   "toolbar": "full",
                   "media_upload": 0,
                   "delay": 0,
-                  "instructions": "Paste clause text. Use lists and tables where needed (e.g. cancellation charges)."
+                  "instructions": "Paste clause text. Use Enter for new paragraphs. Add a schedule table with the fields below if needed."
+                },
+                {
+                  "key": "field_luux_legal_section_clause_show_table",
+                  "label": "Add Table",
+                  "name": "show_table",
+                  "type": "true_false",
+                  "instructions": "Show a two-column schedule table under this clause (e.g. notice periods / compensation).",
+                  "ui": 1,
+                  "default_value": 0
+                },
+                {
+                  "key": "field_luux_legal_section_clause_table_header_col_1",
+                  "label": "Table Header — Column 1",
+                  "name": "table_header_col_1",
+                  "type": "text",
+                  "instructions": "e.g. Period of notice given before departure",
+                  "conditional_logic": [
+                    [
+                      {
+                        "field": "field_luux_legal_section_clause_show_table",
+                        "operator": "==",
+                        "value": "1"
+                      }
+                    ]
+                  ]
+                },
+                {
+                  "key": "field_luux_legal_section_clause_table_header_col_2",
+                  "label": "Table Header — Column 2",
+                  "name": "table_header_col_2",
+                  "type": "text",
+                  "instructions": "e.g. Compensation for each full fare paying passenger",
+                  "conditional_logic": [
+                    [
+                      {
+                        "field": "field_luux_legal_section_clause_show_table",
+                        "operator": "==",
+                        "value": "1"
+                      }
+                    ]
+                  ]
+                },
+                {
+                  "key": "field_luux_legal_section_clause_table_header_col_2_sub",
+                  "label": "Table Header — Column 2 Sub-label",
+                  "name": "table_header_col_2_sub",
+                  "type": "text",
+                  "instructions": "Optional second header line, e.g. Option 1",
+                  "conditional_logic": [
+                    [
+                      {
+                        "field": "field_luux_legal_section_clause_show_table",
+                        "operator": "==",
+                        "value": "1"
+                      }
+                    ]
+                  ]
+                },
+                {
+                  "key": "field_luux_legal_section_clause_table_rows",
+                  "label": "Table Rows",
+                  "name": "table_rows",
+                  "type": "repeater",
+                  "layout": "table",
+                  "button_label": "Add Row",
+                  "conditional_logic": [
+                    [
+                      {
+                        "field": "field_luux_legal_section_clause_show_table",
+                        "operator": "==",
+                        "value": "1"
+                      }
+                    ]
+                  ],
+                  "sub_fields": [
+                    {
+                      "key": "field_luux_legal_section_clause_table_col_1",
+                      "label": "Column 1",
+                      "name": "col_1",
+                      "type": "text"
+                    },
+                    {
+                      "key": "field_luux_legal_section_clause_table_col_2",
+                      "label": "Column 2",
+                      "name": "col_2",
+                      "type": "text"
+                    }
+                  ]
                 }
               ]
             },
@@ -1739,5 +1827,5 @@
   "style": "seamless",
   "active": true,
   "show_in_rest": 0,
-  "modified": 1789920000
+  "modified": 1789923600
 }

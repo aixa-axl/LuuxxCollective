@@ -115,6 +115,78 @@ function luux_acf_legal_section_capture_rest_request(WP_REST_Request $request): 
  * @param array<string|int, mixed> $clauses
  * @return list<array{title?: string, body?: string}>
  */
+/**
+ * @param array<string, mixed> $clause
+ * @return array{show_table: bool, table_header_col_1: string, table_header_col_2: string, table_header_col_2_sub: string, table_rows: list<array{col_1: string, col_2: string}>}|array{}
+ */
+function luux_acf_legal_section_normalize_clause_table(array $clause): array {
+    $show_raw = $clause['field_luux_legal_section_clause_show_table'] ?? $clause['show_table'] ?? false;
+    $show     = $show_raw === true || $show_raw === 1 || $show_raw === '1' || $show_raw === 'true';
+
+    $header_1 = (string) (
+        $clause['field_luux_legal_section_clause_table_header_col_1']
+        ?? $clause['table_header_col_1']
+        ?? ''
+    );
+    $header_2 = (string) (
+        $clause['field_luux_legal_section_clause_table_header_col_2']
+        ?? $clause['table_header_col_2']
+        ?? ''
+    );
+    $header_2_sub = (string) (
+        $clause['field_luux_legal_section_clause_table_header_col_2_sub']
+        ?? $clause['table_header_col_2_sub']
+        ?? ''
+    );
+
+    $rows_raw = $clause['field_luux_legal_section_clause_table_rows'] ?? $clause['table_rows'] ?? [];
+    $rows     = [];
+
+    if (is_array($rows_raw)) {
+        foreach ($rows_raw as $row) {
+            if (! is_array($row)) {
+                continue;
+            }
+
+            $col_1 = (string) (
+                $row['field_luux_legal_section_clause_table_col_1']
+                ?? $row['col_1']
+                ?? ''
+            );
+            $col_2 = (string) (
+                $row['field_luux_legal_section_clause_table_col_2']
+                ?? $row['col_2']
+                ?? ''
+            );
+
+            if ($col_1 === '' && $col_2 === '') {
+                continue;
+            }
+
+            $rows[] = [
+                'col_1' => $col_1,
+                'col_2' => $col_2,
+            ];
+        }
+    }
+
+    if (! $show && $header_1 === '' && $header_2 === '' && $header_2_sub === '' && $rows === []) {
+        return [];
+    }
+
+    if ($header_1 !== '' || $header_2 !== '' || $header_2_sub !== '' || $rows !== []) {
+        $show = true;
+    }
+
+    return [
+        'show_table'              => $show,
+        'table_header_col_1'      => $header_1,
+        'table_header_col_2'      => $header_2,
+        'table_header_col_2_sub'  => $header_2_sub,
+        'table_rows'              => $rows,
+    ];
+}
+
 function luux_acf_legal_section_normalize_clauses(array $clauses): array {
     $normalized = [];
 
@@ -137,6 +209,12 @@ function luux_acf_legal_section_normalize_clauses(array $clauses): array {
             $mapped['body'] = (string) $body;
         }
 
+        $table = luux_acf_legal_section_normalize_clause_table($clause);
+
+        if ($table !== []) {
+            $mapped = array_merge($mapped, $table);
+        }
+
         if ($mapped !== []) {
             $normalized[] = $mapped;
         }
@@ -145,7 +223,7 @@ function luux_acf_legal_section_normalize_clauses(array $clauses): array {
     return $normalized;
 }
 
-/** @return list<array{title?: string, body?: string}> */
+/** @return list<array<string, mixed>> */
 function luux_acf_legal_section_decode_clauses_json(mixed $json): array {
     if (! is_string($json) || $json === '') {
         return [];
@@ -405,13 +483,14 @@ function luux_acf_persist_legal_section_clauses(int $post_id, int $db_index, arr
 
         $i         = (int) $i;
         $has_value = false;
+        $clause_prefix = $prefix . 'clauses_' . $i . '_';
 
         $title = $clause['field_luux_legal_section_clause_title'] ?? $clause['title'] ?? null;
 
         if ($title !== null && $title !== '') {
             luux_acf_replace_section_meta(
                 $post_id,
-                $prefix . 'clauses_' . $i . '_title',
+                $clause_prefix . 'title',
                 (string) $title,
                 'field_luux_legal_section_clause_title'
             );
@@ -423,10 +502,93 @@ function luux_acf_persist_legal_section_clauses(int $post_id, int $db_index, arr
         if ($body !== null && $body !== '') {
             luux_acf_replace_section_meta(
                 $post_id,
-                $prefix . 'clauses_' . $i . '_body',
+                $clause_prefix . 'body',
                 (string) $body,
                 'field_luux_legal_section_clause_body'
             );
+            $has_value = true;
+        }
+
+        $table = luux_acf_legal_section_normalize_clause_table($clause);
+
+        if ($table !== []) {
+            luux_acf_replace_section_meta(
+                $post_id,
+                $clause_prefix . 'show_table',
+                ! empty($table['show_table']) ? 1 : 0,
+                'field_luux_legal_section_clause_show_table'
+            );
+
+            if ($table['table_header_col_1'] !== '') {
+                luux_acf_replace_section_meta(
+                    $post_id,
+                    $clause_prefix . 'table_header_col_1',
+                    $table['table_header_col_1'],
+                    'field_luux_legal_section_clause_table_header_col_1'
+                );
+            }
+
+            if ($table['table_header_col_2'] !== '') {
+                luux_acf_replace_section_meta(
+                    $post_id,
+                    $clause_prefix . 'table_header_col_2',
+                    $table['table_header_col_2'],
+                    'field_luux_legal_section_clause_table_header_col_2'
+                );
+            }
+
+            if ($table['table_header_col_2_sub'] !== '') {
+                luux_acf_replace_section_meta(
+                    $post_id,
+                    $clause_prefix . 'table_header_col_2_sub',
+                    $table['table_header_col_2_sub'],
+                    'field_luux_legal_section_clause_table_header_col_2_sub'
+                );
+            }
+
+            $row_count = 0;
+
+            foreach ($table['table_rows'] as $j => $row) {
+                if (! is_array($row)) {
+                    continue;
+                }
+
+                $j     = (int) $j;
+                $col_1 = (string) ($row['col_1'] ?? '');
+                $col_2 = (string) ($row['col_2'] ?? '');
+
+                if ($col_1 === '' && $col_2 === '') {
+                    continue;
+                }
+
+                if ($col_1 !== '') {
+                    luux_acf_replace_section_meta(
+                        $post_id,
+                        $clause_prefix . 'table_rows_' . $j . '_col_1',
+                        $col_1,
+                        'field_luux_legal_section_clause_table_col_1'
+                    );
+                }
+
+                if ($col_2 !== '') {
+                    luux_acf_replace_section_meta(
+                        $post_id,
+                        $clause_prefix . 'table_rows_' . $j . '_col_2',
+                        $col_2,
+                        'field_luux_legal_section_clause_table_col_2'
+                    );
+                }
+
+                $row_count = $j + 1;
+            }
+
+            luux_acf_replace_section_meta(
+                $post_id,
+                $clause_prefix . 'table_rows',
+                $row_count,
+                'field_luux_legal_section_clause_table_rows'
+            );
+
             $has_value = true;
         }
 
@@ -719,29 +881,65 @@ function luux_acf_ajax_save_legal_section_fields(): void {
 /**
  * @return list<array{title: string, body: string}>
  */
+/**
+ * @return list<array{col_1: string, col_2: string}>
+ */
+function luux_legal_section_clause_table_rows_from_meta(int $post_id, int $row_index, int $clause_index): array {
+    $count_raw = luux_read_section_meta($post_id, $row_index, 'clauses_' . $clause_index . '_table_rows');
+
+    if (is_array($count_raw)) {
+        $normalized = luux_acf_legal_section_normalize_clause_table([
+            'show_table' => true,
+            'table_rows' => $count_raw,
+        ]);
+
+        return $normalized['table_rows'] ?? [];
+    }
+
+    $count = is_numeric($count_raw) ? (int) $count_raw : 0;
+
+    if ($count < 1) {
+        for ($j = 0; $j < 50; $j++) {
+            $col_1 = luux_read_section_meta($post_id, $row_index, 'clauses_' . $clause_index . '_table_rows_' . $j . '_col_1');
+            $col_2 = luux_read_section_meta($post_id, $row_index, 'clauses_' . $clause_index . '_table_rows_' . $j . '_col_2');
+
+            if (($col_1 !== null && $col_1 !== '') || ($col_2 !== null && $col_2 !== '')) {
+                $count = $j + 1;
+                continue;
+            }
+
+            break;
+        }
+    }
+
+    if ($count < 1) {
+        return [];
+    }
+
+    $rows = [];
+
+    for ($j = 0; $j < $count; $j++) {
+        $col_1 = (string) (luux_read_section_meta($post_id, $row_index, 'clauses_' . $clause_index . '_table_rows_' . $j . '_col_1') ?? '');
+        $col_2 = (string) (luux_read_section_meta($post_id, $row_index, 'clauses_' . $clause_index . '_table_rows_' . $j . '_col_2') ?? '');
+
+        if ($col_1 === '' && $col_2 === '') {
+            continue;
+        }
+
+        $rows[] = [
+            'col_1' => $col_1,
+            'col_2' => $col_2,
+        ];
+    }
+
+    return $rows;
+}
+
 function luux_legal_section_clauses_from_meta(int $post_id, int $row_index): array {
     $count_raw = luux_read_section_meta($post_id, $row_index, 'clauses');
 
     if (is_array($count_raw)) {
-        $rows = [];
-
-        foreach (luux_acf_legal_section_normalize_clauses($count_raw) as $clause) {
-            $mapped = [];
-
-            if (! empty($clause['title'])) {
-                $mapped['title'] = (string) $clause['title'];
-            }
-
-            if (! empty($clause['body'])) {
-                $mapped['body'] = (string) $clause['body'];
-            }
-
-            if ($mapped !== []) {
-                $rows[] = $mapped;
-            }
-        }
-
-        return $rows;
+        return luux_acf_legal_section_normalize_clauses($count_raw);
     }
 
     $count = is_numeric($count_raw) ? (int) $count_raw : 0;
@@ -750,8 +948,15 @@ function luux_legal_section_clauses_from_meta(int $post_id, int $row_index): arr
         for ($i = 0; $i < 50; $i++) {
             $title = luux_read_section_meta($post_id, $row_index, 'clauses_' . $i . '_title');
             $body  = luux_read_section_meta($post_id, $row_index, 'clauses_' . $i . '_body');
+            $show  = luux_read_section_meta($post_id, $row_index, 'clauses_' . $i . '_show_table');
+            $rows  = luux_legal_section_clause_table_rows_from_meta($post_id, $row_index, $i);
 
-            if (($title !== null && $title !== '') || ($body !== null && $body !== '')) {
+            if (
+                ($title !== null && $title !== '')
+                || ($body !== null && $body !== '')
+                || $show
+                || $rows !== []
+            ) {
                 $count = $i + 1;
                 continue;
             }
@@ -779,6 +984,24 @@ function luux_legal_section_clauses_from_meta(int $post_id, int $row_index): arr
 
         if ($body !== null && $body !== '') {
             $clause['body'] = (string) $body;
+        }
+
+        $show_raw = luux_read_section_meta($post_id, $row_index, 'clauses_' . $i . '_show_table');
+        $header_1 = (string) (luux_read_section_meta($post_id, $row_index, 'clauses_' . $i . '_table_header_col_1') ?? '');
+        $header_2 = (string) (luux_read_section_meta($post_id, $row_index, 'clauses_' . $i . '_table_header_col_2') ?? '');
+        $header_2_sub = (string) (luux_read_section_meta($post_id, $row_index, 'clauses_' . $i . '_table_header_col_2_sub') ?? '');
+        $table_rows = luux_legal_section_clause_table_rows_from_meta($post_id, $row_index, $i);
+
+        $table = luux_acf_legal_section_normalize_clause_table([
+            'show_table'             => $show_raw,
+            'table_header_col_1'     => $header_1,
+            'table_header_col_2'     => $header_2,
+            'table_header_col_2_sub' => $header_2_sub,
+            'table_rows'             => $table_rows,
+        ]);
+
+        if ($table !== []) {
+            $clause = array_merge($clause, $table);
         }
 
         if ($clause !== []) {

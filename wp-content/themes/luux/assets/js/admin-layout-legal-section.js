@@ -17,6 +17,14 @@
         body: 'field_luux_legal_section_clause_body',
     };
 
+    var TABLE_FIELD_KEYS = {
+        show_table: 'field_luux_legal_section_clause_show_table',
+        table_header_col_1: 'field_luux_legal_section_clause_table_header_col_1',
+        table_header_col_2: 'field_luux_legal_section_clause_table_header_col_2',
+        table_header_col_2_sub: 'field_luux_legal_section_clause_table_header_col_2_sub',
+        table_rows: 'field_luux_legal_section_clause_table_rows',
+    };
+
     var savingRows = false;
     var initialized = false;
 
@@ -175,6 +183,97 @@
         return fields;
     }
 
+    function readFieldValue($fieldEl) {
+        if (!$fieldEl || !$fieldEl.length) {
+            return '';
+        }
+
+        if (typeof acf !== 'undefined' && typeof acf.getField === 'function') {
+            var field = acf.getField($fieldEl);
+
+            if (field && typeof field.val === 'function') {
+                var value = field.val();
+
+                if (value !== null && value !== undefined && value !== '') {
+                    return value;
+                }
+            }
+        }
+
+        var $input = $fieldEl.find('input[type="checkbox"], input[type="hidden"], input[type="text"], textarea').first();
+
+        if ($input.length) {
+            if ($input.is(':checkbox')) {
+                return $input.is(':checked') ? 1 : 0;
+            }
+
+            return $input.val() || '';
+        }
+
+        return '';
+    }
+
+    function readClauseTable($row) {
+        var table = {};
+        var $show = $row.find('.acf-field[data-key="' + TABLE_FIELD_KEYS.show_table + '"], .acf-field[data-name="show_table"]').first();
+        var showRaw = readFieldValue($show);
+        var show = showRaw === true || showRaw === 1 || showRaw === '1' || showRaw === 'true';
+
+        ['table_header_col_1', 'table_header_col_2', 'table_header_col_2_sub'].forEach(function (name) {
+            var $fieldEl = $row.find('.acf-field[data-key="' + TABLE_FIELD_KEYS[name] + '"], .acf-field[data-name="' + name + '"]').first();
+            var value = String(readFieldValue($fieldEl) || '');
+
+            if (value) {
+                table[name] = value;
+                table['field_luux_legal_section_clause_' + name] = value;
+            }
+        });
+
+        var rows = [];
+        var $rowsRepeater = $row.find('.acf-field[data-key="' + TABLE_FIELD_KEYS.table_rows + '"], .acf-field[data-name="table_rows"]').first();
+
+        if ($rowsRepeater.length) {
+            var $tableRows = $rowsRepeater.find('> .acf-input > .acf-repeater > .acf-table > tbody > .acf-row, > .acf-input .acf-row').not('.acf-clone');
+
+            if (!$tableRows.length) {
+                $tableRows = $rowsRepeater.find('.acf-row').not('.acf-clone');
+            }
+
+            $tableRows.each(function () {
+                var $tableRow = $(this);
+                var col1 = String(readFieldValue(
+                    $tableRow.find('.acf-field[data-key="field_luux_legal_section_clause_table_col_1"], .acf-field[data-name="col_1"]').first()
+                ) || '');
+                var col2 = String(readFieldValue(
+                    $tableRow.find('.acf-field[data-key="field_luux_legal_section_clause_table_col_2"], .acf-field[data-name="col_2"]').first()
+                ) || '');
+
+                if (!col1 && !col2) {
+                    return;
+                }
+
+                rows.push({
+                    col_1: col1,
+                    col_2: col2,
+                    field_luux_legal_section_clause_table_col_1: col1,
+                    field_luux_legal_section_clause_table_col_2: col2,
+                });
+            });
+        }
+
+        if (rows.length) {
+            table.table_rows = rows;
+            table.field_luux_legal_section_clause_table_rows = rows;
+        }
+
+        if (show || rows.length || table.table_header_col_1 || table.table_header_col_2 || table.table_header_col_2_sub) {
+            table.show_table = true;
+            table.field_luux_legal_section_clause_show_table = 1;
+        }
+
+        return table;
+    }
+
         function readClauses($layout) {
         if (typeof tinymce !== 'undefined' && typeof tinymce.triggerSave === 'function') {
             tinymce.triggerSave();
@@ -226,6 +325,8 @@
                     clause['field_luux_legal_section_clause_' + name] = clause[name];
                 });
 
+                $.extend(clause, readClauseTable($row));
+
                 if (!$.isEmptyObject(clause)) {
                     clauses.push(clause);
                 }
@@ -237,10 +338,40 @@
         }
 
         var bucket = {};
-        var pattern = /\[(?:field_luux_legal_section_clauses|clauses)\]\[(?:row-)?(\d+)\]\[(?:field_luux_legal_section_clause_)?(title|body)\]/;
+        var pattern = /\[(?:field_luux_legal_section_clauses|clauses)\]\[(?:row-)?(\d+)\]\[(?:field_luux_legal_section_clause_)?(title|body|show_table|table_header_col_1|table_header_col_2|table_header_col_2_sub)\]/;
+        var rowPattern = /\[(?:field_luux_legal_section_clauses|clauses)\]\[(?:row-)?(\d+)\]\[(?:field_luux_legal_section_clause_)?table_rows\]\[(?:row-)?(\d+)\]\[(?:field_luux_legal_section_clause_table_)?(col_1|col_2)\]/;
 
         $layout.find('input, textarea').each(function () {
-            var match = (this.name || '').match(pattern);
+            var nameAttr = this.name || '';
+            var rowMatch = nameAttr.match(rowPattern);
+
+            if (rowMatch) {
+                var cIdx = rowMatch[1];
+                var rIdx = rowMatch[2];
+                var col = rowMatch[3];
+                var rowVal = $(this).val();
+
+                if (rowVal === null || rowVal === undefined || String(rowVal) === '') {
+                    return;
+                }
+
+                if (!bucket[cIdx]) {
+                    bucket[cIdx] = { _rows: {} };
+                }
+
+                if (!bucket[cIdx]._rows) {
+                    bucket[cIdx]._rows = {};
+                }
+
+                if (!bucket[cIdx]._rows[rIdx]) {
+                    bucket[cIdx]._rows[rIdx] = {};
+                }
+
+                bucket[cIdx]._rows[rIdx][col] = rowVal;
+                return;
+            }
+
+            var match = nameAttr.match(pattern);
 
             if (!match) {
                 return;
@@ -248,7 +379,9 @@
 
             var idx = match[1];
             var field = match[2];
-            var value = $(this).val();
+            var value = $(this).is(':checkbox')
+                ? ($(this).is(':checked') ? '1' : '')
+                : $(this).val();
 
             if (value === null || value === undefined || String(value) === '') {
                 return;
@@ -275,6 +408,49 @@
             if (raw.body) {
                 clause.body = String(raw.body);
                 clause.field_luux_legal_section_clause_body = clause.body;
+            }
+
+            if (raw.table_header_col_1) {
+                clause.table_header_col_1 = String(raw.table_header_col_1);
+                clause.field_luux_legal_section_clause_table_header_col_1 = clause.table_header_col_1;
+            }
+
+            if (raw.table_header_col_2) {
+                clause.table_header_col_2 = String(raw.table_header_col_2);
+                clause.field_luux_legal_section_clause_table_header_col_2 = clause.table_header_col_2;
+            }
+
+            if (raw.table_header_col_2_sub) {
+                clause.table_header_col_2_sub = String(raw.table_header_col_2_sub);
+                clause.field_luux_legal_section_clause_table_header_col_2_sub = clause.table_header_col_2_sub;
+            }
+
+            var tableRows = [];
+
+            if (raw._rows) {
+                Object.keys(raw._rows).sort(function (a, b) {
+                    return parseInt(a, 10) - parseInt(b, 10);
+                }).forEach(function (rKey) {
+                    var r = raw._rows[rKey] || {};
+                    var col1 = String(r.col_1 || '');
+                    var col2 = String(r.col_2 || '');
+
+                    if (!col1 && !col2) {
+                        return;
+                    }
+
+                    tableRows.push({ col_1: col1, col_2: col2 });
+                });
+            }
+
+            if (tableRows.length) {
+                clause.table_rows = tableRows;
+                clause.field_luux_legal_section_clause_table_rows = tableRows;
+            }
+
+            if (raw.show_table || tableRows.length || clause.table_header_col_1 || clause.table_header_col_2) {
+                clause.show_table = true;
+                clause.field_luux_legal_section_clause_show_table = 1;
             }
 
             if (!$.isEmptyObject(clause)) {

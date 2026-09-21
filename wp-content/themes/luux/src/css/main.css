@@ -2080,26 +2080,36 @@
 
   .legal-content table {
     width: 100%;
+    max-width: 42rem;
     border-collapse: collapse;
+    border: 2px solid var(--color-brand-primary);
     font-size: var(--text-body-sm);
     line-height: 1.4;
   }
 
   .legal-content th,
   .legal-content td {
-    border: 1px solid var(--color-brand-cream);
-    padding: 0.75rem 1rem;
+    border: 1px solid var(--color-brand-primary);
+    padding: 0.625rem 0.875rem;
     text-align: left;
     vertical-align: top;
+    color: var(--color-brand-primary);
   }
 
   .legal-content th {
-    background: var(--color-brand-cream-light);
-    color: var(--color-brand-primary);
+    background: transparent;
     font-weight: 600;
+  }
+
+  .legal-content thead th {
+    border-bottom-width: 2px;
   }
 
   .legal-content td {
     color: var(--color-brand-primary);
+  }
+
+  .legal-schedule-table {
+    margin-top: 0.25rem;
   }
 }
