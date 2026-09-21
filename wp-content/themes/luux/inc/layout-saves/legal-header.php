@@ -350,6 +350,15 @@ function luux_acf_restore_legal_header_from_stash(int $post_id): void {
         return;
     }
 
+    // Never re-create layouts the editor removed — only refill existing legal_header rows.
+    $db_indices = luux_acf_legal_header_db_row_indices($post_id);
+
+    if ($db_indices === []) {
+        delete_post_meta($post_id, LUUX_LEGAL_HEADER_STASH_META);
+
+        return;
+    }
+
     $field_map = luux_acf_legal_header_field_map();
     $nth       = 0;
 
@@ -358,8 +367,15 @@ function luux_acf_restore_legal_header_from_stash(int $post_id): void {
             continue;
         }
 
-        $db_index = luux_acf_resolve_legal_header_db_index($post_id, (int) $row_key, $nth);
-        $row      = ['acf_fc_layout' => LUUX_LEGAL_HEADER_LAYOUT];
+        $db_index = isset($db_indices[$nth])
+            ? (int) $db_indices[$nth]
+            : (int) $row_key;
+
+        if (! in_array($db_index, $db_indices, true)) {
+            continue;
+        }
+
+        $row = ['acf_fc_layout' => LUUX_LEGAL_HEADER_LAYOUT];
 
         foreach ($fields as $name => $value) {
             if (! is_string($name) || $value === '' || $value === null) {

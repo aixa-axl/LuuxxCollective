@@ -287,7 +287,76 @@ function luux_acf_maybe_prune_orphaned_legal_sitewide(): void {
     update_option('luux_legal_orphan_prune_v1', 1, false);
 }
 
+/**
+ * Wipe every page_sections row + legal stash on a page (fresh start).
+ * Scoped helper — only call for pages the editor intentionally cleared.
+ */
+function luux_acf_wipe_page_sections_completely(int $post_id): void {
+    if ($post_id < 1 || get_post_type($post_id) !== 'page') {
+        return;
+    }
+
+    delete_post_meta($post_id, '_luux_legal_header_stash');
+    delete_post_meta($post_id, '_luux_legal_section_stash');
+
+    $raw = get_metadata('post', $post_id);
+
+    if (! is_array($raw)) {
+        $raw = [];
+    }
+
+    foreach (array_keys($raw) as $key) {
+        if (! is_string($key)) {
+            continue;
+        }
+
+        if (
+            $key === 'page_sections'
+            || $key === '_page_sections'
+            || str_starts_with($key, 'page_sections_')
+            || str_starts_with($key, '_page_sections_')
+        ) {
+            delete_post_meta($post_id, $key);
+        }
+    }
+
+    update_post_meta($post_id, 'page_sections', 0);
+    update_post_meta($post_id, '_page_sections', 'field_luux_page_sections');
+}
+
+/**
+ * One-shot v2: Terms was re-populated by stash restore after layouts were deleted.
+ * Fully clear the Terms page so the editor can start again. Does not touch other pages.
+ */
+function luux_acf_maybe_reset_terms_page_v2(): void {
+    if (get_option('luux_legal_terms_reset_v2')) {
+        return;
+    }
+
+    $slugs = ['terms-conditions', 'terms-and-conditions', 'terms'];
+
+    foreach ($slugs as $slug) {
+        $pages = get_posts([
+            'name'                   => $slug,
+            'post_type'              => 'page',
+            'post_status'            => 'any',
+            'posts_per_page'         => 1,
+            'fields'                 => 'ids',
+            'no_found_rows'          => true,
+            'update_post_meta_cache' => false,
+            'update_post_term_cache' => false,
+        ]);
+
+        foreach ($pages as $page_id) {
+            luux_acf_wipe_page_sections_completely((int) $page_id);
+        }
+    }
+
+    update_option('luux_legal_terms_reset_v2', 1, false);
+}
+
 add_action('init', 'luux_acf_maybe_prune_orphaned_legal_sitewide', 20);
+add_action('init', 'luux_acf_maybe_reset_terms_page_v2', 21);
 
 add_action('acf/save_post', function ($post_id): void {
     if (! is_numeric($post_id) || get_post_type((int) $post_id) !== 'page') {
@@ -315,12 +384,41 @@ add_action('rest_after_insert_page', function (\WP_Post $post): void {
 
 /**
  * Ensure ACF layout keys exist for a legal row (does not migrate legacy list to integer count).
+ * Only updates an existing slot — never appends a legal layout the editor removed.
  */
 function luux_acf_ensure_legal_layout_meta(int $post_id, int $db_index, string $layout): void {
     $layout = luux_acf_legal_layout_to_short_name($layout);
 
     if ($layout === '') {
         return;
+    }
+
+    $stored = get_post_meta($post_id, 'page_sections', true);
+    $list   = luux_acf_parse_page_sections_layout_list($stored);
+
+    if ($list !== []) {
+        if (! isset($list[$db_index])) {
+            return;
+        }
+
+        $current = luux_acf_normalize_section_layout_slug((string) $list[$db_index]);
+
+        // Do not convert a different layout (or empty slot) into a legal layout.
+        if ($current !== '' && $current !== $layout && ! luux_acf_legal_layout_matches_slug($current)) {
+            return;
+        }
+
+        if ($list[$db_index] !== $layout) {
+            $list[$db_index] = $layout;
+            update_post_meta($post_id, 'page_sections', $list);
+        }
+    } else {
+        $count = is_numeric($stored) ? (int) $stored : 0;
+
+        // Modern storage: only write within the existing flexible-content count.
+        if ($count < 1 || $db_index >= $count) {
+            return;
+        }
     }
 
     $layout_key = function_exists('luux_acf_page_section_layout_key')
@@ -332,28 +430,6 @@ function luux_acf_ensure_legal_layout_meta(int $post_id, int $db_index, string $
     if ($layout_key) {
         update_post_meta($post_id, '_page_sections_' . $db_index, $layout_key);
     }
-
-    $stored = get_post_meta($post_id, 'page_sections', true);
-    $list   = luux_acf_parse_page_sections_layout_list($stored);
-
-    if ($list !== []) {
-        while (count($list) <= $db_index) {
-            $list[] = '';
-        }
-
-        if ($list[$db_index] !== $layout) {
-            $list[$db_index] = $layout;
-            update_post_meta($post_id, 'page_sections', $list);
-        }
-
-        return;
-    }
-
-    $count = is_numeric($stored) ? (int) $stored : 0;
-    $count = max($count, $db_index + 1);
-
-    update_post_meta($post_id, 'page_sections', $count);
-    update_post_meta($post_id, '_page_sections', 'field_luux_page_sections');
 }
 
 /**
