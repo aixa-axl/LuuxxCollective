@@ -22,16 +22,42 @@ function luux_format_legal_html(mixed $html): string {
     }
 
     // Undo accidental double-encoding from AJAX/REST round-trips.
-    if (str_contains($html, '&lt;br') || str_contains($html, '&lt;p') || str_contains($html, '&lt;div')) {
+    if (
+        str_contains($html, '&lt;br')
+        || str_contains($html, '&lt;p')
+        || str_contains($html, '&lt;div')
+        || str_contains($html, '&lt;strong')
+    ) {
         $html = html_entity_decode($html, ENT_QUOTES | ENT_HTML5, 'UTF-8');
     }
 
-    // Plain text (or text with only \n) — turn newlines into paragraphs/breaks.
-    if (! preg_match('/<\s*(?:p|br|div|ul|ol|li|h[1-6]|table|strong|em|a)\b/i', $html)) {
-        $html = wpautop($html);
+    // Normalise break tags (TinyMCE / paste variants).
+    $html = preg_replace('/<br\s*\/?>/i', '<br />', $html) ?? $html;
+
+    $has_block = (bool) preg_match('/<\s*(?:p|div|ul|ol|li|h[1-6]|table)\b/i', $html);
+    $has_br    = (bool) preg_match('/<\s*br\s*\/?>/i', $html);
+
+    if (! $has_block && ! $has_br) {
+        // Plain text or inline-only markup — preserve line breaks.
+        if (preg_match('/\r\n|\r|\n/', $html)) {
+            $html = preg_replace('/\r\n|\r|\n/', "<br />\n", $html) ?? $html;
+        } else {
+            $html = wpautop($html);
+        }
+    } elseif (! $has_br && preg_match('/\r\n|\r|\n/', $html)) {
+        // Has tags (e.g. <strong>) but breaks were stored as newlines — keep tags, add <br>.
+        $html = preg_replace('/\r\n|\r|\n/', "<br />\n", $html) ?? $html;
     }
 
-    return wp_kses_post($html);
+    // Allow br explicitly in case a host kses config is tight.
+    $allowed         = wp_kses_allowed_html('post');
+    $allowed['br']   = [
+        'class' => true,
+        'style' => true,
+        'clear' => true,
+    ];
+
+    return wp_kses($html, $allowed);
 }
 
 /** @return list<string> */

@@ -69,8 +69,32 @@
     }
 
     function readWysiwyg($fieldEl) {
-        // Prefer TinyMCE HTML so <p>/<br> survive — acf.field.val() can return flattened text.
+        // Sync editors → textareas, then prefer real TinyMCE HTML so <br>/<p> survive.
         if (typeof tinymce !== 'undefined') {
+            if (typeof tinymce.triggerSave === 'function') {
+                tinymce.triggerSave();
+            }
+
+            var matched = '';
+
+            if (tinymce.editors && tinymce.editors.length) {
+                tinymce.editors.forEach(function (editor) {
+                    if (matched || !editor || typeof editor.getElement !== 'function') {
+                        return;
+                    }
+
+                    var el = editor.getElement();
+
+                    if (el && $fieldEl.has(el).length) {
+                        matched = String(editor.getContent({ format: 'html' }) || '');
+                    }
+                });
+            }
+
+            if (matched) {
+                return matched;
+            }
+
             var $textarea = $fieldEl.find('textarea').first();
 
             if ($textarea.length) {
@@ -82,6 +106,10 @@
                     if (html) {
                         return String(html);
                     }
+                }
+
+                if ($textarea.val()) {
+                    return String($textarea.val());
                 }
             }
         }
@@ -147,7 +175,11 @@
         return fields;
     }
 
-    function readClauses($layout) {
+        function readClauses($layout) {
+        if (typeof tinymce !== 'undefined' && typeof tinymce.triggerSave === 'function') {
+            tinymce.triggerSave();
+        }
+
         var clauses = [];
         var $repeater = $layout.find('.acf-field[data-key="field_luux_legal_section_clauses"], .acf-field[data-name="clauses"]').first();
 
