@@ -61,22 +61,18 @@ function luux_acf_legal_section_row_layout(int $post_id, int $index): string {
 }
 
 function luux_acf_resolve_legal_section_db_index(int $post_id, int $row_index, int $row_nth = 0): int {
-    $resolved = luux_find_section_row_index($post_id, LUUX_LEGAL_SECTION_LAYOUT);
-
-    if ($resolved !== null) {
-        return $resolved;
+    // Prefer the editor's FC index when that slot is already a legal_section.
+    if (luux_acf_legal_section_layout_matches(luux_acf_legal_section_row_layout($post_id, $row_index))) {
+        return $row_index;
     }
 
     $db_indices = luux_acf_legal_section_db_row_indices($post_id);
 
     if (isset($db_indices[$row_nth])) {
-        return $db_indices[$row_nth];
+        return (int) $db_indices[$row_nth];
     }
 
-    if (luux_acf_legal_section_layout_matches(luux_acf_legal_section_row_layout($post_id, $row_index))) {
-        return $row_index;
-    }
-
+    // New row — use the flexible-content index from the editor.
     return $row_index;
 }
 
@@ -520,7 +516,6 @@ function luux_acf_restore_legal_section_from_stash(int $post_id): void {
     }
 
     // Never re-create layouts the editor removed — only refill existing legal_section rows.
-    // Do not delete the stash here when indices are empty; prune handles orphans after save.
     $db_indices = luux_acf_legal_section_db_row_indices($post_id);
 
     if ($db_indices === []) {
@@ -535,11 +530,15 @@ function luux_acf_restore_legal_section_from_stash(int $post_id): void {
             continue;
         }
 
-        $db_index = isset($db_indices[$nth])
-            ? (int) $db_indices[$nth]
-            : (int) $row_key;
+        $key_index = (int) $row_key;
 
-        if (! in_array($db_index, $db_indices, true)) {
+        // Prefer stash key when it matches a live legal_section row (supports multiple sections).
+        if (in_array($key_index, $db_indices, true)) {
+            $db_index = $key_index;
+        } elseif (isset($db_indices[$nth])) {
+            $db_index = (int) $db_indices[$nth];
+        } else {
+            $nth++;
             continue;
         }
 

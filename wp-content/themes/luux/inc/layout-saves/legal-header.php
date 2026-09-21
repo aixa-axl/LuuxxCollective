@@ -61,20 +61,15 @@ function luux_acf_legal_header_row_layout(int $post_id, int $index): string {
 }
 
 function luux_acf_resolve_legal_header_db_index(int $post_id, int $row_index, int $row_nth = 0): int {
-    $resolved = luux_find_section_row_index($post_id, LUUX_LEGAL_HEADER_LAYOUT);
-
-    if ($resolved !== null) {
-        return $resolved;
+    // Prefer the editor's FC index when that slot is already a legal_header.
+    if (luux_acf_legal_header_layout_matches(luux_acf_legal_header_row_layout($post_id, $row_index))) {
+        return $row_index;
     }
 
     $db_indices = luux_acf_legal_header_db_row_indices($post_id);
 
     if (isset($db_indices[$row_nth])) {
-        return $db_indices[$row_nth];
-    }
-
-    if (luux_acf_legal_header_layout_matches(luux_acf_legal_header_row_layout($post_id, $row_index))) {
-        return $row_index;
+        return (int) $db_indices[$row_nth];
     }
 
     return $row_index;
