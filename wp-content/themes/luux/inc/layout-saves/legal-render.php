@@ -8,58 +8,84 @@
 defined('ABSPATH') || exit;
 
 /**
- * Decode typographic quote escapes so legal copy shows ’ “ ” not u2019 / u201d.
+ * Turn a 4-digit hex code point into a UTF-8 character.
+ */
+function luux_legal_chr_from_hex(string $hex): ?string {
+    if (! preg_match('/^[0-9a-fA-F]{4}$/', $hex)) {
+        return null;
+    }
+
+    $code = hexdec($hex);
+
+    // Keep NUL out; allow nbsp (00A0), quotes, dashes, etc.
+    if ($code < 1) {
+        return null;
+    }
+
+    if (function_exists('mb_chr')) {
+        $char = mb_chr($code, 'UTF-8');
+
+        return is_string($char) && $char !== '' ? $char : null;
+    }
+
+    $char = html_entity_decode('&#' . $code . ';', ENT_QUOTES | ENT_HTML5, 'UTF-8');
+
+    return $char !== '' ? $char : null;
+}
+
+/**
+ * Decode every unicode escape in legal copy to the real symbol
+ * (u2019, u00a0, \u201d, &#8217;, etc. → ’  “ &nbsp;).
  */
 function luux_normalize_legal_typography(string $html): string {
-    // JSON-style escapes that survived a bad round-trip: \u2019 → ’
+    // \u2019 / \\u00a0 (JSON escapes that survived round-trips).
     $html = preg_replace_callback(
-        '/\\\\u([0-9a-fA-F]{4})/',
+        '/\\\\+u([0-9a-fA-F]{4})/i',
         static function (array $matches): string {
-            $code = hexdec($matches[1]);
+            $char = luux_legal_chr_from_hex($matches[1]);
 
-            if ($code < 1) {
-                return $matches[0];
-            }
-
-            if (function_exists('mb_chr')) {
-                $char = mb_chr($code, 'UTF-8');
-
-                return is_string($char) ? $char : $matches[0];
-            }
-
-            $char = html_entity_decode('&#' . $code . ';', ENT_QUOTES | ENT_HTML5, 'UTF-8');
-
-            return $char !== '' ? $char : $matches[0];
+            return $char ?? $matches[0];
         },
         $html
     ) ?? $html;
 
-    // Stripslashes corruption: "\u2019" became literal "u2019" (same class of bug as \n → nn).
-    $quote_map = [
-        'u2018' => "\u{2018}", // ‘
-        'u2019' => "\u{2019}", // ’
-        'u201C' => "\u{201C}", // “
-        'u201D' => "\u{201D}", // ”
-        'u201c' => "\u{201C}",
-        'u201d' => "\u{201D}",
-        'u2013' => "\u{2013}", // –
-        'u2014' => "\u{2014}", // —
-        'u00a0' => "\u{00A0}", // nbsp
-        'u00A0' => "\u{00A0}",
-    ];
+    // \u{2019} / \\u{00A0}
+    $html = preg_replace_callback(
+        '/\\\\+u\{([0-9a-fA-F]{1,6})\}/i',
+        static function (array $matches): string {
+            $hex  = str_pad($matches[1], 4, '0', STR_PAD_LEFT);
+            $char = luux_legal_chr_from_hex(substr($hex, -4));
 
-    foreach ($quote_map as $token => $char) {
-        $html = str_replace($token, $char, $html);
-    }
+            if ($char === null && strlen($matches[1]) > 4 && function_exists('mb_chr')) {
+                $char = mb_chr(hexdec($matches[1]), 'UTF-8');
+                $char = is_string($char) ? $char : null;
+            }
 
-    // Named / numeric HTML entities for quotes and dashes.
+            return $char ?? $matches[0];
+        },
+        $html
+    ) ?? $html;
+
+    // Stripslashes corruption: "\u00a0" became literal "u00a0" (same class of bug as \n → nn).
+    // Match any bare u + 4 hex digits that is not part of a longer word/hex run.
+    $html = preg_replace_callback(
+        '/(?<![A-Za-z0-9\\\\])u([0-9a-fA-F]{4})(?![0-9a-fA-F])/',
+        static function (array $matches): string {
+            $char = luux_legal_chr_from_hex($matches[1]);
+
+            return $char ?? $matches[0];
+        },
+        $html
+    ) ?? $html;
+
+    // HTML numeric / named entities: &#8217; &#x2019; &nbsp; &rsquo; etc.
     $html = html_entity_decode($html, ENT_QUOTES | ENT_HTML5, 'UTF-8');
 
     return $html;
 }
 
 /**
- * Escape plain legal text (headings, table cells) after fixing quote escapes.
+ * Escape plain legal text (headings, table cells) after fixing unicode escapes.
  */
 function luux_esc_legal_text(mixed $text): string {
     if (! is_string($text) || $text === '') {
