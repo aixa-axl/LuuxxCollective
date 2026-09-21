@@ -79,7 +79,7 @@ if (! $heading && ! $intro && empty($clauses)) {
         <?php if ($heading || $intro) : ?>
             <div class="flex w-full flex-col gap-3 lg:gap-4">
                 <?php if ($heading) : ?>
-                    <h2 class="font-display text-h3 text-brand-primary"><?php echo esc_html($heading); ?></h2>
+                    <h2 class="font-display text-h3 text-brand-primary"><?php echo function_exists('luux_esc_legal_text') ? luux_esc_legal_text((string) $heading) : esc_html($heading); ?></h2>
                 <?php endif; ?>
                 <?php if ($intro) : ?>
                     <div class="legal-content w-full">
@@ -108,7 +108,7 @@ if (! $heading && ! $intro && empty($clauses)) {
                     ?>
                     <article class="flex flex-col gap-2 lg:gap-3">
                         <?php if ($title !== '') : ?>
-                            <h3 class="font-display text-quote text-brand-primary"><?php echo esc_html($title); ?></h3>
+                            <h3 class="font-display text-quote text-brand-primary"><?php echo function_exists('luux_esc_legal_text') ? luux_esc_legal_text($title) : esc_html($title); ?></h3>
                         <?php endif; ?>
                         <?php if ($body !== '') : ?>
                             <div class="legal-content w-full">
@@ -122,16 +122,16 @@ if (! $heading && ! $intro && empty($clauses)) {
                                         <thead>
                                             <?php if ($header_2_sub !== '') : ?>
                                                 <tr>
-                                                    <th scope="col" rowspan="2"><?php echo esc_html($header_1); ?></th>
-                                                    <th scope="col"><?php echo esc_html($header_2); ?></th>
+                                                    <th scope="col" rowspan="2"><?php echo function_exists('luux_esc_legal_text') ? luux_esc_legal_text($header_1) : esc_html($header_1); ?></th>
+                                                    <th scope="col"><?php echo function_exists('luux_esc_legal_text') ? luux_esc_legal_text($header_2) : esc_html($header_2); ?></th>
                                                 </tr>
                                                 <tr>
-                                                    <th scope="col"><?php echo esc_html($header_2_sub); ?></th>
+                                                    <th scope="col"><?php echo function_exists('luux_esc_legal_text') ? luux_esc_legal_text($header_2_sub) : esc_html($header_2_sub); ?></th>
                                                 </tr>
                                             <?php else : ?>
                                                 <tr>
-                                                    <th scope="col"><?php echo esc_html($header_1); ?></th>
-                                                    <th scope="col"><?php echo esc_html($header_2); ?></th>
+                                                    <th scope="col"><?php echo function_exists('luux_esc_legal_text') ? luux_esc_legal_text($header_1) : esc_html($header_1); ?></th>
+                                                    <th scope="col"><?php echo function_exists('luux_esc_legal_text') ? luux_esc_legal_text($header_2) : esc_html($header_2); ?></th>
                                                 </tr>
                                             <?php endif; ?>
                                         </thead>
@@ -151,8 +151,8 @@ if (! $heading && ! $intro && empty($clauses)) {
                                                 }
                                                 ?>
                                                 <tr>
-                                                    <td><?php echo esc_html($col_1); ?></td>
-                                                    <td><?php echo esc_html($col_2); ?></td>
+                                                    <td><?php echo function_exists('luux_esc_legal_text') ? luux_esc_legal_text($col_1) : esc_html($col_1); ?></td>
+                                                    <td><?php echo function_exists('luux_esc_legal_text') ? luux_esc_legal_text($col_2) : esc_html($col_2); ?></td>
                                                 </tr>
                                             <?php endforeach; ?>
                                         </tbody>

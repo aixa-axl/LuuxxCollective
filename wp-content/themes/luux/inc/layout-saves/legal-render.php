@@ -8,6 +8,68 @@
 defined('ABSPATH') || exit;
 
 /**
+ * Decode typographic quote escapes so legal copy shows ’ “ ” not u2019 / u201d.
+ */
+function luux_normalize_legal_typography(string $html): string {
+    // JSON-style escapes that survived a bad round-trip: \u2019 → ’
+    $html = preg_replace_callback(
+        '/\\\\u([0-9a-fA-F]{4})/',
+        static function (array $matches): string {
+            $code = hexdec($matches[1]);
+
+            if ($code < 1) {
+                return $matches[0];
+            }
+
+            if (function_exists('mb_chr')) {
+                $char = mb_chr($code, 'UTF-8');
+
+                return is_string($char) ? $char : $matches[0];
+            }
+
+            $char = html_entity_decode('&#' . $code . ';', ENT_QUOTES | ENT_HTML5, 'UTF-8');
+
+            return $char !== '' ? $char : $matches[0];
+        },
+        $html
+    ) ?? $html;
+
+    // Stripslashes corruption: "\u2019" became literal "u2019" (same class of bug as \n → nn).
+    $quote_map = [
+        'u2018' => "\u{2018}", // ‘
+        'u2019' => "\u{2019}", // ’
+        'u201C' => "\u{201C}", // “
+        'u201D' => "\u{201D}", // ”
+        'u201c' => "\u{201C}",
+        'u201d' => "\u{201D}",
+        'u2013' => "\u{2013}", // –
+        'u2014' => "\u{2014}", // —
+        'u00a0' => "\u{00A0}", // nbsp
+        'u00A0' => "\u{00A0}",
+    ];
+
+    foreach ($quote_map as $token => $char) {
+        $html = str_replace($token, $char, $html);
+    }
+
+    // Named / numeric HTML entities for quotes and dashes.
+    $html = html_entity_decode($html, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+
+    return $html;
+}
+
+/**
+ * Escape plain legal text (headings, table cells) after fixing quote escapes.
+ */
+function luux_esc_legal_text(mixed $text): string {
+    if (! is_string($text) || $text === '') {
+        return '';
+    }
+
+    return esc_html(luux_normalize_legal_typography($text));
+}
+
+/**
  * Format legal wysiwyg HTML for front-end output (paragraphs + line breaks).
  */
 function luux_format_legal_html(mixed $html): string {
@@ -27,9 +89,12 @@ function luux_format_legal_html(mixed $html): string {
         || str_contains($html, '&lt;p')
         || str_contains($html, '&lt;div')
         || str_contains($html, '&lt;strong')
+        || str_contains($html, '&amp;')
     ) {
         $html = html_entity_decode($html, ENT_QUOTES | ENT_HTML5, 'UTF-8');
     }
+
+    $html = luux_normalize_legal_typography($html);
 
     // Repair stripslashes corruption: JSON "\n\n" became literal "nn".
     // Only at sentence boundaries / before capitals — never inside words like "connection".

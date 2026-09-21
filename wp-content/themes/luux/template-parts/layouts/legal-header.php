@@ -73,7 +73,7 @@ $heading_tag = (function_exists('luux_uses_hero_header') && luux_uses_hero_heade
 <section<?php echo $section_id ? ' id="' . esc_attr($section_id) . '"' : ''; ?> class="legal-header bg-brand-white py-8 lg:py-10">
     <div class="container-site flex flex-col items-start gap-4 lg:gap-5">
         <?php if ($heading) : ?>
-            <<?php echo $heading_tag; ?> class="w-full font-display text-h3 text-brand-primary"><?php echo esc_html($heading); ?></<?php echo $heading_tag; ?>>
+            <<?php echo $heading_tag; ?> class="w-full font-display text-h3 text-brand-primary"><?php echo function_exists('luux_esc_legal_text') ? luux_esc_legal_text((string) $heading) : esc_html($heading); ?></<?php echo $heading_tag; ?>>
         <?php endif; ?>
         <?php if ($intro) : ?>
             <div class="legal-content w-full">
