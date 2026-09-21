@@ -1056,3 +1056,197 @@ require get_template_directory() . '/inc/layout-saves/general-enquiries.php';
 require get_template_directory() . '/inc/layout-saves/legal-header.php';
 require get_template_directory() . '/inc/layout-saves/legal-section.php';
 require get_template_directory() . '/inc/layout-saves/legal-render.php';
+
+/**
+ * Layout shells still in postmeta (page_sections_N_acf_fc_layout).
+ *
+ * @return array<int, string> db_index => layout slug
+ */
+function luux_acf_discover_page_section_layout_shells(int $post_id): array {
+    $layouts = [];
+    $raw     = get_metadata('post', $post_id);
+
+    if (! is_array($raw)) {
+        return [];
+    }
+
+    foreach (array_keys($raw) as $key) {
+        if (! is_string($key) || ! preg_match('/^page_sections_(\d+)_acf_fc_layout$/', $key, $matches)) {
+            continue;
+        }
+
+        $layout = luux_acf_resolve_meta_storage_value($raw[$key] ?? []);
+
+        if (! is_string($layout) || $layout === '') {
+            continue;
+        }
+
+        $slug = function_exists('luux_acf_normalize_section_layout_slug')
+            ? luux_acf_normalize_section_layout_slug($layout)
+            : $layout;
+
+        if ($slug === '') {
+            continue;
+        }
+
+        $layouts[(int) $matches[1]] = $slug;
+    }
+
+    ksort($layouts);
+
+    return $layouts;
+}
+
+/**
+ * Last resort: infer shells from layout stashes when FC count/shells were wiped
+ * but content still lives in stash (editor empty, front still renders via fallback).
+ *
+ * @return array<int, string>
+ */
+function luux_acf_infer_layout_shells_from_stashes(int $post_id): array {
+    $map = [
+        '_luux_hero_stash'          => 'hero',
+        '_luux_legal_header_stash'  => 'legal_header',
+        '_luux_legal_section_stash' => 'legal_section',
+    ];
+
+    $layouts = [];
+
+    foreach ($map as $meta_key => $layout) {
+        $stash = get_post_meta($post_id, $meta_key, true);
+
+        if (! is_array($stash) || $stash === []) {
+            continue;
+        }
+
+        foreach (array_keys($stash) as $row_key) {
+            $index = (int) $row_key;
+
+            if (! isset($layouts[$index])) {
+                $layouts[$index] = $layout;
+            }
+        }
+    }
+
+    ksort($layouts);
+
+    return $layouts;
+}
+
+/**
+ * When page_sections count is 0/empty but layout shells (or stashes) remain,
+ * restore the FC count so the editor shows the same rows as the front end.
+ */
+function luux_acf_repair_page_sections_count_from_shells(int $post_id): bool {
+    if ($post_id < 1 || get_post_type($post_id) !== 'page') {
+        return false;
+    }
+
+    $stored = get_post_meta($post_id, 'page_sections', true);
+
+    // Never rewrite legacy serialized layout lists.
+    if (luux_acf_parse_page_sections_layout_list($stored) !== []) {
+        return false;
+    }
+
+    $count  = is_numeric($stored) ? (int) $stored : 0;
+    $shells = luux_acf_discover_page_section_layout_shells($post_id);
+
+    if ($shells === []) {
+        $shells = luux_acf_infer_layout_shells_from_stashes($post_id);
+
+        if ($shells === []) {
+            return false;
+        }
+
+        foreach ($shells as $index => $layout) {
+            update_post_meta($post_id, 'page_sections_' . $index . '_acf_fc_layout', $layout);
+
+            $layout_key = function_exists('luux_acf_page_section_layout_key')
+                ? luux_acf_page_section_layout_key($layout)
+                : null;
+
+            if ($layout_key) {
+                update_post_meta($post_id, '_page_sections_' . $index, $layout_key);
+            }
+        }
+    }
+
+    $needed = max(array_keys($shells)) + 1;
+
+    if ($count >= $needed) {
+        return false;
+    }
+
+    update_post_meta($post_id, 'page_sections', $needed);
+    update_post_meta($post_id, '_page_sections', 'field_luux_page_sections');
+
+    // Refill field values into meta so ACF populates the restored rows.
+    if (function_exists('luux_acf_restore_hero_from_stash')) {
+        luux_acf_restore_hero_from_stash($post_id);
+    }
+
+    if (function_exists('luux_acf_restore_legal_header_from_stash')) {
+        luux_acf_restore_legal_header_from_stash($post_id);
+    }
+
+    if (function_exists('luux_acf_restore_legal_section_from_stash')) {
+        luux_acf_restore_legal_section_from_stash($post_id);
+    }
+
+    return true;
+}
+
+// Restore FC count before the page editor loads ACF fields.
+add_action('load-post.php', function (): void {
+    $post_id = isset($_GET['post']) ? (int) $_GET['post'] : 0;
+
+    if ($post_id < 1 || get_post_type($post_id) !== 'page') {
+        return;
+    }
+
+    luux_acf_repair_page_sections_count_from_shells($post_id);
+});
+
+add_filter('acf/load_value/key=field_luux_page_sections', function ($value, $post_id, $field) {
+    if (! is_numeric($post_id) || get_post_type((int) $post_id) !== 'page') {
+        return $value;
+    }
+
+    $post_id = (int) $post_id;
+
+    if (luux_acf_repair_page_sections_count_from_shells($post_id)) {
+        $stored = get_post_meta($post_id, 'page_sections', true);
+
+        if (is_numeric($stored) && (int) $stored > 0) {
+            return (int) $stored;
+        }
+    }
+
+    return $value;
+}, 5, 3);
+
+// Block ACF wiping page_sections to 0 while layout shells still exist.
+add_filter('acf/pre_update_metadata', function ($check, $post_id, $name, $value, $hidden) {
+    if ($hidden || ! is_numeric($post_id) || get_post_type((int) $post_id) !== 'page') {
+        return $check;
+    }
+
+    if ($name !== 'page_sections') {
+        return $check;
+    }
+
+    $incoming_empty = $value === '' || $value === null || $value === 0 || $value === '0'
+        || (is_array($value) && $value === []);
+
+    if (! $incoming_empty) {
+        return $check;
+    }
+
+    // Allow a real clear when the editor also removed every layout shell.
+    if (luux_acf_discover_page_section_layout_shells((int) $post_id) === []) {
+        return $check;
+    }
+
+    return true;
+}, 5, 5);
