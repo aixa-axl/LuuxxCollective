@@ -994,9 +994,20 @@ add_filter('acf/pre_load_meta', function ($null, $post_id) {
         return $meta;
     }
 
-    $raw_page_sections = get_post_meta($post_id, 'page_sections', true);
-    if ($raw_page_sections !== '' && $raw_page_sections !== false) {
-        $meta['page_sections'] = $raw_page_sections;
+    // Repair wiped FC count before ACF reads meta (block editor / REST).
+    if (function_exists('luux_acf_resolved_page_sections_count')) {
+        $resolved = luux_acf_resolved_page_sections_count($post_id);
+
+        if ($resolved > 0) {
+            $meta['page_sections']  = $resolved;
+            $meta['_page_sections'] = 'field_luux_page_sections';
+        }
+    } else {
+        $raw_page_sections = get_post_meta($post_id, 'page_sections', true);
+
+        if ($raw_page_sections !== '' && $raw_page_sections !== false) {
+            $meta['page_sections'] = $raw_page_sections;
+        }
     }
 
     return $meta;
@@ -1092,9 +1103,36 @@ function luux_acf_discover_page_section_layout_shells(int $post_id): array {
         $layouts[(int) $matches[1]] = $slug;
     }
 
+    // Infer missing shells from known field keys / stashes (count wiped, shells deleted).
+    if ($layouts === []) {
+        foreach (array_keys($raw) as $key) {
+            if (! is_string($key)) {
+                continue;
+            }
+
+            if (preg_match('/^page_sections_(\d+)_(?:background_image|background_video|subheading|media_type)$/', $key, $matches)) {
+                $layouts[(int) $matches[1]] = 'hero';
+                continue;
+            }
+
+            if (preg_match('/^page_sections_(\d+)_clauses(?:_|$)/', $key, $matches)) {
+                $layouts[(int) $matches[1]] = 'legal_section';
+                continue;
+            }
+
+            // legal_header often only has heading/intro — only claim empty indices later via stash.
+        }
+    }
+
+    foreach (luux_acf_infer_layout_shells_from_stashes($post_id) as $index => $layout) {
+        if (! isset($layouts[$index])) {
+            $layouts[$index] = $layout;
+        }
+    }
+
     ksort($layouts);
 
-    return $layouts;
+    return array_filter($layouts, static fn ($layout) => is_string($layout) && $layout !== '');
 }
 
 /**
@@ -1134,11 +1172,36 @@ function luux_acf_infer_layout_shells_from_stashes(int $post_id): array {
 }
 
 /**
+ * Whether ACF's page_sections value is effectively empty.
+ */
+function luux_acf_page_sections_value_is_empty(mixed $value): bool {
+    if ($value === '' || $value === null || $value === false) {
+        return true;
+    }
+
+    if ($value === 0 || $value === '0') {
+        return true;
+    }
+
+    if (is_array($value) && $value === []) {
+        return true;
+    }
+
+    return false;
+}
+
+/**
  * When page_sections count is 0/empty but layout shells (or stashes) remain,
  * restore the FC count so the editor shows the same rows as the front end.
  */
 function luux_acf_repair_page_sections_count_from_shells(int $post_id): bool {
     if ($post_id < 1 || get_post_type($post_id) !== 'page') {
+        return false;
+    }
+
+    static $repairing = [];
+
+    if (isset($repairing[$post_id])) {
         return false;
     }
 
@@ -1153,13 +1216,16 @@ function luux_acf_repair_page_sections_count_from_shells(int $post_id): bool {
     $shells = luux_acf_discover_page_section_layout_shells($post_id);
 
     if ($shells === []) {
-        $shells = luux_acf_infer_layout_shells_from_stashes($post_id);
+        return false;
+    }
 
-        if ($shells === []) {
-            return false;
-        }
+    $repairing[$post_id] = true;
 
-        foreach ($shells as $index => $layout) {
+    // Ensure every discovered shell has an acf_fc_layout key written.
+    foreach ($shells as $index => $layout) {
+        $existing = get_post_meta($post_id, 'page_sections_' . $index . '_acf_fc_layout', true);
+
+        if (! is_string($existing) || $existing === '') {
             update_post_meta($post_id, 'page_sections_' . $index . '_acf_fc_layout', $layout);
 
             $layout_key = function_exists('luux_acf_page_section_layout_key')
@@ -1172,14 +1238,14 @@ function luux_acf_repair_page_sections_count_from_shells(int $post_id): bool {
         }
     }
 
-    $needed = max(array_keys($shells)) + 1;
+    $needed  = max(array_keys($shells)) + 1;
+    $changed = false;
 
-    if ($count >= $needed) {
-        return false;
+    if ($count < $needed) {
+        update_post_meta($post_id, 'page_sections', $needed);
+        update_post_meta($post_id, '_page_sections', 'field_luux_page_sections');
+        $changed = true;
     }
-
-    update_post_meta($post_id, 'page_sections', $needed);
-    update_post_meta($post_id, '_page_sections', 'field_luux_page_sections');
 
     // Refill field values into meta so ACF populates the restored rows.
     if (function_exists('luux_acf_restore_hero_from_stash')) {
@@ -1194,7 +1260,34 @@ function luux_acf_repair_page_sections_count_from_shells(int $post_id): bool {
         luux_acf_restore_legal_section_from_stash($post_id);
     }
 
-    return true;
+    unset($repairing[$post_id]);
+
+    return $changed || $count < $needed || $needed > 0;
+}
+
+/**
+ * Resolved page_sections count for the editor after repair.
+ */
+function luux_acf_resolved_page_sections_count(int $post_id): int {
+    luux_acf_repair_page_sections_count_from_shells($post_id);
+
+    $stored = get_post_meta($post_id, 'page_sections', true);
+
+    if (luux_acf_parse_page_sections_layout_list($stored) !== []) {
+        return count(luux_acf_parse_page_sections_layout_list($stored));
+    }
+
+    if (is_numeric($stored) && (int) $stored > 0) {
+        return (int) $stored;
+    }
+
+    $shells = luux_acf_discover_page_section_layout_shells($post_id);
+
+    if ($shells === []) {
+        return 0;
+    }
+
+    return max(array_keys($shells)) + 1;
 }
 
 // Restore FC count before the page editor loads ACF fields.
@@ -1214,13 +1307,30 @@ add_filter('acf/load_value/key=field_luux_page_sections', function ($value, $pos
     }
 
     $post_id = (int) $post_id;
+    $count   = luux_acf_resolved_page_sections_count($post_id);
 
-    if (luux_acf_repair_page_sections_count_from_shells($post_id)) {
-        $stored = get_post_meta($post_id, 'page_sections', true);
+    // Always prefer the repaired count when ACF still has an empty value.
+    if (luux_acf_page_sections_value_is_empty($value) && $count > 0) {
+        return $count;
+    }
 
-        if (is_numeric($stored) && (int) $stored > 0) {
-            return (int) $stored;
-        }
+    return $value;
+}, 5, 3);
+
+// Also catch loads that use name instead of key (REST / some ACF paths).
+add_filter('acf/load_value/name=page_sections', function ($value, $post_id, $field) {
+    if (! is_array($field) || ($field['key'] ?? '') !== 'field_luux_page_sections') {
+        return $value;
+    }
+
+    if (! is_numeric($post_id) || get_post_type((int) $post_id) !== 'page') {
+        return $value;
+    }
+
+    $count = luux_acf_resolved_page_sections_count((int) $post_id);
+
+    if (luux_acf_page_sections_value_is_empty($value) && $count > 0) {
+        return $count;
     }
 
     return $value;
@@ -1236,8 +1346,7 @@ add_filter('acf/pre_update_metadata', function ($check, $post_id, $name, $value,
         return $check;
     }
 
-    $incoming_empty = $value === '' || $value === null || $value === 0 || $value === '0'
-        || (is_array($value) && $value === []);
+    $incoming_empty = luux_acf_page_sections_value_is_empty($value);
 
     if (! $incoming_empty) {
         return $check;
