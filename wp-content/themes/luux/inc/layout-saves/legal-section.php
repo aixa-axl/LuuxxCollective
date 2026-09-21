@@ -155,9 +155,19 @@ function luux_acf_legal_section_decode_clauses_json(mixed $json): array {
         return [];
     }
 
+    // Unslash once only — a second stripslashes turns JSON \n escapes into literal "nn".
     $decoded = json_decode(wp_unslash($json), true);
 
-    return is_array($decoded) ? luux_acf_legal_section_normalize_clauses($decoded) : [];
+    if (! is_array($decoded)) {
+        // Already-unslashed JSON (e.g. from postmeta / wp_json_encode).
+        $decoded = json_decode($json, true);
+    }
+
+    if (! is_array($decoded)) {
+        return [];
+    }
+
+    return luux_acf_legal_section_normalize_clauses($decoded);
 }
 
 function luux_acf_legal_section_row_has_field(array $row, string $field_key, string $name): bool {
@@ -266,10 +276,9 @@ function luux_acf_legal_section_early_post_rows(): array {
                 continue;
             }
 
-            $value = wp_unslash($value);
-
             if ($name === 'clauses_json') {
-                $clauses = luux_acf_legal_section_decode_clauses_json($value);
+                // Decode unslashes once — do not unslash here or \n becomes nn.
+                $clauses = luux_acf_legal_section_decode_clauses_json(is_string($value) ? $value : '');
 
                 if ($clauses !== []) {
                     $row['field_luux_legal_section_clauses'] = $clauses;
@@ -278,6 +287,8 @@ function luux_acf_legal_section_early_post_rows(): array {
 
                 continue;
             }
+
+            $value = wp_unslash($value);
 
             if (! array_key_exists($name, $name_to_key)) {
                 continue;
@@ -646,7 +657,8 @@ function luux_acf_ajax_save_legal_section_fields(): void {
     $fields    = isset($_POST['fields']) && is_array($_POST['fields']) ? wp_unslash($_POST['fields']) : [];
 
     if (! empty($_POST['clauses_json']) && is_string($_POST['clauses_json'])) {
-        $fields['clauses_json'] = wp_unslash($_POST['clauses_json']);
+        // Leave slashed — decode_clauses_json unslashes once. Unslashing here too turns \n into nn.
+        $fields['clauses_json'] = (string) $_POST['clauses_json'];
     }
 
     if ($post_id < 1 || get_post_type($post_id) !== 'page' || $row_index < 0 || $fields === []) {
@@ -673,7 +685,8 @@ function luux_acf_ajax_save_legal_section_fields(): void {
             if ($clauses !== []) {
                 $row['field_luux_legal_section_clauses'] = $clauses;
                 $row['clauses']                         = $clauses;
-                $stash['_clauses_json']                 = is_string($value) ? wp_unslash($value) : wp_json_encode($clauses);
+                // Re-encode from parsed clauses — never stash a double-unslashed JSON string.
+                $stash['_clauses_json'] = wp_json_encode($clauses);
             }
 
             continue;

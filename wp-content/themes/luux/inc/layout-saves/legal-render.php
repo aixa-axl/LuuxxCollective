@@ -31,6 +31,12 @@ function luux_format_legal_html(mixed $html): string {
         $html = html_entity_decode($html, ENT_QUOTES | ENT_HTML5, 'UTF-8');
     }
 
+    // Repair stripslashes corruption: JSON "\n\n" became literal "nn".
+    // Only at sentence boundaries / before capitals — never inside words like "connection".
+    $html = preg_replace('/(?<=[.!?…])nn+(?=\s*[A-Z“"])/', "<br /><br />", $html) ?? $html;
+    $html = preg_replace('/(?<=[.!?…])nn+/', "<br /><br />", $html) ?? $html;
+    $html = preg_replace('/(?<=[a-z0-9])nn(?=[A-Z])/', "<br /><br />", $html) ?? $html;
+
     // Normalise break tags (TinyMCE / paste variants).
     $html = preg_replace('/<br\s*\/?>/i', '<br />', $html) ?? $html;
 
@@ -50,8 +56,8 @@ function luux_format_legal_html(mixed $html): string {
     }
 
     // Allow br explicitly in case a host kses config is tight.
-    $allowed         = wp_kses_allowed_html('post');
-    $allowed['br']   = [
+    $allowed       = wp_kses_allowed_html('post');
+    $allowed['br'] = [
         'class' => true,
         'style' => true,
         'clear' => true,
