@@ -41,6 +41,49 @@ function luux_acf_hero_db_row_indices(int $post_id): array {
     return $indices;
 }
 
+/**
+ * Make sure page_sections count + acf_fc_layout exist for a hero row.
+ * Needed after a hard wipe (count stuck at 0) or when ACF only partially saves the FC shell.
+ */
+function luux_acf_ensure_hero_layout_meta(int $post_id, int $db_index): void {
+    $db_index = (int) $db_index;
+    $layout   = 'hero';
+
+    update_post_meta($post_id, 'page_sections_' . $db_index . '_acf_fc_layout', $layout);
+
+    $layout_key = function_exists('luux_acf_page_section_layout_key')
+        ? luux_acf_page_section_layout_key($layout)
+        : 'layout_luux_hero';
+
+    if ($layout_key) {
+        update_post_meta($post_id, '_page_sections_' . $db_index, $layout_key);
+    }
+
+    $stored = get_post_meta($post_id, 'page_sections', true);
+    $list   = function_exists('luux_acf_parse_page_sections_layout_list')
+        ? luux_acf_parse_page_sections_layout_list($stored)
+        : [];
+
+    if ($list !== []) {
+        while (count($list) <= $db_index) {
+            $list[] = '';
+        }
+
+        if ($list[$db_index] !== $layout) {
+            $list[$db_index] = $layout;
+            update_post_meta($post_id, 'page_sections', $list);
+        }
+
+        return;
+    }
+
+    $count = is_numeric($stored) ? (int) $stored : 0;
+    $count = max($count, $db_index + 1);
+
+    update_post_meta($post_id, 'page_sections', $count);
+    update_post_meta($post_id, '_page_sections', 'field_luux_page_sections');
+}
+
 function luux_acf_hero_row_layout(int $post_id, int $index): string {
     $meta = luux_acf_get_page_section_meta($post_id);
 
@@ -400,6 +443,8 @@ function luux_acf_persist_hero_ctas(int $post_id, int $db_index, array $ctas): v
  * @param array<string, mixed> $row
  */
 function luux_acf_persist_hero_row(int $post_id, int $db_index, array $row): void {
+    luux_acf_ensure_hero_layout_meta($post_id, $db_index);
+
     $prefix    = 'page_sections_' . (int) $db_index . '_';
     $field_map = luux_acf_hero_field_map();
 

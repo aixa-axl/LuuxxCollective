@@ -200,6 +200,7 @@ function luux_render_sections(): void {
         return;
     }
 
+    // Prefer row-by-row / direct meta when the FC count is stuck at 0 but layout shells exist.
     if (function_exists('luux_render_page_sections_by_row') && luux_render_page_sections_by_row($post_id)) {
         return;
     }

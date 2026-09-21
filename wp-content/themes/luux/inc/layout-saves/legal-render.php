@@ -59,6 +59,7 @@ function luux_acf_normalize_section_layout_slug(string $layout): string {
 /**
  * Layouts currently declared by the editor (page_sections list or integer count).
  * Does NOT invent rows from stash / orphan field keys — empty editor = empty list.
+ * Falls back to acf_fc_layout keys when count was wiped to 0 but layout shells remain.
  *
  * @return array<int, string> db_index => short layout name
  */
@@ -83,19 +84,77 @@ function luux_acf_authoritative_section_row_layouts(int $post_id): array {
 
     $count = is_numeric($stored) ? (int) $stored : 0;
 
-    if ($count < 1) {
+    if ($count > 0) {
+        for ($i = 0; $i < $count; $i++) {
+            $layout = get_post_meta($post_id, 'page_sections_' . $i . '_acf_fc_layout', true);
+
+            if (! is_string($layout) || $layout === '') {
+                continue;
+            }
+
+            $layouts[$i] = luux_acf_normalize_section_layout_slug($layout);
+        }
+
+        if ($layouts !== []) {
+            return array_filter($layouts, static fn ($layout) => is_string($layout) && $layout !== '');
+        }
+    }
+
+    // Count stuck at 0 after a wipe, but layout shells (or hero field rows) still exist.
+    $raw = get_metadata('post', $post_id);
+
+    if (! is_array($raw)) {
         return [];
     }
 
-    for ($i = 0; $i < $count; $i++) {
-        $layout = get_post_meta($post_id, 'page_sections_' . $i . '_acf_fc_layout', true);
+    foreach (array_keys($raw) as $key) {
+        if (! preg_match('/^page_sections_(\d+)_acf_fc_layout$/', $key, $matches)) {
+            continue;
+        }
+
+        $index  = (int) $matches[1];
+        $layout = luux_acf_resolve_meta_storage_value($raw[$key]);
 
         if (! is_string($layout) || $layout === '') {
             continue;
         }
 
-        $layouts[$i] = luux_acf_normalize_section_layout_slug($layout);
+        $layouts[$index] = luux_acf_normalize_section_layout_slug($layout);
     }
+
+    if ($layouts !== []) {
+        ksort($layouts);
+
+        return array_filter($layouts, static fn ($layout) => is_string($layout) && $layout !== '');
+    }
+
+    // Hero fields saved without an acf_fc_layout shell (custom persist after wipe).
+    // Use hero-specific keys only — never plain "heading" (legal_header also has that).
+    foreach (array_keys($raw) as $key) {
+        if (! preg_match('/^page_sections_(\d+)_(?:background_image|background_video|subheading|media_type)$/', $key, $matches)) {
+            continue;
+        }
+
+        $index = (int) $matches[1];
+
+        if (! isset($layouts[$index])) {
+            $layouts[$index] = 'hero';
+        }
+    }
+
+    $hero_stash = get_post_meta($post_id, '_luux_hero_stash', true);
+
+    if (is_array($hero_stash)) {
+        foreach (array_keys($hero_stash) as $row_key) {
+            $index = (int) $row_key;
+
+            if (! isset($layouts[$index])) {
+                $layouts[$index] = 'hero';
+            }
+        }
+    }
+
+    ksort($layouts);
 
     return array_filter($layouts, static fn ($layout) => is_string($layout) && $layout !== '');
 }
@@ -355,8 +414,77 @@ function luux_acf_maybe_reset_terms_page_v2(): void {
     update_option('luux_legal_terms_reset_v2', 1, false);
 }
 
+/**
+ * One-shot v3: after the Terms wipe, Hero field meta could save while page_sections
+ * stayed at 0 — repair the FC shell so the hero renders without another editor dance.
+ */
+function luux_acf_maybe_repair_terms_hero_shell_v3(): void {
+    if (get_option('luux_legal_terms_hero_repair_v3')) {
+        return;
+    }
+
+    if (! function_exists('luux_acf_ensure_hero_layout_meta')) {
+        return;
+    }
+
+    $slugs = ['terms-conditions', 'terms-and-conditions', 'terms'];
+
+    foreach ($slugs as $slug) {
+        $pages = get_posts([
+            'name'                   => $slug,
+            'post_type'              => 'page',
+            'post_status'            => 'any',
+            'posts_per_page'         => 1,
+            'fields'                 => 'ids',
+            'no_found_rows'          => true,
+            'update_post_meta_cache' => true,
+            'update_post_term_cache' => false,
+        ]);
+
+        foreach ($pages as $page_id) {
+            $page_id = (int) $page_id;
+            $stored  = get_post_meta($page_id, 'page_sections', true);
+            $list    = luux_acf_parse_page_sections_layout_list($stored);
+            $count   = is_numeric($stored) ? (int) $stored : 0;
+
+            if ($list !== [] || $count > 0) {
+                // Still ensure acf_fc_layout if hero fields exist at 0.
+                if (get_post_meta($page_id, 'page_sections_0_heading', true) !== ''
+                    || get_post_meta($page_id, 'page_sections_0_background_image', true) !== ''
+                    || get_post_meta($page_id, '_luux_hero_stash', true)
+                ) {
+                    luux_acf_ensure_hero_layout_meta($page_id, 0);
+                }
+
+                continue;
+            }
+
+            $has_hero_fields = get_post_meta($page_id, 'page_sections_0_heading', true) !== ''
+                || get_post_meta($page_id, 'page_sections_0_subheading', true) !== ''
+                || get_post_meta($page_id, 'page_sections_0_background_image', true) !== ''
+                || get_post_meta($page_id, 'page_sections_0_media_type', true) !== '';
+
+            $stash = get_post_meta($page_id, '_luux_hero_stash', true);
+
+            if (! $has_hero_fields && ! (is_array($stash) && $stash !== [])) {
+                continue;
+            }
+
+            luux_acf_ensure_hero_layout_meta($page_id, 0);
+
+            // Rehydrate field values from stash if the FC shell was empty.
+            if (function_exists('luux_acf_restore_hero_from_stash')) {
+                luux_acf_restore_hero_from_stash($page_id);
+            }
+        }
+    }
+
+    update_option('luux_legal_terms_hero_repair_v3', 1, false);
+}
+
 add_action('init', 'luux_acf_maybe_prune_orphaned_legal_sitewide', 20);
 add_action('init', 'luux_acf_maybe_reset_terms_page_v2', 21);
+add_action('init', 'luux_acf_maybe_repair_terms_hero_shell_v3', 22);
 
 add_action('acf/save_post', function ($post_id): void {
     if (! is_numeric($post_id) || get_post_type((int) $post_id) !== 'page') {
