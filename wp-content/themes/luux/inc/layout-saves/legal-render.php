@@ -35,48 +35,62 @@ function luux_legal_chr_from_hex(string $hex): ?string {
 
 /**
  * Decode every unicode escape in legal copy to the real symbol
- * (u2019, u00a0, \u201d, &#8217;, etc. → ’  “ &nbsp;).
+ * (u2019, u00a0, \u201d, &#8217;, etc. → ’ nbsp “).
  */
 function luux_normalize_legal_typography(string $html): string {
-    // \u2019 / \\u00a0 (JSON escapes that survived round-trips).
-    $html = preg_replace_callback(
-        '/\\\\+u([0-9a-fA-F]{4})/i',
-        static function (array $matches): string {
-            $char = luux_legal_chr_from_hex($matches[1]);
+    $decode_u = static function (string $text): string {
+        // \u2019 / \\u00a0 (JSON escapes that survived round-trips).
+        $text = preg_replace_callback(
+            '/\\\\+u([0-9a-fA-F]{4})/i',
+            static function (array $matches): string {
+                $char = luux_legal_chr_from_hex($matches[1]);
 
-            return $char ?? $matches[0];
-        },
-        $html
-    ) ?? $html;
+                return $char ?? $matches[0];
+            },
+            $text
+        ) ?? $text;
 
-    // \u{2019} / \\u{00A0}
-    $html = preg_replace_callback(
-        '/\\\\+u\{([0-9a-fA-F]{1,6})\}/i',
-        static function (array $matches): string {
-            $hex  = str_pad($matches[1], 4, '0', STR_PAD_LEFT);
-            $char = luux_legal_chr_from_hex(substr($hex, -4));
+        // \u{2019} / \\u{00A0}
+        $text = preg_replace_callback(
+            '/\\\\+u\{([0-9a-fA-F]{1,6})\}/i',
+            static function (array $matches): string {
+                $code = hexdec($matches[1]);
 
-            if ($char === null && strlen($matches[1]) > 4 && function_exists('mb_chr')) {
-                $char = mb_chr(hexdec($matches[1]), 'UTF-8');
-                $char = is_string($char) ? $char : null;
-            }
+                if ($code < 1) {
+                    return $matches[0];
+                }
 
-            return $char ?? $matches[0];
-        },
-        $html
-    ) ?? $html;
+                if (function_exists('mb_chr')) {
+                    $char = mb_chr($code, 'UTF-8');
 
-    // Stripslashes corruption: "\u00a0" became literal "u00a0" (same class of bug as \n → nn).
-    // Match any bare u + 4 hex digits that is not part of a longer word/hex run.
-    $html = preg_replace_callback(
-        '/(?<![A-Za-z0-9\\\\])u([0-9a-fA-F]{4})(?![0-9a-fA-F])/',
-        static function (array $matches): string {
-            $char = luux_legal_chr_from_hex($matches[1]);
+                    return is_string($char) && $char !== '' ? $char : $matches[0];
+                }
 
-            return $char ?? $matches[0];
-        },
-        $html
-    ) ?? $html;
+                $char = html_entity_decode('&#' . $code . ';', ENT_QUOTES | ENT_HTML5, 'UTF-8');
+
+                return $char !== '' ? $char : $matches[0];
+            },
+            $text
+        ) ?? $text;
+
+        // Stripslashes corruption: "\u00a0" became literal "u00a0" (including mid-word: Seenu00a0Ltd).
+        // Only skip when still preceded by a backslash (handled above).
+        $text = preg_replace_callback(
+            '/(?<!\\\\)u([0-9a-fA-F]{4})(?![0-9a-fA-F])/i',
+            static function (array $matches): string {
+                $char = luux_legal_chr_from_hex($matches[1]);
+
+                return $char ?? $matches[0];
+            },
+            $text
+        ) ?? $text;
+
+        return $text;
+    };
+
+    // Run twice so adjacent codes (u00a0u2014) and nested entity+escape cases settle.
+    $html = $decode_u($html);
+    $html = $decode_u($html);
 
     // HTML numeric / named entities: &#8217; &#x2019; &nbsp; &rsquo; etc.
     $html = html_entity_decode($html, ENT_QUOTES | ENT_HTML5, 'UTF-8');
