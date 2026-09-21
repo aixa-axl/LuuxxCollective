@@ -73,10 +73,11 @@ function luux_normalize_legal_typography(string $html): string {
             $text
         ) ?? $text;
 
-        // Stripslashes corruption: "\u00a0" became literal "u00a0" (including mid-word: Seenu00a0Ltd).
-        // Only skip when still preceded by a backslash (handled above).
+        // Stripslashes corruption: "\u00a3" became literal "u00a3" (e.g. u00a310 → £10,
+        // u2018free → ‘free). Always take exactly 4 hex digits — trailing digits/letters
+        // are real content (amounts, words), not part of the code point.
         $text = preg_replace_callback(
-            '/(?<!\\\\)u([0-9a-fA-F]{4})(?![0-9a-fA-F])/i',
+            '/(?<!\\\\)u([0-9a-fA-F]{4})/i',
             static function (array $matches): string {
                 $char = luux_legal_chr_from_hex($matches[1]);
 
