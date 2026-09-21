@@ -70,13 +70,13 @@ if ($post_id && $row_index >= 0) {
 $heading_tag = (function_exists('luux_uses_hero_header') && luux_uses_hero_header()) ? 'h2' : 'h1';
 ?>
 
-<section<?php echo $section_id ? ' id="' . esc_attr($section_id) . '"' : ''; ?> class="legal-header section-pad bg-brand-cream-light">
+<section<?php echo $section_id ? ' id="' . esc_attr($section_id) . '"' : ''; ?> class="legal-header section-pad bg-brand-white">
     <div class="container-site flex flex-col items-start gap-6 lg:gap-8">
         <?php if ($heading) : ?>
-            <<?php echo $heading_tag; ?> class="max-w-3xl font-display text-h3 text-brand-primary lg:text-h2"><?php echo esc_html($heading); ?></<?php echo $heading_tag; ?>>
+            <<?php echo $heading_tag; ?> class="w-full font-display text-h3 text-brand-primary lg:text-h2"><?php echo esc_html($heading); ?></<?php echo $heading_tag; ?>>
         <?php endif; ?>
         <?php if ($intro) : ?>
-            <div class="legal-content max-w-3xl">
+            <div class="legal-content w-full">
                 <?php echo luux_format_legal_html((string) $intro); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- kses inside helper ?>
             </div>
         <?php endif; ?>

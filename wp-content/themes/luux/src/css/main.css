@@ -2014,7 +2014,8 @@
 
   /* Legal pages — Terms / Privacy / Cookies body copy */
   .legal-content {
-    color: var(--color-brand-primary-muted);
+    width: 100%;
+    color: var(--color-brand-primary);
     font-family: var(--font-body);
     font-size: var(--text-body);
     line-height: 1.6;
@@ -2026,7 +2027,7 @@
 
   .legal-content p {
     margin: 0;
-    color: var(--color-brand-primary-muted);
+    color: var(--color-brand-primary);
   }
 
   .legal-content p + p {
@@ -2040,7 +2041,7 @@
   }
 
   .legal-content li {
-    color: var(--color-brand-primary-muted);
+    color: var(--color-brand-primary);
   }
 
   .legal-content strong,
@@ -2100,6 +2101,6 @@
   }
 
   .legal-content td {
-    color: var(--color-brand-primary-muted);
+    color: var(--color-brand-primary);
   }
 }
