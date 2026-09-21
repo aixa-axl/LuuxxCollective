@@ -1,6 +1,8 @@
 <?php
 /**
  * Layout: hero
+ * Homepage: tall marketing hero (Figma home).
+ * Inner pages: contact-hero style — centered title over image.
  */
 
 $heading    = luux_sub_field('heading');
@@ -68,9 +70,70 @@ if (
 $media_type = $media_type ?: 'image';
 $has_video  = ($media_type === 'video' && $video_id);
 $has_media  = $has_video || $image_id;
+$is_home    = is_front_page();
+
+// Inner pages (Terms, etc.) match contact-hero: shorter, vertically centered title.
+if (! $is_home) :
+    ?>
+<section class="hero hero--page relative flex h-[26.25rem] items-center justify-center overflow-hidden lg:h-[30.625rem]<?php echo $has_media ? '' : ' bg-brand-dark'; ?>">
+    <?php if ($has_video) :
+        $video_url  = wp_get_attachment_url($video_id);
+        $video_mime = get_post_mime_type($video_id);
+        ?>
+        <video class="absolute inset-0 h-full w-full object-cover" autoplay muted loop playsinline>
+            <?php if ($video_url) : ?>
+                <source src="<?php echo esc_url($video_url); ?>"<?php echo $video_mime ? ' type="' . esc_attr($video_mime) . '"' : ''; ?>>
+            <?php endif; ?>
+        </video>
+    <?php elseif ($image_id) : ?>
+        <?php echo wp_get_attachment_image($image_id, 'full', false, [
+            'class'         => 'absolute inset-0 h-full w-full object-cover',
+            'fetchpriority' => 'high',
+        ]); ?>
+    <?php endif; ?>
+    <?php if ($has_media) : ?>
+        <div class="contact-hero__scrim absolute inset-0" aria-hidden="true"></div>
+    <?php endif; ?>
+
+    <?php if ($heading || $subheading || $ctas) : ?>
+        <div class="container-site relative z-10 flex flex-col items-center gap-6 text-center text-brand-white lg:gap-8">
+            <?php if ($heading || $subheading) : ?>
+                <div class="flex max-w-[42.5rem] flex-col gap-3 lg:gap-4">
+                    <?php if ($heading) : ?>
+                        <h1 class="font-display text-[2.5rem] leading-none lg:text-h1 lg:leading-[0.88]"><?php echo esc_html($heading); ?></h1>
+                    <?php endif; ?>
+                    <?php if ($subheading) : ?>
+                        <p class="font-body text-body"><?php echo esc_html($subheading); ?></p>
+                    <?php endif; ?>
+                </div>
+            <?php endif; ?>
+
+            <?php if ($ctas) : ?>
+                <div class="hero__ctas flex w-full flex-col gap-4 lg:w-auto lg:flex-row lg:justify-center lg:gap-10">
+                    <?php foreach ($ctas as $i => $row) :
+                        $link = $row['link'] ?? null;
+                        if (empty($link['url'])) {
+                            continue;
+                        }
+                        $is_first = $i === 0;
+                        ?>
+                        <a class="<?php echo $is_first ? 'link-underline-block link-underline-block--ruled' : 'link-underline-block'; ?> text-brand-white"
+                           href="<?php echo esc_url($link['url']); ?>"
+                           <?php echo ! empty($link['target']) ? 'target="_blank" rel="noopener"' : ''; ?>>
+                            <?php echo esc_html($link['title']); ?>
+                        </a>
+                    <?php endforeach; ?>
+                </div>
+            <?php endif; ?>
+        </div>
+    <?php endif; ?>
+</section>
+    <?php
+    return;
+endif;
 ?>
 
-<section class="hero<?php echo is_front_page() ? ' hero--home-bleed' : ''; ?> relative h-[640px] overflow-hidden lg:h-[700px]<?php echo $has_media ? '' : ' bg-brand-dark'; ?>">
+<section class="hero hero--home-bleed relative h-[640px] overflow-hidden lg:h-[700px]<?php echo $has_media ? '' : ' bg-brand-dark'; ?>">
     <?php if ($has_video) :
         $video_url  = wp_get_attachment_url($video_id);
         $video_mime = get_post_mime_type($video_id);
@@ -106,7 +169,9 @@ $has_media  = $has_video || $image_id;
             <div class="hero__ctas flex w-full flex-col gap-4 lg:w-auto lg:flex-row lg:justify-center lg:gap-10">
                 <?php foreach ($ctas as $i => $row) :
                     $link = $row['link'] ?? null;
-                    if (empty($link['url'])) continue;
+                    if (empty($link['url'])) {
+                        continue;
+                    }
                     $is_first = $i === 0;
                     ?>
                     <a class="<?php echo $is_first ? 'link-underline-block link-underline-block--ruled' : 'link-underline-block'; ?> text-brand-white"

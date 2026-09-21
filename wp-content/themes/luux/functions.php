@@ -85,16 +85,32 @@ add_action('admin_enqueue_scripts', function (string $hook): void {
  */
 function luux_uses_hero_header(): bool {
     if (is_front_page()) {
-        return true; 
+        return true;
     }
+
+    $post_id = (int) get_queried_object_id();
+
+    if ($post_id && function_exists('luux_acf_authoritative_section_row_layouts')) {
+        $layouts = luux_acf_authoritative_section_row_layouts($post_id);
+        $first   = $layouts[0] ?? reset($layouts) ?: '';
+
+        if (in_array($first, ['hero', 'resort_hero', 'contact_hero'], true)) {
+            return true;
+        }
+    }
+
     if (! function_exists('get_field')) {
         return false;
     }
+
     $sections = get_field('page_sections');
+
     if (empty($sections) || ! is_array($sections)) {
         return false;
     }
+
     $first = $sections[0]['acf_fc_layout'] ?? '';
+
     return in_array($first, ['hero', 'resort_hero', 'contact_hero'], true);
 }
 
