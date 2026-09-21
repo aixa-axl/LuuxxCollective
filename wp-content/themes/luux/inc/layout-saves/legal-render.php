@@ -7,6 +7,33 @@
 
 defined('ABSPATH') || exit;
 
+/**
+ * Format legal wysiwyg HTML for front-end output (paragraphs + line breaks).
+ */
+function luux_format_legal_html(mixed $html): string {
+    if (! is_string($html)) {
+        return '';
+    }
+
+    $html = trim($html);
+
+    if ($html === '') {
+        return '';
+    }
+
+    // Undo accidental double-encoding from AJAX/REST round-trips.
+    if (str_contains($html, '&lt;br') || str_contains($html, '&lt;p') || str_contains($html, '&lt;div')) {
+        $html = html_entity_decode($html, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+    }
+
+    // Plain text (or text with only \n) — turn newlines into paragraphs/breaks.
+    if (! preg_match('/<\s*(?:p|br|div|ul|ol|li|h[1-6]|table|strong|em|a)\b/i', $html)) {
+        $html = wpautop($html);
+    }
+
+    return wp_kses_post($html);
+}
+
 /** @return list<string> */
 function luux_acf_legal_layout_short_names(): array {
     return ['legal_header', 'legal_section'];

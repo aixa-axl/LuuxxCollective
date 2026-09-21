@@ -83,7 +83,7 @@ if (! $heading && ! $intro && empty($clauses)) {
                 <?php endif; ?>
                 <?php if ($intro) : ?>
                     <div class="legal-content">
-                        <?php echo wp_kses_post($intro); ?>
+                        <?php echo function_exists('luux_format_legal_html') ? luux_format_legal_html((string) $intro) : wp_kses_post($intro); ?>
                     </div>
                 <?php endif; ?>
             </div>
@@ -105,7 +105,7 @@ if (! $heading && ! $intro && empty($clauses)) {
                         <?php endif; ?>
                         <?php if ($body !== '') : ?>
                             <div class="legal-content">
-                                <?php echo wp_kses_post($body); ?>
+                                <?php echo function_exists('luux_format_legal_html') ? luux_format_legal_html((string) $body) : wp_kses_post($body); ?>
                             </div>
                         <?php endif; ?>
                     </article>

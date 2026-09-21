@@ -64,18 +64,7 @@
     }
 
     function readWysiwyg($fieldEl) {
-        if (typeof acf !== 'undefined' && typeof acf.getField === 'function') {
-            var field = acf.getField($fieldEl);
-
-            if (field && typeof field.val === 'function') {
-                var value = field.val();
-
-                if (value !== null && value !== undefined && value !== '') {
-                    return String(value);
-                }
-            }
-        }
-
+        // Prefer TinyMCE HTML so <p>/<br> survive — acf.field.val() can return flattened text.
         if (typeof tinymce !== 'undefined') {
             var $textarea = $fieldEl.find('textarea').first();
 
@@ -83,7 +72,7 @@
                 var editorId = $textarea.attr('id');
 
                 if (editorId && tinymce.get(editorId)) {
-                    var html = tinymce.get(editorId).getContent();
+                    var html = tinymce.get(editorId).getContent({ format: 'html' });
 
                     if (html) {
                         return String(html);
@@ -96,6 +85,18 @@
 
         if ($fallback.length && $fallback.val()) {
             return String($fallback.val());
+        }
+
+        if (typeof acf !== 'undefined' && typeof acf.getField === 'function') {
+            var field = acf.getField($fieldEl);
+
+            if (field && typeof field.val === 'function') {
+                var value = field.val();
+
+                if (value !== null && value !== undefined && value !== '') {
+                    return String(value);
+                }
+            }
         }
 
         return '';

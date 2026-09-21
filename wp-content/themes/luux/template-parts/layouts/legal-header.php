@@ -77,7 +77,7 @@ $heading_tag = (function_exists('luux_uses_hero_header') && luux_uses_hero_heade
         <?php endif; ?>
         <?php if ($intro) : ?>
             <div class="legal-content max-w-3xl">
-                <?php echo wp_kses_post($intro); ?>
+                <?php echo luux_format_legal_html((string) $intro); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- kses inside helper ?>
             </div>
         <?php endif; ?>
     </div>
