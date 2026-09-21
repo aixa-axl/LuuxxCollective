@@ -1212,7 +1212,6 @@ function luux_acf_repair_page_sections_count_from_shells(int $post_id): bool {
         return false;
     }
 
-    $count  = is_numeric($stored) ? (int) $stored : 0;
     $shells = luux_acf_discover_page_section_layout_shells($post_id);
 
     if ($shells === []) {
@@ -1226,6 +1225,9 @@ function luux_acf_repair_page_sections_count_from_shells(int $post_id): bool {
         $existing = get_post_meta($post_id, 'page_sections_' . $index . '_acf_fc_layout', true);
 
         if (! is_string($existing) || $existing === '') {
+            while (delete_post_meta($post_id, 'page_sections_' . $index . '_acf_fc_layout')) {
+            }
+
             update_post_meta($post_id, 'page_sections_' . $index . '_acf_fc_layout', $layout);
 
             $layout_key = function_exists('luux_acf_page_section_layout_key')
@@ -1233,19 +1235,25 @@ function luux_acf_repair_page_sections_count_from_shells(int $post_id): bool {
                 : null;
 
             if ($layout_key) {
+                while (delete_post_meta($post_id, '_page_sections_' . $index)) {
+                }
+
                 update_post_meta($post_id, '_page_sections_' . $index, $layout_key);
             }
         }
     }
 
-    $needed  = max(array_keys($shells)) + 1;
-    $changed = false;
+    $needed = max(array_keys($shells)) + 1;
 
-    if ($count < $needed) {
-        update_post_meta($post_id, 'page_sections', $needed);
-        update_post_meta($post_id, '_page_sections', 'field_luux_page_sections');
-        $changed = true;
+    // Wipe duplicate page_sections rows (imports often leave a stale "0" first).
+    while (delete_post_meta($post_id, 'page_sections')) {
     }
+
+    while (delete_post_meta($post_id, '_page_sections')) {
+    }
+
+    update_post_meta($post_id, 'page_sections', $needed);
+    update_post_meta($post_id, '_page_sections', 'field_luux_page_sections');
 
     // Refill field values into meta so ACF populates the restored rows.
     if (function_exists('luux_acf_restore_hero_from_stash')) {
@@ -1262,7 +1270,7 @@ function luux_acf_repair_page_sections_count_from_shells(int $post_id): bool {
 
     unset($repairing[$post_id]);
 
-    return $changed || $count < $needed || $needed > 0;
+    return true;
 }
 
 /**
@@ -1271,14 +1279,19 @@ function luux_acf_repair_page_sections_count_from_shells(int $post_id): bool {
 function luux_acf_resolved_page_sections_count(int $post_id): int {
     luux_acf_repair_page_sections_count_from_shells($post_id);
 
-    $stored = get_post_meta($post_id, 'page_sections', true);
+    // Prefer newest non-empty duplicate if any remain.
+    $raw = get_metadata('post', $post_id, 'page_sections', false);
 
-    if (luux_acf_parse_page_sections_layout_list($stored) !== []) {
-        return count(luux_acf_parse_page_sections_layout_list($stored));
-    }
+    if (is_array($raw) && $raw !== []) {
+        $resolved = luux_acf_resolve_meta_storage_value($raw);
 
-    if (is_numeric($stored) && (int) $stored > 0) {
-        return (int) $stored;
+        if (luux_acf_parse_page_sections_layout_list($resolved) !== []) {
+            return count(luux_acf_parse_page_sections_layout_list($resolved));
+        }
+
+        if (is_numeric($resolved) && (int) $resolved > 0) {
+            return (int) $resolved;
+        }
     }
 
     $shells = luux_acf_discover_page_section_layout_shells($post_id);
@@ -1359,3 +1372,107 @@ add_filter('acf/pre_update_metadata', function ($check, $post_id, $name, $value,
 
     return true;
 }, 5, 5);
+
+/**
+ * One-click restore for editors when Page Sections looks empty but content still exists.
+ */
+add_action('admin_notices', function (): void {
+    if (! current_user_can('edit_pages')) {
+        return;
+    }
+
+    $screen = function_exists('get_current_screen') ? get_current_screen() : null;
+
+    if (! $screen || $screen->id !== 'page') {
+        return;
+    }
+
+    $post_id = isset($_GET['post']) ? (int) $_GET['post'] : 0;
+
+    if ($post_id < 1) {
+        return;
+    }
+
+    $shells = luux_acf_discover_page_section_layout_shells($post_id);
+    $stored = get_post_meta($post_id, 'page_sections', true);
+    $count  = is_numeric($stored) ? (int) $stored : 0;
+
+    if ($shells === [] || ($count >= (max(array_keys($shells)) + 1) && ! luux_acf_page_sections_value_is_empty($stored))) {
+        // Still show notice if duplicate zeros exist.
+        $raw = get_metadata('post', $post_id, 'page_sections', false);
+
+        if (! is_array($raw) || count($raw) < 2) {
+            return;
+        }
+
+        $has_positive = false;
+
+        foreach ($raw as $row) {
+            if (is_numeric($row) && (int) $row > 0) {
+                $has_positive = true;
+                break;
+            }
+        }
+
+        if (! $has_positive && $shells === []) {
+            return;
+        }
+    }
+
+    if ($shells === []) {
+        return;
+    }
+
+    // If count already matches shells and no empty duplicate issue, skip.
+    if ($count >= (max(array_keys($shells)) + 1)) {
+        $raw = get_metadata('post', $post_id, 'page_sections', false);
+
+        if (is_array($raw) && count($raw) === 1 && is_numeric($raw[0]) && (int) $raw[0] > 0) {
+            return;
+        }
+    }
+
+    $url = wp_nonce_url(
+        add_query_arg(
+            [
+                'luux_restore_page_sections' => '1',
+                'post'                       => $post_id,
+                'action'                     => 'edit',
+            ],
+            admin_url('post.php')
+        ),
+        'luux_restore_page_sections_' . $post_id
+    );
+
+    echo '<div class="notice notice-warning"><p><strong>Luux:</strong> Page Sections looks empty in the editor, but layout content is still saved (that’s why the live page still shows). ';
+    echo '<a class="button button-primary" href="' . esc_url($url) . '">Restore layouts in editor</a></p></div>';
+});
+
+add_action('admin_init', function (): void {
+    if (! isset($_GET['luux_restore_page_sections']) || ! isset($_GET['post'])) {
+        return;
+    }
+
+    $post_id = (int) $_GET['post'];
+
+    if ($post_id < 1 || ! current_user_can('edit_post', $post_id)) {
+        return;
+    }
+
+    if (! isset($_GET['_wpnonce']) || ! wp_verify_nonce(sanitize_text_field(wp_unslash($_GET['_wpnonce'])), 'luux_restore_page_sections_' . $post_id)) {
+        return;
+    }
+
+    luux_acf_repair_page_sections_count_from_shells($post_id);
+
+    wp_safe_redirect(admin_url('post.php?post=' . $post_id . '&action=edit&luux_restored=1'));
+    exit;
+});
+
+add_action('admin_notices', function (): void {
+    if (! isset($_GET['luux_restored']) || ! isset($_GET['post'])) {
+        return;
+    }
+
+    echo '<div class="notice notice-success is-dismissible"><p><strong>Luux:</strong> Page Sections layouts were restored. If they still look empty, hard-refresh this page.</p></div>';
+});
